@@ -66,7 +66,7 @@ class GuardFlowTest extends TestCase
         [$key, $customer] = $this->redeemed();
         $this->assertSame($customer->id, $key->redeemed_by);
 
-        $response = $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertOk();
+        $response = $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertOk();
         $this->assertMatchesRegularExpression('/^\d{6}$/', $response->json('code'));
         $this->assertSame(1, $key->fresh()->uses_count);
         $this->assertTrue(ActivityLog::where('event', 'code.issued')->exists());
@@ -76,13 +76,13 @@ class GuardFlowTest extends TestCase
     {
         [$key, $customer] = $this->redeemed(['max_uses' => 1]);
 
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertOk();
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertOk();
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertOk();
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertOk();
         $this->assertSame(1, $key->fresh()->uses_count);
 
         // Yeni bir kod penceresinde hak bitti
         $key->forceFill(['last_code_hash' => 'eski'])->save();
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertStatus(422)->assertJsonFragment(['message' => 'Bu anahtarın kullanım hakkı doldu (1 kod).']);
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertStatus(422)->assertJsonFragment(['message' => 'Bu anahtarın kullanım hakkı doldu (1 kod).']);
     }
 
     public function test_cooldown_blocks_new_code(): void
@@ -90,7 +90,7 @@ class GuardFlowTest extends TestCase
         [$key, $customer] = $this->redeemed(['cooldown_minutes' => 30]);
         $key->forceFill(['last_used_at' => now()->subMinutes(5), 'last_code_hash' => 'eski', 'uses_count' => 1])->save();
 
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertStatus(422);
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertStatus(422);
     }
 
     public function test_validity_starts_at_redeem_and_expires(): void
@@ -99,14 +99,14 @@ class GuardFlowTest extends TestCase
         $this->assertTrue($key->expires_at->between(now()->addDays(29), now()->addDays(31)));
 
         $key->forceFill(['expires_at' => now()->subMinute()])->save();
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertStatus(422);
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertStatus(422);
     }
 
     public function test_mail_code_requires_mailbox(): void
     {
         [$key, $customer] = $this->redeemed();
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/mail")->assertStatus(422);
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/baska")->assertNotFound();
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/mail")->assertStatus(422);
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/baska")->assertNotFound();
     }
 
     public function test_key_cannot_be_redeemed_by_second_customer(): void
@@ -132,7 +132,7 @@ class GuardFlowTest extends TestCase
     public function test_customer_cannot_use_someone_elses_key(): void
     {
         [$key] = $this->redeemed();
-        $this->actingAs(User::factory()->create())->postJson("/kod/{$key->id}/2fa")->assertNotFound();
+        $this->actingAs(User::factory()->create())->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertNotFound();
     }
 
     public function test_revoked_key_stops_giving_codes(): void
@@ -140,7 +140,7 @@ class GuardFlowTest extends TestCase
         [$key, $customer] = $this->redeemed();
         $key->forceFill(['revoked_at' => now()])->save();
 
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/2fa")->assertStatus(422);
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertStatus(422);
     }
 
     public function test_roles_are_separated(): void

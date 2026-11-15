@@ -6,10 +6,11 @@ use App\Support\KeyCode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ProductKey extends Model
 {
-    protected $fillable = ['account_id', 'code', 'code_hash', 'label', 'max_uses', 'cooldown_minutes', 'valid_days'];
+    protected $fillable = ['account_id', 'package_id', 'code', 'code_hash', 'label', 'max_uses', 'cooldown_minutes', 'valid_days'];
 
     protected $hidden = ['code', 'code_hash', 'last_code_hash'];
 
@@ -35,9 +36,49 @@ class ProductKey extends Model
         return $this->belongsTo(Account::class)->withTrashed();
     }
 
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class)->withTrashed();
+    }
+
+    /** Paket anahtarında müşterinin seçtiği hesaplar. */
+    public function selections(): BelongsToMany
+    {
+        return $this->belongsToMany(Account::class, 'key_selections')->withTrashed()->withPivot('created_at')->orderBy('title');
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'redeemed_by');
+    }
+
+    public function isPackage(): bool
+    {
+        return $this->package_id !== null;
+    }
+
+    /** Listelerde görünen ad: hesabın ya da paketin adı. */
+    public function targetTitle(): string
+    {
+        return $this->isPackage()
+            ? ($this->package?->name ?? 'Silinmiş paket').' (paket)'
+            : ($this->account?->title ?? 'Silinmiş hesap');
+    }
+
+    /** Hedef (hesap ya da paket) silinmiş ya da kapatılmış mı? */
+    public function targetUnavailable(): bool
+    {
+        $target = $this->isPackage() ? $this->package : $this->account;
+
+        return ! $target || $target->trashed() || ! $target->is_active;
+    }
+
+    /** Bu anahtarla kod alınabilecek hesap mı? */
+    public function grantsAccount(Account $account): bool
+    {
+        return $this->isPackage()
+            ? $this->selections()->whereKey($account->id)->exists()
+            : $this->account_id === $account->id;
     }
 
     public static function findByCode(string $input): ?self

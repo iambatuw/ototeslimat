@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -35,6 +36,11 @@ class Account extends Model
     public function keys(): HasMany
     {
         return $this->hasMany(ProductKey::class);
+    }
+
+    public function packages(): BelongsToMany
+    {
+        return $this->belongsToMany(Package::class);
     }
 
     public function platformConfig(): array

@@ -29,6 +29,10 @@
     @case('key.created')
         {{ $m['count'] ?? 0 }} adet{{ ! empty($m['label']) ? ', '.$m['label'] : '' }}
         @break
+    @case('package.saved')
+    @case('package.deleted')
+        {{ $m['name'] ?? '' }}
+        @break
     @case('key.purged')
         {{ $m['count'] ?? 0 }} anahtar
         @break

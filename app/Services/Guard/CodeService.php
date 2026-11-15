@@ -2,6 +2,7 @@
 
 namespace App\Services\Guard;
 
+use App\Models\Account;
 use App\Models\ProductKey;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -29,9 +30,8 @@ class CodeService
      *
      * @throws GuardException
      */
-    public function issue(ProductKey $key, string $type): array
+    public function issue(ProductKey $key, Account $account, string $type): array
     {
-        $account = $key->account;
         $this->guard($key);
 
         if (! $account->is_active || $account->trashed()) {
@@ -39,8 +39,8 @@ class CodeService
         }
 
         $result = match ($type) {
-            self::TYPE_TOTP => $this->fromTotp($key),
-            self::TYPE_MAIL => $this->fromMail($key),
+            self::TYPE_TOTP => $this->fromTotp($account),
+            self::TYPE_MAIL => $this->fromMail($account),
             default => throw new GuardException('Geçersiz istek.', 'bad_type'),
         };
 
@@ -51,7 +51,7 @@ class CodeService
         return $result;
     }
 
-    private function guard(ProductKey $key): void
+    public function guard(ProductKey $key): void
     {
         if ($key->revoked_at) {
             throw new GuardException('Bu anahtar satıcı tarafından iptal edildi.', 'revoked');
@@ -62,15 +62,15 @@ class CodeService
         }
     }
 
-    private function fromTotp(ProductKey $key): array
+    private function fromTotp(Account $account): array
     {
-        if (! $key->account->hasTotp()) {
+        if (! $account->hasTotp()) {
             throw new GuardException('Bu hesapta Authenticator kodu yok.', 'no_totp');
         }
 
         try {
             $now = time();
-            $code = $this->totp->code($key->account->totp_secret, $now);
+            $code = $this->totp->code($account->totp_secret, $now);
         } catch (Throwable $e) {
             throw new GuardException('Hesabın Authenticator anahtarı okunamadı. Satıcıya haber ver.', 'totp_secret', $e);
         }
@@ -78,10 +78,8 @@ class CodeService
         return ['type' => self::TYPE_TOTP, 'kind' => 'code', 'code' => $code, 'expires_in' => $this->totp->secondsLeft($now), 'period' => Totp::PERIOD, 'received_at' => null];
     }
 
-    private function fromMail(ProductKey $key): array
+    private function fromMail(Account $account): array
     {
-        $account = $key->account;
-
         if (! $account->hasMailbox()) {
             throw new GuardException('Bu hesapta mail kodu yok.', 'no_mailbox');
         }

@@ -18,7 +18,7 @@ class KeyController extends Controller
     public function index(Request $request)
     {
         return view('admin.keys', [
-            'keys' => $this->filtered($request)->with(['account:id,title,platform,deleted_at', 'customer:id,email'])->latest()->paginate(50)->withQueryString(),
+            'keys' => $this->filtered($request)->with(['account:id,title,platform,deleted_at', 'package:id,name,deleted_at', 'customer:id,email'])->latest()->paginate(50)->withQueryString(),
             'accounts' => Account::orderBy('title')->get(['id', 'title']),
             'filters' => $request->only('q', 'account', 'status'),
         ]);
@@ -27,14 +27,15 @@ class KeyController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'account_id' => ['required', Rule::exists('accounts', 'id')->whereNull('deleted_at')],
+            'account_id' => ['required_without:package_id', 'prohibits:package_id', 'nullable', Rule::exists('accounts', 'id')->whereNull('deleted_at')],
+            'package_id' => ['required_without:account_id', 'nullable', Rule::exists('packages', 'id')->whereNull('deleted_at')],
             'count' => ['required', 'integer', 'between:1,500'],
             'max_uses' => ['nullable', 'integer', 'between:1,100000'],
             'valid_days' => ['nullable', 'integer', 'between:1,3650'],
             'cooldown_minutes' => ['nullable', 'integer', 'between:0,10080'],
             'label' => ['nullable', 'string', 'max:120'],
         ], [], [
-            'account_id' => 'hesap', 'count' => 'adet', 'max_uses' => 'kullanım hakkı',
+            'account_id' => 'hesap', 'package_id' => 'paket', 'count' => 'adet', 'max_uses' => 'kullanım hakkı',
             'valid_days' => 'süre', 'cooldown_minutes' => 'bekleme süresi', 'label' => 'not',
         ]);
 
@@ -48,7 +49,8 @@ class KeyController extends Controller
                 } while (ProductKey::where('code_hash', $hash)->exists());
 
                 $key = ProductKey::create([
-                    'account_id' => $data['account_id'],
+                    'account_id' => $data['account_id'] ?? null,
+                    'package_id' => $data['package_id'] ?? null,
                     'code' => KeyCode::format($body),
                     'code_hash' => $hash,
                     'label' => $data['label'] ?? null,
@@ -62,12 +64,18 @@ class KeyController extends Controller
             return $codes;
         });
 
+        $forPackage = ! empty($data['package_id']);
+
         Activity::log('key.created', [
-            'account' => Account::find($data['account_id']),
-            'meta' => ['count' => count($codes), 'label' => $data['label'] ?? null],
+            'account' => $forPackage ? null : Account::find($data['account_id']),
+            'meta' => ['count' => count($codes), 'label' => $data['label'] ?? null, 'package_id' => $data['package_id'] ?? null],
         ]);
 
-        return redirect()->route('admin.accounts.index', ['hesap' => $data['account_id']])
+        $back = $forPackage
+            ? route('admin.packages.index', ['paket' => $data['package_id']])
+            : route('admin.accounts.index', ['hesap' => $data['account_id']]);
+
+        return redirect($back)
             ->with('fresh_keys', $codes)
             ->with('status', count($codes).' anahtar üretildi.');
     }
@@ -103,7 +111,7 @@ class KeyController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
-        $query = $this->filtered($request)->with('account:id,title,platform,deleted_at')->latest();
+        $query = $this->filtered($request)->with(['account:id,title,platform,deleted_at', 'package:id,name,deleted_at'])->latest();
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
@@ -113,7 +121,7 @@ class KeyController extends Controller
             $query->chunk(500, function ($keys) use ($out) {
                 foreach ($keys as $key) {
                     fputcsv($out, [
-                        $key->code, $key->account?->title, $key->account?->platformLabel(), $key->label,
+                        $key->code, $key->targetTitle(), $key->account?->platformLabel() ?? "Paket", $key->label,
                         $key->rulesSummary(), $key->statusLabel(),
                         $key->redeemed_at?->format('d.m.Y H:i'), $key->expires_at?->format('d.m.Y H:i'), $key->uses_count,
                     ], ';');
@@ -130,6 +138,10 @@ class KeyController extends Controller
 
         if ($account = $request->integer('account')) {
             $query->where('account_id', $account);
+        }
+
+        if ($package = $request->integer('package')) {
+            $query->where('package_id', $package);
         }
 
         if ($q = trim((string) $request->input('q'))) {

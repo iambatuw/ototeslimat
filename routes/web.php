@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KeyController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\ProfileController;
@@ -18,7 +19,8 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:customer')->group(function () {
         Route::post('/anahtar', [HomeController::class, 'redeem'])->middleware('throttle:redeem')->name('redeem');
-        Route::post('/kod/{key}/{type}', [HomeController::class, 'code'])->middleware('throttle:guard-code')->name('code');
+        Route::post('/kod/{key}/{account}/{type}', [HomeController::class, 'code'])->withTrashed()->middleware('throttle:guard-code')->name('code');
+        Route::post('/paket/{key}/sec', [HomeController::class, 'pick'])->middleware('throttle:guard-code')->name('pick');
     });
 
     // Yönetim (mağaza sahibi)
@@ -33,6 +35,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/hesaplar/{account}', [AccountController::class, 'update'])->name('accounts.update');
         Route::delete('/hesaplar/{account}', [AccountController::class, 'destroy'])->name('accounts.destroy');
         Route::post('/hesaplar/{account}/dene', [AccountController::class, 'test'])->middleware('throttle:6,1')->name('accounts.test');
+
+        Route::get('/paketler', [PackageController::class, 'index'])->name('packages.index');
+        Route::get('/paketler/yeni', [PackageController::class, 'create'])->name('packages.create');
+        Route::post('/paketler', [PackageController::class, 'store'])->name('packages.store');
+        Route::get('/paketler/{package}/duzenle', [PackageController::class, 'edit'])->name('packages.edit');
+        Route::put('/paketler/{package}', [PackageController::class, 'update'])->name('packages.update');
+        Route::delete('/paketler/{package}', [PackageController::class, 'destroy'])->name('packages.destroy');
 
         Route::get('/anahtarlar', [KeyController::class, 'index'])->name('keys.index');
         Route::post('/anahtarlar', [KeyController::class, 'store'])->name('keys.store');

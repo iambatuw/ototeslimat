@@ -13,6 +13,7 @@ Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 - **Mail kodu:** Hesabın posta kutusundan son gelen giriş kodu IMAP ile okunur. Netflix'in hane doğrulama bağlantısı da okunabilir.
 - **Authenticator (2FA):** 6 haneli kod sunucuda üretilir, 30 saniyelik geri sayımla gösterilir.
 - **Anahtar kuralları:** kod hakkı, süre (müşteri anahtarı eklediği an başlar), kodlar arası bekleme. Boş bırakılırsa sınırsız ve süresiz olur. Aynı kodu tekrar görmek hak düşürmez.
+- **Paketler:** Tek anahtarla müşteri listeden belirlediğin sayıda hesap seçer, örneğin "4 platformdan 2'sini seç". Seçim kalıcıdır. Kod hakkı, süre ve bekleme anahtarın tamamına uygulanır.
 - **Yönetim:** panel grafiği, sol listeden hesap seçip sağda anahtar üretme, toplu hesap ekleme, CSV dışa aktarma, eski anahtarları tek tıkla temizleme, müşteri engelleme.
 - **Kayıtlar:** Hangi müşteri, hangi anahtarla, ne zaman, hangi IP'den, hangi kodu aldı; başarısız denemeler nedeniyle birlikte.
 - **Mağaza ayarları:** marka adı, sekme başlığı, karşılama yazısı, duyuru, destek bağlantısı, tema rengi, logo, sekme simgesi, yeni kaydı açıp kapama.

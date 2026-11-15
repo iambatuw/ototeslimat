@@ -4,6 +4,7 @@
             <tr>
                 <th scope="col">Anahtar</th>
                 @if ($showAccount)<th scope="col">Hesap</th>@endif
+                @if ($showPicks ?? false)<th scope="col">Seçilen hesaplar</th>@endif
                 <th scope="col">Kural</th>
                 <th scope="col">Durum</th>
                 <th scope="col">Müşteri</th>
@@ -19,7 +20,8 @@
                         <span class="mono nowrap">{{ $key->code }}</span>
                         @if ($key->label)<span class="cell-sub">{{ $key->label }}</span>@endif
                     </td>
-                    @if ($showAccount)<td data-label="Hesap">{{ $key->account?->title }}</td>@endif
+                    @if ($showAccount)<td data-label="Hesap">{{ $key->targetTitle() }}</td>@endif
+                    @if ($showPicks ?? false)<td data-label="Seçilen">{{ $key->selections->pluck("title")->implode(", ") ?: "Henüz yok" }}</td>@endif
                     <td data-label="Kural">{{ $key->rulesSummary() }}</td>
                     <td data-label="Durum">
                         {{ $key->statusLabel() }}

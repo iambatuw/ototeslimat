@@ -34,37 +34,66 @@
             <ul class="games" role="list">
                 @foreach ($keys as $key)
                     @php
-                        $account = $key->account;
                         $status = $key->status();
-                        $off = in_array($status, ['revoked', 'expired', 'used_up'], true) || $account->trashed() || ! $account->is_active;
+                        $blocked = in_array($status, ['revoked', 'expired', 'used_up'], true) ? $key->statusLabel() : null;
+                        $rules = [
+                            $key->max_uses ? $key->usesLeft().' / '.$key->max_uses.' kod hakkı kaldı' : null,
+                            $key->expires_at ? $key->expires_at->format('d.m.Y').' tarihine kadar' : null,
+                            $key->cooldown_minutes ? 'kodlar arası '.$key->cooldown_minutes.' dk' : null,
+                            ! $key->max_uses && ! $key->expires_at ? 'sınırsız' : null,
+                        ];
                     @endphp
-                    <li class="game {{ $off ? 'game--off' : '' }}" data-game @if (session('opened') === $key->id) data-open="true" @endif>
-                        <div class="game__row">
-                            <div>
-                                <h3 class="game__title">{{ $account->title }}</h3>
+
+                    @if (! $key->isPackage())
+                        @include('customer.partials.account-row', ['account' => $key->account, 'meta' => [$key->account->platformLabel(), ...$rules]])
+                    @else
+                        @php
+                            $package = $key->package;
+                            $picked = $key->selections;
+                            $left = max(0, $package->pick_count - $picked->count());
+                            $packageDown = $package->trashed() || ! $package->is_active;
+                            $choices = $package->accounts->reject(fn ($a) => $picked->contains('id', $a->id));
+                        @endphp
+                        <li class="pkg">
+                            <div class="pkg__head">
+                                <h3 class="game__title">{{ $package->name }}</h3>
                                 <p class="game__meta">{{ implode(', ', array_filter([
-                                    $account->platformLabel(),
-                                    $key->max_uses ? $key->usesLeft().' / '.$key->max_uses.' kod hakkı kaldı' : null,
-                                    $key->expires_at ? $key->expires_at->format('d.m.Y').' tarihine kadar' : null,
-                                    $key->cooldown_minutes ? 'kodlar arası '.$key->cooldown_minutes.' dk' : null,
-                                    ! $key->max_uses && ! $key->expires_at ? 'sınırsız' : null,
+                                    $picked->count().' / '.$package->pick_count.' hesap seçildi',
+                                    ...$rules,
                                 ])) }}</p>
+                                @if ($package->description)<p class="pkg__desc">{{ $package->description }}</p>@endif
                             </div>
-                            @if ($off)
-                                <span class="muted small">{{ $account->trashed() || ! $account->is_active ? 'Şu an kod verilmiyor' : $key->statusLabel() }}</span>
-                            @else
-                                <div class="game__actions">
-                                    @if ($account->hasMailbox())
-                                        <button type="button" class="btn btn--primary" data-get-code data-url="{{ route('code', [$key, 'mail']) }}" data-idle="Mail kodunu al">Mail kodunu al</button>
-                                    @endif
-                                    @if ($account->hasTotp())
-                                        <button type="button" class="btn {{ $account->hasMailbox() ? 'btn--ghost' : 'btn--primary' }}" data-get-code data-url="{{ route('code', [$key, '2fa']) }}" data-idle="2FA kodunu al">2FA kodunu al</button>
-                                    @endif
+
+                            @if ($picked->isNotEmpty())
+                                <ul class="games games--nested" role="list" aria-label="Seçtiğin hesaplar">
+                                    @foreach ($picked as $account)
+                                        @include('customer.partials.account-row', ['meta' => [$account->platformLabel()], 'blocked' => $blocked ?? ($packageDown ? 'Paket kapatıldı' : null)])
+                                    @endforeach
+                                </ul>
+                            @endif
+
+                            @if ($left > 0 && ! $blocked && ! $packageDown)
+                                <div class="pkg__pick">
+                                    <p class="label">{{ $left }} hesap daha seçebilirsin. Seçim kalıcıdır.</p>
+                                    <ul class="choices" role="list">
+                                        @foreach ($choices as $account)
+                                            @php($unavailable = $account->trashed() || ! $account->is_active)
+                                            <li>
+                                                <form method="POST" action="{{ route('pick', $key) }}" data-confirm="{{ $account->title }} seçilsin mi? Sonradan değiştiremezsin.">
+                                                    @csrf
+                                                    <input type="hidden" name="account_id" value="{{ $account->id }}">
+                                                    <button type="submit" class="choice" @disabled($unavailable)>
+                                                        <span class="choice__title">{{ $account->title }}</span>
+                                                        <span class="choice__sub">{{ $unavailable ? 'Şu an seçilemiyor' : $account->platformLabel() }}</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endforeach
+                                    </ul>
                                 </div>
                             @endif
-                        </div>
-                        <div class="code" hidden></div>
-                    </li>
+                        </li>
+                    @endif
                 @endforeach
             </ul>
         </section>

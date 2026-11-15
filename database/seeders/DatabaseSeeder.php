@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Account;
 use App\Models\ActivityLog;
+use App\Models\Package;
 use App\Models\ProductKey;
 use App\Models\User;
 use App\Support\KeyCode;
@@ -59,6 +60,21 @@ class DatabaseSeeder extends Seeder
                         'expires_at' => $key->valid_days ? now()->subDays(2)->addDays($key->valid_days) : null,
                     ])->save();
                 }
+            }
+        }
+
+        // Paket: müşteri 4 hesaptan 2'sini seçer
+        $hbo = Account::where('platform', 'hbomax')->first();
+        $package = Package::create(['name' => 'İkili yayın paketi', 'description' => 'Dört platformdan istediğin ikisini seç.', 'pick_count' => 2]);
+        $package->accounts()->sync([$netflix->id, $chatgpt->id, $prime->id, $hbo->id]);
+
+        for ($i = 0; $i < 5; $i++) {
+            $body = KeyCode::generate();
+            $key = ProductKey::create(['package_id' => $package->id, 'code' => KeyCode::format($body), 'code_hash' => KeyCode::hash($body), 'label' => 'Paket sipariş #'.(3100 + $i)]);
+
+            if ($i === 0) {
+                $key->forceFill(['redeemed_by' => $customer->id, 'redeemed_at' => now()->subDay()])->save();
+                $key->selections()->attach($chatgpt->id);
             }
         }
 

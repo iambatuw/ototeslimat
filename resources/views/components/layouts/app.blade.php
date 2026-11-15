@@ -8,6 +8,7 @@
     $nav = $user->isAdmin() ? [
         ['admin.dashboard', 'admin.dashboard', 'Panel'],
         ['admin.accounts.index', 'admin.accounts.*', 'Hesaplar'],
+        ['admin.packages.index', 'admin.packages.*', 'Paketler'],
         ['admin.keys.index', 'admin.keys.*', 'Anahtarlar'],
         ['admin.customers.index', 'admin.customers.*', 'Müşteriler'],
         ['admin.logs', 'admin.logs', 'Kayıtlar'],
