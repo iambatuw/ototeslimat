@@ -5,14 +5,14 @@
         <span>{{ $paginator->firstItem() }} ile {{ $paginator->lastItem() }} arası, toplam {{ $paginator->total() }}</span>
         <span class="pager__links">
             @if ($paginator->onFirstPage())
-                <span class="btn btn--ghost btn--s" aria-disabled="true">Önceki</span>
+                <span class="btn btn--secondary btn--s" aria-disabled="true">Önceki</span>
             @else
-                <a class="btn btn--ghost btn--s" href="{{ $paginator->previousPageUrl() }}" rel="prev">Önceki</a>
+                <a class="btn btn--secondary btn--s" href="{{ $paginator->previousPageUrl() }}" rel="prev">Önceki</a>
             @endif
             @if ($paginator->hasMorePages())
-                <a class="btn btn--ghost btn--s" href="{{ $paginator->nextPageUrl() }}" rel="next">Sonraki</a>
+                <a class="btn btn--secondary btn--s" href="{{ $paginator->nextPageUrl() }}" rel="next">Sonraki</a>
             @else
-                <span class="btn btn--ghost btn--s" aria-disabled="true">Sonraki</span>
+                <span class="btn btn--secondary btn--s" aria-disabled="true">Sonraki</span>
             @endif
         </span>
     </nav>

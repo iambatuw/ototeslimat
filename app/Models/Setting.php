@@ -22,8 +22,8 @@ class Setting extends Model
     public const DEFAULTS = [
         'brand_name' => null,               // boşsa APP_NAME
         'tab_title' => null,
-        'tagline' => 'Anahtarını gir, hesabının giriş kodunu buradan al.',
-        'theme_color' => '#ff7a1a',
+        'tagline' => 'Giriş kodun, saniyeler içinde elinde.',
+        'theme_color' => '#3b82f6',
         'logo' => null,
         'favicon' => null,
         'announcement' => null,

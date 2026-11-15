@@ -1,5 +1,5 @@
 <x-layouts.app title="Hesabım">
-    <div class="head">
+    <div class="page-head">
         <div>
             <h1>Hesabım</h1>
             <p>{{ $user->name }}, {{ $user->email }}</p>
@@ -10,10 +10,10 @@
         <p class="notice" role="status">Şifren değişti.</p>
     @endif
 
-    <form method="POST" action="{{ route('user-password.update') }}" class="well stack" data-busy novalidate>
+    <form method="POST" action="{{ route('user-password.update') }}" class="card stack form-page" data-busy novalidate>
         @csrf
         @method('PUT')
-        <h2 class="section">Şifreyi değiştir</h2>
+        <h2 class="card__title">Şifreyi değiştir</h2>
         <div class="field">
             <label for="current_password">Mevcut şifre</label>
             <input id="current_password" name="current_password" type="password" class="input" autocomplete="current-password" required @error('current_password', 'updatePassword') aria-invalid="true" @enderror>

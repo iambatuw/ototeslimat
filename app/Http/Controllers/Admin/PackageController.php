@@ -13,22 +13,12 @@ use Illuminate\Validation\Validator;
 
 class PackageController extends Controller
 {
-    /** Solda paket listesi, sağda seçili paketin hesapları ve anahtarları. */
-    public function index(Request $request)
+    public function index()
     {
-        $packages = Package::withCount(['accounts', 'keys as unused_count' => fn ($q) => $q->inStatus('unused')])
-            ->orderBy('name')->get();
-
-        $selected = $request->integer('paket') ? $packages->firstWhere('id', $request->integer('paket')) : $packages->first();
-        $selected?->load('accounts:id,title,platform,is_active,deleted_at');
-
         return view('admin.packages.index', [
-            'packages' => $packages,
-            'selected' => $selected,
-            'keys' => $selected?->keys()->with(['customer:id,email', 'selections:id,title'])->inStatus($request->input('status'))
-                ->latest()->paginate(30)->withQueryString(),
-            'filters' => $request->only('status'),
-            'fresh' => session('fresh_keys', []),
+            'packages' => Package::with('accounts:id,title')
+                ->withCount(['keys', 'keys as unused_count' => fn ($q) => $q->inStatus('unused')])
+                ->orderBy('name')->get(),
         ]);
     }
 
@@ -43,7 +33,7 @@ class PackageController extends Controller
         $this->save($request, $package);
         Activity::log('package.saved', ['meta' => ['name' => $package->name, 'new' => true]]);
 
-        return redirect()->route('admin.packages.index', ['paket' => $package->id])->with('status', $package->name.' oluşturuldu. Şimdi bu pakete anahtar üretebilirsin.');
+        return redirect()->route('admin.keys.index', ['hedef' => 'package:'.$package->id])->with('status', $package->name.' oluşturuldu. Şimdi bu paketin anahtarlarını üret.');
     }
 
     public function edit(Package $package)
@@ -60,7 +50,7 @@ class PackageController extends Controller
         $this->save($request, $package);
         Activity::log('package.saved', ['meta' => ['name' => $package->name]]);
 
-        return redirect()->route('admin.packages.index', ['paket' => $package->id])->with('status', $package->name.' güncellendi.');
+        return redirect()->route('admin.packages.index')->with('status', $package->name.' güncellendi.');
     }
 
     public function destroy(Package $package)

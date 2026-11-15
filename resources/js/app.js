@@ -154,7 +154,7 @@ class CodePanel {
                 <p class="code__label">Platformun gönderdiği doğrulama bağlantısı</p>
                 <div class="code__link">
                     <a class="btn btn--primary" target="_blank" rel="noopener noreferrer" data-link>Bağlantıyı aç</a>
-                    <button type="button" class="btn btn--ghost btn--s" data-copy="${esc(data.code)}">Bağlantıyı kopyala</button>
+                    <button type="button" class="btn btn--secondary btn--s" data-copy="${esc(data.code)}">Bağlantıyı kopyala</button>
                 </div>
                 <p class="code__note">Mail ${ago(data.received_at)} geldi. Bağlantıyı hesabın açık olduğu cihazda aç.${usesNote(data.uses_left)}</p>`;
             const link = this.panel.querySelector('[data-link]');
@@ -165,7 +165,7 @@ class CodePanel {
                 <p class="code__value" aria-live="polite">${esc(data.code)}</p>
                 <div class="code__side">
                     ${totp ? '<p class="code__clock"><span data-left>--</span><small>sn</small></p>' : ''}
-                    <button type="button" class="btn btn--ghost btn--s" data-copy="${esc(data.code)}">Kodu kopyala</button>
+                    <button type="button" class="btn btn--secondary btn--s" data-copy="${esc(data.code)}">Kodu kopyala</button>
                 </div>
                 ${totp ? '<div class="ramp" aria-hidden="true"><div class="ramp__heat"></div><div class="ramp__mark"></div></div>' : ''}
                 <p class="code__note">${totp

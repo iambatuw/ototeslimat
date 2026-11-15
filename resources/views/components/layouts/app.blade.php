@@ -7,11 +7,9 @@
     // [rota, aktif sayılacak rota deseni, etiket]
     $nav = $user->isAdmin() ? [
         ['admin.dashboard', 'admin.dashboard', 'Panel'],
-        ['admin.accounts.index', 'admin.accounts.*', 'Hesaplar'],
-        ['admin.packages.index', 'admin.packages.*', 'Paketler'],
+        ['admin.accounts.index', 'admin.accounts.*|admin.packages.*', 'Hesaplar'],
         ['admin.keys.index', 'admin.keys.*', 'Anahtarlar'],
-        ['admin.customers.index', 'admin.customers.*', 'Müşteriler'],
-        ['admin.logs', 'admin.logs', 'Kayıtlar'],
+        ['admin.customers.index', 'admin.customers.*|admin.logs', 'Müşteriler'],
         ['admin.settings', 'admin.settings*', 'Ayarlar'],
     ] : [];
 @endphp
@@ -30,31 +28,29 @@
 </head>
 <body>
     <header class="bar">
-        <div class="bar__inner">
-            <a href="{{ url('/') }}" class="wordmark" aria-label="{{ $brand }} ana sayfa">
-                @if ($logo)<img src="{{ asset($logo) }}" alt="" class="wordmark__logo" height="28">@endif
+        <div class="container bar__inner {{ $nav ? '' : 'bar__inner--plain' }}">
+            <a href="{{ $user->homePath() }}" class="brand" aria-label="{{ $brand }}">
+                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
                 <span>{{ $brand }}</span>
             </a>
             @if ($nav)
-                <nav class="nav" aria-label="Yönetim menüsü">
+                <nav class="nav" aria-label="Yönetim">
                     @foreach ($nav as [$route, $pattern, $label])
-                        <a href="{{ route($route) }}" @if (request()->routeIs($pattern)) aria-current="page" @endif>{{ $label }}</a>
+                        <a href="{{ route($route) }}" @if (request()->routeIs(...explode('|', $pattern))) aria-current="page" @endif>{{ $label }}</a>
                     @endforeach
                 </nav>
-            @else
-                <span class="nav nav--empty" aria-hidden="true"></span>
             @endif
             <div class="bar__end">
-                <a href="{{ route('profile') }}" @if (request()->routeIs('profile')) aria-current="page" @endif>{{ $user->name }}</a>
+                <a href="{{ route('profile') }}" class="bar__user">{{ $user->name }}</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="linkbtn">Çıkış</button>
+                    <button type="submit" class="btn btn--secondary btn--s">Çıkış</button>
                 </form>
             </div>
         </div>
     </header>
 
-    <main class="container page" id="icerik">
+    <main class="container page">
         @if (session('status') && session('status') !== 'password-updated')
             <p class="notice" role="status">{{ session('status') }}</p>
         @endif

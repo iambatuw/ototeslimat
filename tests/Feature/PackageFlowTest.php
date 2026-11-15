@@ -30,7 +30,7 @@ class PackageFlowTest extends TestCase
         ProductKey::create(['package_id' => $package->id, 'code' => KeyCode::format($body), 'code_hash' => KeyCode::hash($body)] + $rules);
 
         $customer = User::factory()->create();
-        $this->actingAs($customer)->post('/anahtar', ['key' => KeyCode::format($body)])->assertRedirect('/');
+        $this->actingAs($customer)->post('/anahtar', ['key' => KeyCode::format($body)])->assertRedirect('/kodlarim');
 
         return [ProductKey::where('package_id', $package->id)->first(), $customer, $accounts];
     }
@@ -114,6 +114,6 @@ class PackageFlowTest extends TestCase
         [$key, $customer, [$a]] = $this->redeemedPackage();
         $this->actingAs($customer)->post("/paket/{$key->id}/sec", ['account_id' => $a->id]);
 
-        $this->actingAs($customer)->get('/')->assertOk()->assertSee('Paket')->assertSee('1 / 2 hesap seçildi');
+        $this->actingAs($customer)->get('/kodlarim')->assertOk()->assertSee('Paket')->assertSee('1 / 2 hesap seçildi');
     }
 }

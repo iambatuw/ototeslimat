@@ -42,7 +42,7 @@ class GuardFlowTest extends TestCase
     {
         [$key, $code] = $this->key($this->totpAccount(), $rules);
         $customer = User::factory()->create();
-        $this->actingAs($customer)->post('/anahtar', ['key' => $code])->assertRedirect('/');
+        $this->actingAs($customer)->post('/anahtar', ['key' => $code])->assertRedirect('/kodlarim');
 
         return [$key->fresh(), $customer];
     }
@@ -195,5 +195,24 @@ class GuardFlowTest extends TestCase
     {
         $this->actingAs($this->admin())->post('/yonetim/ayarlar/gorunum', ['theme_color' => 'red;}body{display:none'])
             ->assertSessionHasErrors('theme_color');
+    }
+
+    public function test_landing_is_public_and_sends_signed_in_users_home(): void
+    {
+        $this->get('/')->assertOk()->assertSee('Nasıl çalışır')->assertSee('Netflix');
+        $this->actingAs(User::factory()->create())->get('/')->assertRedirect('/kodlarim');
+        $this->actingAs($this->admin())->get('/')->assertRedirect('/yonetim');
+    }
+
+    public function test_keys_page_generates_from_single_target_choice(): void
+    {
+        $account = $this->totpAccount();
+
+        $this->actingAs($this->admin())->get('/yonetim/anahtarlar?hedef=account:'.$account->id)->assertOk();
+        $this->actingAs($this->admin())->post('/yonetim/anahtarlar', ['target' => 'account:'.$account->id, 'count' => 2])
+            ->assertRedirect('/yonetim/anahtarlar?hedef=account%3A'.$account->id);
+        $this->assertSame(2, ProductKey::where('account_id', $account->id)->count());
+
+        $this->actingAs($this->admin())->post('/yonetim/anahtarlar', ['target' => '', 'count' => 1])->assertSessionHasErrors('account_id');
     }
 }

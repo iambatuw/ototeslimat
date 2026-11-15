@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Package;
 use App\Models\ProductKey;
 use App\Support\Activity;
 use App\Support\KeyCode;
@@ -15,17 +16,28 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class KeyController extends Controller
 {
+    /** Üstte anahtar üretme formu, altta tüm anahtarlar. */
     public function index(Request $request)
     {
         return view('admin.keys', [
-            'keys' => $this->filtered($request)->with(['account:id,title,platform,deleted_at', 'package:id,name,deleted_at', 'customer:id,email'])->latest()->paginate(50)->withQueryString(),
-            'accounts' => Account::orderBy('title')->get(['id', 'title']),
-            'filters' => $request->only('q', 'account', 'status'),
+            'keys' => $this->filtered($request)->with(['account:id,title,platform,deleted_at', 'package:id,name,deleted_at', 'customer:id,email', 'selections:id,title'])->latest()->paginate(50)->withQueryString(),
+            'accounts' => Account::orderBy('title')->get(['id', 'title', 'platform', 'is_active']),
+            'packages' => Package::orderBy('name')->get(['id', 'name', 'is_active']),
+            'target' => old('target', $request->input('hedef')),
+            'filters' => $request->only('q', 'account', 'package', 'status'),
+            'fresh' => session('fresh_keys', []),
         ]);
     }
 
     public function store(Request $request)
     {
+        // Formdaki tek seçim "account:5" ya da "package:2" biçiminde gelir.
+        [$kind, $id] = array_pad(explode(':', (string) $request->input('target'), 2), 2, null);
+        $request->merge([
+            'account_id' => $request->input('account_id', $kind === 'account' ? $id : null),
+            'package_id' => $request->input('package_id', $kind === 'package' ? $id : null),
+        ]);
+
         $data = $request->validate([
             'account_id' => ['required_without:package_id', 'prohibits:package_id', 'nullable', Rule::exists('accounts', 'id')->whereNull('deleted_at')],
             'package_id' => ['required_without:account_id', 'nullable', Rule::exists('packages', 'id')->whereNull('deleted_at')],
@@ -34,7 +46,10 @@ class KeyController extends Controller
             'valid_days' => ['nullable', 'integer', 'between:1,3650'],
             'cooldown_minutes' => ['nullable', 'integer', 'between:0,10080'],
             'label' => ['nullable', 'string', 'max:120'],
-        ], [], [
+        ], [
+            'account_id.required_without' => 'Anahtarın hangi hesap ya da paket için olduğunu seç.',
+            'package_id.required_without' => 'Anahtarın hangi hesap ya da paket için olduğunu seç.',
+        ], [
             'account_id' => 'hesap', 'package_id' => 'paket', 'count' => 'adet', 'max_uses' => 'kullanım hakkı',
             'valid_days' => 'süre', 'cooldown_minutes' => 'bekleme süresi', 'label' => 'not',
         ]);
@@ -71,11 +86,7 @@ class KeyController extends Controller
             'meta' => ['count' => count($codes), 'label' => $data['label'] ?? null, 'package_id' => $data['package_id'] ?? null],
         ]);
 
-        $back = $forPackage
-            ? route('admin.packages.index', ['paket' => $data['package_id']])
-            : route('admin.accounts.index', ['hesap' => $data['account_id']]);
-
-        return redirect($back)
+        return redirect()->route('admin.keys.index', ['hedef' => $forPackage ? 'package:'.$data['package_id'] : 'account:'.$data['account_id']])
             ->with('fresh_keys', $codes)
             ->with('status', count($codes).' anahtar üretildi.');
     }

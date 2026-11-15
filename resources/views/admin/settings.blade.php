@@ -1,6 +1,6 @@
 @php use App\Http\Controllers\Admin\SettingsController; @endphp
 <x-layouts.app title="Ayarlar">
-    <div class="head">
+    <div class="page-head">
         <div>
             <h1>Ayarlar</h1>
             <p>Mağazanın adı, rengi ve müşterilerin göreceği yazılar.</p>
@@ -14,11 +14,11 @@
             @endforeach
         </nav>
 
-        <section class="panel">
+        <section class="card">
             @if ($tab === 'genel')
                 <form method="POST" action="{{ route('admin.settings.update', 'genel') }}" class="stack" data-busy novalidate>
                     @csrf
-                    <h2 class="section">Mağaza kimliği</h2>
+                    <h2 class="card__title">Mağaza kimliği</h2>
                     <div class="grid-2">
                         <div class="field">
                             <label for="brand_name">Marka adı</label>
@@ -37,12 +37,12 @@
                         <p class="{{ $errors->has('tagline') ? 'error' : 'hint' }}">{{ $errors->first('tagline') ?: 'Müşterinin ana sayfasındaki büyük başlık.' }}</p>
                     </div>
                     <div class="field">
-                        <label for="announcement">Duyuru <span class="muted">(isteğe bağlı)</span></label>
+                        <label for="announcement">Duyuru <span class="optional">(isteğe bağlı)</span></label>
                         <input id="announcement" name="announcement" type="text" class="input" maxlength="300" value="{{ old('announcement', $settings['announcement']) }}" placeholder="Örneğin: Netflix kodları 5 dakika gecikmeli gelebilir.">
                         <p class="error">@error('announcement'){{ $message }}@enderror</p>
                     </div>
                     <div class="field">
-                        <label for="contact_url">Destek bağlantısı <span class="muted">(isteğe bağlı)</span></label>
+                        <label for="contact_url">Destek bağlantısı <span class="optional">(isteğe bağlı)</span></label>
                         <input id="contact_url" name="contact_url" type="url" class="input" maxlength="300" value="{{ old('contact_url', $settings['contact_url']) }}" placeholder="https://t.me/kullaniciadi">
                         <p class="{{ $errors->has('contact_url') ? 'error' : 'hint' }}">{{ $errors->first('contact_url') ?: 'Telegram, WhatsApp ya da mağaza sayfası. Sayfanın altında görünür.' }}</p>
                     </div>
@@ -51,7 +51,7 @@
             @elseif ($tab === 'gorunum')
                 <form method="POST" action="{{ route('admin.settings.update', 'gorunum') }}" enctype="multipart/form-data" class="stack" data-busy novalidate>
                     @csrf
-                    <h2 class="section">Renk ve logo</h2>
+                    <h2 class="card__title">Renk ve logo</h2>
                     <div class="field">
                         <label for="theme_color">Tema rengi</label>
                         <div class="color">
@@ -83,7 +83,7 @@
             @else
                 <form method="POST" action="{{ route('admin.settings.update', 'ozellikler') }}" class="stack" data-busy novalidate>
                     @csrf
-                    <h2 class="section">Özellikler</h2>
+                    <h2 class="card__title">Özellikler</h2>
                     <div class="switch-row">
                         <div>
                             <p class="cell-title">Yeni müşteri kaydı</p>

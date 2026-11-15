@@ -16,7 +16,7 @@ use InvalidArgumentException;
 
 class AccountController extends Controller
 {
-    /** Solda hesap listesi, sağda seçili hesabın anahtarları. */
+    /** Hesap listesi. */
     public function index(Request $request)
     {
         $query = Account::query()
@@ -32,22 +32,9 @@ class AccountController extends Controller
             $query->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('mail_username', 'like', $like));
         }
 
-        $accounts = $query->get();
-        $selected = $request->integer('hesap') ? $accounts->firstWhere('id', $request->integer('hesap')) : $accounts->first();
-
-        $keys = $selected?->keys()
-            ->with('customer:id,email')
-            ->inStatus($request->input('status'))
-            ->latest()
-            ->paginate(30)
-            ->withQueryString();
-
         return view('admin.accounts.index', [
-            'accounts' => $accounts,
-            'selected' => $selected,
-            'keys' => $keys,
-            'filters' => $request->only('q', 'platform', 'status'),
-            'fresh' => session('fresh_keys', []),
+            'accounts' => $query->get(),
+            'filters' => $request->only('q', 'platform'),
         ]);
     }
 
@@ -64,8 +51,8 @@ class AccountController extends Controller
 
         Activity::log('account.created', ['account' => $account, 'meta' => ['platform' => $account->platform]]);
 
-        return redirect()->route('admin.accounts.index', ['hesap' => $account->id])
-            ->with('status', $account->title.' eklendi. Şimdi bu hesaba anahtar üretebilirsin.');
+        return redirect()->route('admin.keys.index', ['hedef' => 'account:'.$account->id])
+            ->with('status', $account->title.' eklendi. Şimdi müşterilerine vereceğin anahtarları üret.');
     }
 
     public function edit(Account $account)
@@ -81,7 +68,7 @@ class AccountController extends Controller
 
         Activity::log('account.updated', ['account' => $account, 'meta' => ['fields' => $changed]]);
 
-        return redirect()->route('admin.accounts.index', ['hesap' => $account->id])->with('status', $account->title.' güncellendi.');
+        return redirect()->route('admin.accounts.index')->with('status', $account->title.' güncellendi.');
     }
 
     public function destroy(Account $account)

@@ -19,8 +19,8 @@
 <body>
     <main class="auth">
         <div class="auth__box">
-            <a href="{{ url('/') }}" class="wordmark" aria-label="{{ $brand }} ana sayfa">
-                @if ($logo)<img src="{{ asset($logo) }}" alt="" class="wordmark__logo" height="28">@endif
+            <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
+                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
                 <span>{{ $brand }}</span>
             </a>
             @if (session('status'))

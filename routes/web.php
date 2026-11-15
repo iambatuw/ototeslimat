@@ -8,14 +8,17 @@ use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Customer\HomeController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', LandingController::class)->name('landing');
 
 Route::middleware('auth')->group(function () {
     Route::get('/hesabim', [ProfileController::class, 'show'])->name('profile');
 
     // Müşteri
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/kodlarim', [HomeController::class, 'index'])->name('home');
 
     Route::middleware('role:customer')->group(function () {
         Route::post('/anahtar', [HomeController::class, 'redeem'])->middleware('throttle:redeem')->name('redeem');

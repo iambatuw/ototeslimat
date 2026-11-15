@@ -35,6 +35,12 @@ class DashboardController extends Controller
                 'customers' => User::where('role', User::ROLE_CUSTOMER)->count(),
             ],
             'series' => $series,
+            // İlk kurulumda gösterilen adımlar
+            'setup' => [
+                'account' => Account::exists(),
+                'key' => ProductKey::exists(),
+                'sold' => ProductKey::whereNotNull('redeemed_by')->exists(),
+            ],
             'failing' => ActivityLog::where('event', 'code.failed')->where('created_at', '>=', now()->subDay())->count(),
             'recent' => ActivityLog::with(['user:id,email', 'account:id,title,platform,deleted_at'])
                 ->whereIn('event', ['code.issued', 'code.failed', 'key.redeemed', 'key.invalid'])
