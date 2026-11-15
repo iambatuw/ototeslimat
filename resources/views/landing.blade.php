@@ -19,86 +19,86 @@
 </head>
 <body>
     <header class="bar">
-        <div class="container bar__inner">
+        <div class="container"><div class="bar__inner">
             <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
-                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
+                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="26">@endif
                 <span>{{ $brand }}</span>
             </a>
-            <nav class="nav" aria-label="Sayfa içi">
+            <nav class="nav nav--optional" aria-label="Sayfa içi">
                 <a href="#nasil">Nasıl çalışır</a>
-                <a href="#platformlar">Platformlar</a>
                 <a href="#sss">Sorular</a>
             </nav>
             <div class="bar__end">
                 <a href="{{ route('login') }}" class="btn btn--ghost btn--s">Giriş yap</a>
                 @if ($canRegister)<a href="{{ route('register') }}" class="btn btn--primary btn--s">Kayıt ol</a>@endif
             </div>
-        </div>
+        </div></div>
     </header>
 
     <main>
         <section class="container hero">
             <h1>{{ Setting::get('tagline') }}</h1>
-            <p class="lead">Satın aldığın hesabın doğrulama kodunu satıcıya yazıp beklemeden, kendin al. Gece yarısı bile.</p>
+            <p class="lead">Satın aldığın hesabın doğrulama kodunu satıcıya yazıp beklemeden kendin al. Gece yarısı bile.</p>
             @if (Setting::get('announcement'))
                 <p class="notice hero__note">{{ Setting::get('announcement') }}</p>
             @endif
             <div class="hero__actions">
                 <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Hemen başla' : 'Giriş yap' }}</a>
-                <a href="#nasil" class="btn btn--secondary btn--l">Nasıl çalışır?</a>
             </div>
 
-            {{-- Ürünün kendisi: müşterinin göreceği kod kartı --}}
-            <div class="item hero__demo" aria-label="Örnek ekran">
-                <div class="item__row">
-                    <div>
-                        <p class="item__title">Netflix Premium</p>
-                        <p class="item__meta">Netflix, sınırsız</p>
+            {{-- Ürünün kendisi: müşterinin göreceği ekran --}}
+            <div class="stage">
+                <div class="item" aria-label="Örnek ekran">
+                    <div class="item__row">
+                        <div>
+                            <p class="item__title">Netflix Premium</p>
+                            <p class="item__meta">Netflix, sınırsız</p>
+                        </div>
+                        <span class="btn btn--primary" aria-hidden="true">Mail kodunu al</span>
                     </div>
-                    <span class="btn btn--primary" aria-hidden="true">Mail kodunu al</span>
+                    <div class="code">
+                        <p class="code__label">Mail kodu</p>
+                        <p class="code__value">4829</p>
+                        <div class="code__side"><span class="btn btn--secondary btn--s" aria-hidden="true">Kopyala</span></div>
+                        <p class="code__note">Kod az önce gelen mailden alındı.</p>
+                    </div>
                 </div>
-                <div class="code">
-                    <p class="code__label">Mail kodu</p>
-                    <p class="code__value">4829</p>
-                    <div class="code__side"><span class="btn btn--secondary btn--s" aria-hidden="true">Kopyala</span></div>
-                    <p class="code__note">Kod az önce gelen mailden alındı.</p>
-                </div>
+                <span class="demo-tag">Müşterinin gördüğü ekran</span>
             </div>
-            <span class="demo-tag">Örnek ekran</span>
         </section>
 
         <section class="container section" id="nasil" aria-labelledby="nasil-title">
             <div class="section__head">
-                <h2 id="nasil-title">Üç adımda kodun elinde</h2>
-                <p>Satıcıya mesaj atmana gerek yok. Platform kod istediğinde buradan alırsın.</p>
+                <h2 id="nasil-title">Satıcıya yazmak yok.</h2>
+                <p>Platform kod istediğinde cevap zaten burada.</p>
             </div>
-            <ol class="steps">
+            <ol class="flow">
                 <li>
-                    <h3>Hesabını aç</h3>
-                    <p>Bir kere kayıt ol. Aldığın bütün hesaplar burada toplanır.</p>
+                    <div>
+                        <h3>Anahtarını ekle</h3>
+                        <p>Hesabı aldığında satıcı sana bir ürün anahtarı verir. Kayıt olup anahtarı bir kere eklersin; hesap listene yerleşir.</p>
+                    </div>
                 </li>
                 <li>
-                    <h3>Anahtarını gir</h3>
-                    <p>Satıcının verdiği ürün anahtarını yapıştır. Hesap listene eklenir.</p>
+                    <div>
+                        <h3>Platforma giriş yap</h3>
+                        <p>Satıcının verdiği e-posta ve şifreyle Netflix, ChatGPT ya da hangisiyse ona gir. Platform bir doğrulama kodu ister.</p>
+                    </div>
                 </li>
                 <li>
-                    <h3>Kodu al</h3>
-                    <p>Platform giriş kodu sorduğunda düğmeye bas, kodu kopyala.</p>
+                    <div>
+                        <h3>Kodu buradan al</h3>
+                        <p>Hesabının yanındaki düğmeye bas. Mailine gelen kod ya da 2FA kodu saniyeler içinde ekranda; kopyala, yapıştır.</p>
+                    </div>
                 </li>
             </ol>
         </section>
 
-        <section class="container section" id="platformlar" aria-labelledby="platform-title">
+        <section class="container section" aria-labelledby="platform-title">
             <div class="section__head">
-                <h2 id="platform-title">Desteklenen platformlar</h2>
-                <p>Giriş kodunu e-postayla gönderen ya da iki adımlı doğrulama (2FA) kullanan servisler.</p>
+                <h2 id="platform-title">Kodunu mail ya da 2FA ile gönderen her yer</h2>
             </div>
-            <ul class="chips">
-                @foreach ($platforms as $platform)
-                    <li>{{ $platform }}</li>
-                @endforeach
-                <li>ve e-postayla kod gönderen diğerleri</li>
-            </ul>
+            <p class="platforms">{{ $platforms->implode(', ') }} <span>ve diğerleri.</span></p>
         </section>
 
         <section class="container section" id="sss" aria-labelledby="sss-title">
@@ -107,12 +107,8 @@
             </div>
             <div class="faq">
                 <details>
-                    <summary>Anahtarı nereden alırım?</summary>
-                    <p>Hesabı satın aldığında satıcı, hesap bilgileriyle birlikte sana bir ürün anahtarı gönderir. Bu anahtarı giriş yaptıktan sonra ekle.</p>
-                </details>
-                <details>
                     <summary>Kod gelmedi, ne yapmalıyım?</summary>
-                    <p>Önce platformda "kodu tekrar gönder" de, 30 saniye bekleyip "Mail kodunu al"a yeniden bas. Yine gelmezse satıcıyla iletişime geç.</p>
+                    <p>Platformda "kodu tekrar gönder" de, 30 saniye bekleyip düğmeye yeniden bas. Yine gelmezse satıcıyla iletişime geç.</p>
                 </details>
                 <details>
                     <summary>2FA kodu nedir?</summary>
@@ -123,16 +119,16 @@
                     <p>Hayır. Hesap bilgilerini satıcı sana ayrıca iletir. Bu sayfa yalnızca giriş için gereken doğrulama kodunu verir.</p>
                 </details>
                 <details>
-                    <summary>Bir anahtarı başkası da kullanabilir mi?</summary>
+                    <summary>Anahtarımı başkası kullanabilir mi?</summary>
                     <p>Hayır. Anahtar ilk ekleyen hesaba bağlanır ve başka hesapta çalışmaz.</p>
                 </details>
             </div>
         </section>
 
         <section class="container section">
-            <div class="card cta">
+            <div class="cta">
                 <h2>Anahtarın hazır mı?</h2>
-                <p>Giriş yap, anahtarını ekle, kodunu al.</p>
+                <p>Bir dakikada hesabını aç, kodunu al.</p>
                 <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Kayıt ol' : 'Giriş yap' }}</a>
             </div>
         </section>

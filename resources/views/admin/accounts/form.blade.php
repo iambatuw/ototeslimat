@@ -13,10 +13,13 @@
                 <p>Müşteri yalnızca hesap adını ve kodu görür. E-posta şifresi ve 2FA anahtarı şifreli saklanır.</p>
             </div>
             @if ($editing)
-                <form method="POST" action="{{ route('admin.accounts.test', $account) }}" data-busy>
-                    @csrf
-                    <button type="submit" class="btn btn--secondary" data-busy-text="Deneniyor">Bağlantıyı dene</button>
-                </form>
+                <div class="row">
+                    <form method="POST" action="{{ route('admin.accounts.test', $account) }}" data-busy>
+                        @csrf
+                        <button type="submit" class="btn btn--secondary" data-busy-text="Deneniyor">Bağlantıyı dene</button>
+                    </form>
+                    <a href="{{ route('admin.keys.index', ['hedef' => 'account:'.$account->id]) }}" class="btn btn--primary">Anahtar üret</a>
+                </div>
             @endif
         </div>
 

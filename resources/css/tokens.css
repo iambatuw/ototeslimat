@@ -1,24 +1,54 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
-  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.125rem; --text-xl: 1.375rem; --text-2xl: 1.75rem; --text-3xl: 2.25rem;
-  --text-display: clamp(2.5rem, 6vw, 4.25rem); --text-section: clamp(1.75rem, 3.2vw, 2.5rem); --text-title: 1.125rem; --text-lead: 1.125rem;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.125rem; --text-xl: 1.375rem; --text-2xl: 1.75rem; --text-3xl: 2.125rem;
+  --text-display: clamp(2.5rem, 6vw, 4.5rem); --text-section: clamp(1.75rem, 3.4vw, 2.75rem); --text-title: 1.125rem; --text-lead: 1.1875rem;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-micro: 120ms; --dur-short: 200ms; --dur-long: 400ms;
-  --color-error: oklch(70% 0.17 25); --color-success: oklch(74% 0.15 155);
-  --container: 1200px; --gutter: 48px;
+  --container: 1120px; --gutter: 40px;
   --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-modal: 400; --z-toast: 500;
 
-  /* Nötr, hafif soğuk siyah. Vurgu rengi mağaza ayarından gelir (Theme::css). */
-  --color-paper: oklch(14.5% 0.004 265); --color-paper-2: oklch(18.5% 0.005 265); --color-paper-3: oklch(23% 0.006 265);
-  --color-ink: oklch(96.5% 0.003 265); --color-ink-2: oklch(84% 0.006 265); --color-muted: oklch(68% 0.01 265);
-  --color-rule: oklch(100% 0 0 / 0.09); --color-rule-strong: oklch(100% 0 0 / 0.16);
-  --color-accent: #3b82f6; --color-accent-ink: #ffffff; --color-focus: #3b82f6;
+  /* Göz yormayan açık zemin: saf beyaz yalnızca kartlarda. */
+  --color-paper: #f5f5f7;
+  --color-paper-2: #ffffff;
+  --color-paper-3: #ececf0;
+  --color-ink: #1d1d1f;
+  --color-ink-2: #3a3a3c;
+  --color-muted: #6e6e73;
+  --color-rule: rgb(0 0 0 / 0.07);
+  --color-rule-strong: rgb(0 0 0 / 0.13);
+  --color-fill: rgb(0 0 0 / 0.045);
+  --color-fill-strong: rgb(0 0 0 / 0.08);
+  --color-placeholder: #8e8e93;
+  --color-rule-hover: rgb(0 0 0 / 0.22);
+  --color-chevron: #c7c7cc;
+  --color-row-hover: rgb(0 0 0 / 0.02);
+  --color-white: #ffffff;
+  --color-switch-off: #e9e9eb;
+  --color-error: #d70015;
+  --color-success: #248a3d;
 
-  --font-display: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-outlier: "Geist Mono Variable", ui-monospace, monospace;
-  --radius-card: 16px; --radius-well: 10px; --radius-pill: 999px; --rule-hair: 1px;
-  --tracking-display: -0.035em; --display-weight: 600;
-  --shadow-lift: 0 40px 80px -40px oklch(0% 0 0 / 0.8);
+  /* Vurgu rengi mağaza ayarından gelir (Theme::css). */
+  --color-accent: #0071e3; --color-accent-ink: #ffffff; --color-focus: #0071e3;
+
+  /* Sistem arayüz fontu: Apple cihazlarda SF Pro, Windows'ta Segoe UI Variable.
+     Gerekçe: uygulama, kullanıcının işletim sisteminin kendi parçası gibi hissettirsin. */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-outlier: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  --radius-card: 18px; --radius-well: 12px; --radius-pill: 999px; --rule-hair: 1px;
+  --tracking-display: -0.025em; --display-weight: 700;
+
+  /* Kartın tek derinlik kaynağı gölgedir; kenar çizgisi yok. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.04);
+  --shadow-raised: 0 2px 6px rgb(0 0 0 / 0.05), 0 24px 48px -12px rgb(0 0 0 / 0.12);
+
+  /* Liquid Glass: yalnızca üstte yüzen menü çubuğunda. */
+  --glass-fill: rgb(255 255 255 / 0.72);
+  --glass-edge: rgb(255 255 255 / 0.65);
+  --glass-highlight: rgb(255 255 255 / 0.8);
+  --shadow-knob: 0 3px 8px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.16);
+  --shadow-segment: 0 1px 3px rgb(0 0 0 / 0.1);
+  --glass-shadow: 0 1px 1px rgb(0 0 0 / 0.04), 0 8px 32px rgb(0 0 0 / 0.08);
 }

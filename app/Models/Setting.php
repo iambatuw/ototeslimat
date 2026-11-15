@@ -23,7 +23,7 @@ class Setting extends Model
         'brand_name' => null,               // boşsa APP_NAME
         'tab_title' => null,
         'tagline' => 'Giriş kodun, saniyeler içinde elinde.',
-        'theme_color' => '#3b82f6',
+        'theme_color' => '#0071e3',
         'logo' => null,
         'favicon' => null,
         'announcement' => null,

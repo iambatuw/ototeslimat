@@ -28,7 +28,7 @@
 </head>
 <body>
     <header class="bar">
-        <div class="container bar__inner {{ $nav ? '' : 'bar__inner--plain' }}">
+        <div class="container"><div class="bar__inner {{ $nav ? '' : 'bar__inner--plain' }}">
             <a href="{{ $user->homePath() }}" class="brand" aria-label="{{ $brand }}">
                 @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
                 <span>{{ $brand }}</span>
@@ -47,7 +47,7 @@
                     <button type="submit" class="btn btn--secondary btn--s">Çıkış</button>
                 </form>
             </div>
-        </div>
+        </div></div>
     </header>
 
     <main class="container page">

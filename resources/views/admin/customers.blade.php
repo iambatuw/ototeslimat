@@ -46,7 +46,7 @@
                                     <a href="{{ route('admin.logs', ['q' => $customer->email]) }}" class="btn btn--secondary btn--s">Hareketleri</a>
                                     <form method="POST" action="{{ route('admin.customers.toggle', $customer) }}" @if ($customer->is_active) data-confirm="{{ $customer->email }} engellensin mi?" @endif>
                                         @csrf @method('PATCH')
-                                        <button type="submit" class="btn btn--ghost btn--s">{{ $customer->is_active ? 'Engelle' : 'Engeli kaldır' }}</button>
+                                        <button type="submit" class="btn {{ $customer->is_active ? 'btn--danger' : 'btn--secondary' }} btn--s">{{ $customer->is_active ? 'Engelle' : 'Engeli kaldır' }}</button>
                                     </form>
                                 </td>
                             </tr>

@@ -11,6 +11,7 @@
                 <h1>{{ $editing ? $package->name : 'Paket oluştur' }}</h1>
                 <p>Müşteri paketin anahtarını ekleyince bu listeden belirlediğin sayıda hesap seçer.</p>
             </div>
+            @if ($editing)<a href="{{ route('admin.keys.index', ['hedef' => 'package:'.$package->id]) }}" class="btn btn--primary">Anahtar üret</a>@endif
         </div>
 
         <form method="POST" action="{{ $editing ? route('admin.packages.update', $package) : route('admin.packages.store') }}" data-busy novalidate>

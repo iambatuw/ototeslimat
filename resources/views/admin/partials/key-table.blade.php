@@ -39,7 +39,7 @@
                         @else
                             <form method="POST" action="{{ route('admin.keys.revoke', $key) }}" data-confirm="Bu anahtar iptal edilsin mi? Müşteri kod alamaz.">
                                 @csrf @method('PATCH')
-                                <button type="submit" class="btn btn--ghost btn--s">İptal et</button>
+                                <button type="submit" class="btn btn--danger btn--s">İptal et</button>
                             </form>
                         @endif
                     </td>
