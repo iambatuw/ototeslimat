@@ -18,16 +18,25 @@
 </head>
 <body>
     <main class="auth">
-        <div class="auth__box">
-            <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
-                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
-                <span>{{ $brand }}</span>
-            </a>
-            @if (session('status'))
-                <p class="notice" role="status">{{ session('status') }}</p>
-            @endif
-            {{ $slot }}
+        <div class="auth__form">
+            <div class="auth__box enter">
+                <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
+                    @if ($logo)<img src="{{ asset($logo) }}" alt="" height="26">@endif
+                    <span>{{ $brand }}</span>
+                </a>
+                @if (session('status'))
+                    <p class="notice" role="status">{{ session('status') }}</p>
+                @endif
+                {{ $slot }}
+            </div>
         </div>
+
+        <aside class="auth__show" aria-label="Ürün örneği">
+            <div>
+                <x-demo-card :autoplay="true" />
+                <p class="auth__caption">Platform kod istediğinde düğmeye bas, kod saniyeler içinde burada.</p>
+            </div>
+        </aside>
     </main>
 </body>
 </html>

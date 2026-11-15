@@ -15,7 +15,7 @@ class Theme
             $accent = Setting::DEFAULTS['theme_color'];
         }
 
-        $ink = self::luminance($accent) > 0.42 ? 'oklch(14% 0.02 40)' : 'oklch(98% 0.01 80)';
+        $ink = self::luminance($accent) > 0.42 ? '#0b0b0d' : '#f7f7fa';
 
         return ":root{--color-accent:{$accent};--color-accent-ink:{$ink};--color-focus:{$accent}}";
     }

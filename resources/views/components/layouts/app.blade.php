@@ -50,7 +50,7 @@
         </div></div>
     </header>
 
-    <main class="container page">
+    <main class="container page enter">
         @if (session('status') && session('status') !== 'password-updated')
             <p class="notice" role="status">{{ session('status') }}</p>
         @endif

@@ -1,5 +1,6 @@
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, reduceMotion ? 0 : ms));
 
 /* ---------- Kopyalama ---------- */
 async function copyText(text, button) {
@@ -38,7 +39,7 @@ document.querySelectorAll('[data-key-input]').forEach((input) => {
     });
 });
 
-/* ---------- Gönderimde düğmeyi kilitle ---------- */
+/* ---------- Gönderimde düğmeyi kilitle (spinner CSS'te) ---------- */
 document.querySelectorAll('form[data-busy]').forEach((form) => {
     form.addEventListener('submit', (event) => {
         if (event.defaultPrevented) return;
@@ -46,7 +47,6 @@ document.querySelectorAll('form[data-busy]').forEach((form) => {
         if (!button) return;
         button.setAttribute('aria-busy', 'true');
         button.disabled = true;
-        if (button.dataset.busyText) button.textContent = button.dataset.busyText;
     });
 });
 
@@ -97,12 +97,40 @@ document.querySelectorAll('[data-color-sync]').forEach((el) => {
     });
 });
 
-/* ---------- Kod paneli ---------- */
-const esc = (text) => {
-    const div = document.createElement('div');
-    div.textContent = String(text ?? '');
-    return div.innerHTML;
+/* ---------- İmza öğe: kod hücreleri ---------- */
+const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
 };
+
+/** Kodu hücrelere yazar; rakamlar sırayla yerine düşer. */
+function fillCells(container, code) {
+    container.classList.remove('cells--wait', 'cells--expired');
+    container.replaceChildren(...[...code].map((char, i) => {
+        const cell = el('span', 'cell is-in', char);
+        cell.style.setProperty('--i', i);
+        return cell;
+    }));
+    container.setAttribute('aria-label', `Kod: ${[...code].join(' ')}`);
+}
+
+/** Beklerken boş, parıldayan hücreler. */
+function waitCells(container, count) {
+    container.classList.add('cells--wait');
+    container.replaceChildren(...Array.from({ length: count }, () => el('span', 'cell', '')));
+}
+
+const RING = 2 * Math.PI * 22;
+
+function ringEl() {
+    const ring = el('div', 'ring');
+    ring.innerHTML = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="ring__track" cx="26" cy="26" r="22"/><circle class="ring__bar" cx="26" cy="26" r="22" stroke-dasharray="${RING}" stroke-dashoffset="0"/></svg><span class="ring__num" aria-live="off"></span>`;
+    return ring;
+}
+
+/* ---------- Müşteri: kod paneli ---------- */
 const ago = (iso) => {
     if (!iso) return 'az önce';
     const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
@@ -111,15 +139,16 @@ const ago = (iso) => {
 const usesNote = (left) => (left === null || left === undefined ? '' : ` Kalan kod hakkın: ${left}.`);
 
 class CodePanel {
-    constructor(game) {
-        this.panel = game.querySelector('.code');
-        this.buttons = [...game.querySelectorAll('[data-get-code]')];
+    constructor(root) {
+        this.panel = root.querySelector('.code');
+        this.buttons = [...root.querySelectorAll('[data-get-code]')];
         this.timer = null;
         this.buttons.forEach((button) => button.addEventListener('click', () => this.load(button)));
     }
 
     async load(button) {
         this.busy(button, true);
+        this.waiting(button.dataset.url.endsWith('/2fa') ? 6 : 4);
         try {
             const response = await fetch(button.dataset.url, {
                 method: 'POST',
@@ -141,60 +170,71 @@ class CodePanel {
     busy(button, on) {
         this.buttons.forEach((b) => (b.disabled = on));
         button.setAttribute('aria-busy', on ? 'true' : 'false');
-        button.textContent = on ? 'Kod alınıyor' : (button.dataset.idleNow ?? button.dataset.idle);
+        if (!on) button.textContent = button.dataset.idleNow ?? button.dataset.idle;
+    }
+
+    waiting(count) {
+        clearInterval(this.timer);
+        const cells = el('div', 'cells');
+        waitCells(cells, count);
+        this.panel.replaceChildren(el('p', 'code__label', 'Kod getiriliyor'), cells);
+        this.panel.hidden = false;
     }
 
     show(data) {
         clearInterval(this.timer);
         const totp = data.type === '2fa';
-        const label = totp ? '2FA kodu' : 'Mail kodu';
 
         if (data.kind === 'link') {
-            this.panel.innerHTML = `
-                <p class="code__label">Platformun gönderdiği doğrulama bağlantısı</p>
-                <div class="code__link">
-                    <a class="btn btn--primary" target="_blank" rel="noopener noreferrer" data-link>Bağlantıyı aç</a>
-                    <button type="button" class="btn btn--secondary btn--s" data-copy="${esc(data.code)}">Bağlantıyı kopyala</button>
-                </div>
-                <p class="code__note">Mail ${ago(data.received_at)} geldi. Bağlantıyı hesabın açık olduğu cihazda aç.${usesNote(data.uses_left)}</p>`;
-            const link = this.panel.querySelector('[data-link]');
+            const link = el('a', 'btn btn--primary', 'Bağlantıyı aç');
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
             if (/^https:\/\//i.test(data.code)) link.href = data.code;
-        } else {
-            this.panel.innerHTML = `
-                <p class="code__label">${label}</p>
-                <p class="code__value" aria-live="polite">${esc(data.code)}</p>
-                <div class="code__side">
-                    ${totp ? '<p class="code__clock"><span data-left>--</span><small>sn</small></p>' : ''}
-                    <button type="button" class="btn btn--secondary btn--s" data-copy="${esc(data.code)}">Kodu kopyala</button>
-                </div>
-                ${totp ? '<div class="ramp" aria-hidden="true"><div class="ramp__heat"></div><div class="ramp__mark"></div></div>' : ''}
-                <p class="code__note">${totp
-                    ? 'Kod 30 saniyede bir değişir. Süre dolarsa yeni kod al; aynı kodu tekrar görmek hak düşürmez.'
-                    : `Kod ${ago(data.received_at)} gelen mailden alındı.`}${usesNote(data.uses_left)}</p>`;
+            const copy = el('button', 'btn btn--secondary btn--s', 'Bağlantıyı kopyala');
+            copy.type = 'button';
+            copy.dataset.copy = data.code;
+            const row = el('div', 'code__link');
+            row.append(link, copy);
+            this.panel.replaceChildren(
+                el('p', 'code__label', 'Platformun gönderdiği doğrulama bağlantısı'),
+                row,
+                el('p', 'code__note', `Mail ${ago(data.received_at)} geldi. Bağlantıyı hesabın açık olduğu cihazda aç.${usesNote(data.uses_left)}`),
+            );
+            return;
         }
 
-        this.panel.hidden = false;
-        if (totp) this.countdown(data.expires_in, data.period);
+        const cells = el('div', 'cells');
+        fillCells(cells, data.code);
+        const side = el('div', 'code__side');
+        if (totp) side.append(ringEl());
+        const copy = el('button', 'btn btn--secondary btn--s', 'Kopyala');
+        copy.type = 'button';
+        copy.dataset.copy = data.code;
+        side.append(copy);
+
+        const note = el('p', 'code__note', totp
+            ? `Kod 30 saniyede bir yenilenir; süre dolunca yeni kod al.${usesNote(data.uses_left)}`
+            : `Kod ${ago(data.received_at)} gelen mailden alındı.${usesNote(data.uses_left)}`);
+
+        this.panel.replaceChildren(el('p', 'code__label', totp ? '2FA kodu' : 'Mail kodu'), cells, side, note);
+        if (totp) this.countdown(data.expires_in, data.period, cells, note);
     }
 
-    countdown(left, period) {
-        const label = this.panel.querySelector('[data-left]');
-        const heat = this.panel.querySelector('.ramp__heat');
-        const mark = this.panel.querySelector('.ramp__mark');
-        const track = this.panel.querySelector('.ramp');
+    countdown(left, period, cells, note) {
+        const ring = this.panel.querySelector('.ring');
+        const bar = ring.querySelector('.ring__bar');
+        const num = ring.querySelector('.ring__num');
         const end = Date.now() + left * 1000;
-        if (reduceMotion) heat.style.transition = mark.style.transition = 'none';
 
         const tick = () => {
             const remaining = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-            const used = 1 - remaining / period;
-            label.textContent = remaining;
-            heat.style.transform = `scaleX(${used})`;
-            mark.style.transform = `translateX(${used * track.clientWidth}px)`;
+            num.textContent = remaining;
+            bar.style.strokeDashoffset = String(RING * (1 - remaining / period));
+            ring.classList.toggle('is-low', remaining <= 5);
             if (remaining <= 0) {
                 clearInterval(this.timer);
-                this.panel.querySelector('.code__value')?.classList.add('muted');
-                this.panel.querySelector('.code__note').textContent = 'Bu kodun süresi doldu. Yeni kod al.';
+                cells.classList.add('cells--expired');
+                note.textContent = 'Bu kodun süresi doldu. Yeni kod al.';
             }
         };
         tick();
@@ -203,12 +243,44 @@ class CodePanel {
 
     fail(message) {
         clearInterval(this.timer);
-        this.panel.innerHTML = `<p class="code__error" role="alert">${esc(message)}</p>`;
+        this.panel.replaceChildren(el('p', 'code__error', message));
+        this.panel.firstChild.setAttribute('role', 'alert');
         this.panel.hidden = false;
     }
 }
 
-document.querySelectorAll('[data-game]').forEach((game) => {
-    new CodePanel(game);
-    if (game.dataset.open === 'true') game.scrollIntoView({ block: 'center' });
+document.querySelectorAll('[data-game]').forEach((root) => {
+    new CodePanel(root);
+    if (root.dataset.open === 'true') root.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+});
+
+/* ---------- Ana sayfa ve giriş vitrini: denenebilen örnek ---------- */
+document.querySelectorAll('[data-demo]').forEach((demo) => {
+    const button = demo.querySelector('[data-demo-run]');
+    const cells = demo.querySelector('[data-demo-cells]');
+    const note = demo.querySelector('[data-demo-note]');
+    const length = Number(cells.dataset.length || 4);
+    let running = false;
+
+    const run = async () => {
+        if (running) return;
+        running = true;
+        button.setAttribute('aria-busy', 'true');
+        button.disabled = true;
+        waitCells(cells, length);
+        note.textContent = 'Posta kutusu okunuyor…';
+        await sleep(1100);
+        const code = Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+        fillCells(cells, code);
+        note.textContent = 'Kod az önce gelen mailden alındı.';
+        button.setAttribute('aria-busy', 'false');
+        button.disabled = false;
+        button.textContent = 'Tekrar dene';
+        running = false;
+    };
+
+    button.addEventListener('click', run);
+
+    // Giriş vitrininde bir kez kendiliğinden oynar; döngü yok.
+    if (demo.hasAttribute('data-demo-autoplay')) setTimeout(run, reduceMotion ? 0 : 900);
 });

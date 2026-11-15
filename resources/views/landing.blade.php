@@ -30,13 +30,13 @@
             </nav>
             <div class="bar__end">
                 <a href="{{ route('login') }}" class="btn btn--ghost btn--s">Giriş yap</a>
-                @if ($canRegister)<a href="{{ route('register') }}" class="btn btn--primary btn--s">Kayıt ol</a>@endif
+                @if ($canRegister)<a href="{{ route('register') }}" class="btn btn--light btn--s">Kayıt ol</a>@endif
             </div>
         </div></div>
     </header>
 
     <main>
-        <section class="container hero">
+        <section class="container hero enter">
             <h1>{{ Setting::get('tagline') }}</h1>
             <p class="lead">Satın aldığın hesabın doğrulama kodunu satıcıya yazıp beklemeden kendin al. Gece yarısı bile.</p>
             @if (Setting::get('announcement'))
@@ -45,25 +45,9 @@
             <div class="hero__actions">
                 <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Hemen başla' : 'Giriş yap' }}</a>
             </div>
-
-            {{-- Ürünün kendisi: müşterinin göreceği ekran --}}
-            <div class="stage">
-                <div class="item" aria-label="Örnek ekran">
-                    <div class="item__row">
-                        <div>
-                            <p class="item__title">Netflix Premium</p>
-                            <p class="item__meta">Netflix, sınırsız</p>
-                        </div>
-                        <span class="btn btn--primary" aria-hidden="true">Mail kodunu al</span>
-                    </div>
-                    <div class="code">
-                        <p class="code__label">Mail kodu</p>
-                        <p class="code__value">4829</p>
-                        <div class="code__side"><span class="btn btn--secondary btn--s" aria-hidden="true">Kopyala</span></div>
-                        <p class="code__note">Kod az önce gelen mailden alındı.</p>
-                    </div>
-                </div>
-                <span class="demo-tag">Müşterinin gördüğü ekran</span>
+            <div>
+                <x-demo-card />
+                <span class="demo-tag">Dene: bu, müşterinin gördüğü kartın aynısı</span>
             </div>
         </section>
 
@@ -74,31 +58,22 @@
             </div>
             <ol class="flow">
                 <li>
-                    <div>
-                        <h3>Anahtarını ekle</h3>
-                        <p>Hesabı aldığında satıcı sana bir ürün anahtarı verir. Kayıt olup anahtarı bir kere eklersin; hesap listene yerleşir.</p>
-                    </div>
+                    <h3>Anahtarını ekle</h3>
+                    <p>Hesabı aldığında satıcı sana bir ürün anahtarı verir. Kayıt olup bir kere eklersin; hesap listene yerleşir.</p>
                 </li>
                 <li>
-                    <div>
-                        <h3>Platforma giriş yap</h3>
-                        <p>Satıcının verdiği e-posta ve şifreyle Netflix, ChatGPT ya da hangisiyse ona gir. Platform bir doğrulama kodu ister.</p>
-                    </div>
+                    <h3>Platforma gir</h3>
+                    <p>Satıcının verdiği e-posta ve şifreyle Netflix, ChatGPT ya da hangisiyse ona gir. Platform bir doğrulama kodu ister.</p>
                 </li>
                 <li>
-                    <div>
-                        <h3>Kodu buradan al</h3>
-                        <p>Hesabının yanındaki düğmeye bas. Mailine gelen kod ya da 2FA kodu saniyeler içinde ekranda; kopyala, yapıştır.</p>
-                    </div>
+                    <h3>Kodu buradan al</h3>
+                    <p>Hesabının yanındaki düğmeye bas. Mailine gelen kod ya da 2FA kodu saniyeler içinde ekranda.</p>
                 </li>
             </ol>
         </section>
 
-        <section class="container section" aria-labelledby="platform-title">
-            <div class="section__head">
-                <h2 id="platform-title">Kodunu mail ya da 2FA ile gönderen her yer</h2>
-            </div>
-            <p class="platforms">{{ $platforms->implode(', ') }} <span>ve diğerleri.</span></p>
+        <section class="container section" aria-label="Desteklenen platformlar">
+            <p class="platforms">{{ $platforms->implode(', ') }} <span>ve kodunu mail ya da 2FA ile gönderen diğerleri.</span></p>
         </section>
 
         <section class="container section" id="sss" aria-labelledby="sss-title">
@@ -125,10 +100,9 @@
             </div>
         </section>
 
-        <section class="container section">
+        <section class="container">
             <div class="cta">
                 <h2>Anahtarın hazır mı?</h2>
-                <p>Bir dakikada hesabını aç, kodunu al.</p>
                 <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Kayıt ol' : 'Giriş yap' }}</a>
             </div>
         </section>
