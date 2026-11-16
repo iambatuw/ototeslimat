@@ -64,7 +64,7 @@
             <ol class="steps">
                 <li class="step reveal">
                     <div>
-                        <h3>Ürün anahtarını hesabına ekle</h3>
+                        <h3>Anahtarını ekle</h3>
                         <p>Sipariş verdiğinde sana bir ürün anahtarı teslim edilir. Kayıt ol ve anahtarı hesabına bir kez ekle. Satın aldığın hesap listende görünür.</p>
                     </div>
                     <div class="mini" aria-hidden="true">

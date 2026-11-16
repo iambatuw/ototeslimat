@@ -1,6 +1,6 @@
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, reduceMotion ? 0 : ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /* ---------- Kopyalama ---------- */
 async function copyText(text, button) {
@@ -124,11 +124,6 @@ function fillCells(container, code) {
     container.replaceChildren(...cells);
     container.setAttribute('role', 'img');
     container.setAttribute('aria-label', `Kod: ${chars.join(' ')}`);
-
-    if (reduceMotion) {
-        cells.forEach(settle);
-        return Promise.resolve();
-    }
 
     return new Promise((resolve) => {
         const start = performance.now();
@@ -300,6 +295,35 @@ document.querySelectorAll('[data-pass-toggle]').forEach((button) => {
     });
 });
 
+/* ---------- Kayıt: şifre koşulları yazarken işaretlenir ---------- */
+document.querySelectorAll('[data-rules]').forEach((list) => {
+    const input = document.querySelector(list.dataset.rules);
+    const min = Number(list.dataset.min || 8);
+    const checks = {
+        length: (value) => value.length >= min,
+        letter: (value) => /\p{L}/u.test(value),
+        digit: (value) => /\d/.test(value),
+    };
+    const sync = () => list.querySelectorAll('[data-rule]').forEach((item) => {
+        const ok = checks[item.dataset.rule](input.value);
+        item.classList.toggle('is-ok', ok);
+        item.setAttribute('aria-label', `${item.textContent.trim()}: ${ok ? 'tamam' : 'eksik'}`);
+    });
+    input.addEventListener('input', sync);
+    sync();
+});
+
+document.querySelectorAll('[data-match]').forEach((note) => {
+    const [first, second] = document.querySelectorAll(note.dataset.match);
+    const sync = () => {
+        const state = !second.value ? '' : first.value === second.value ? 'ok' : 'bad';
+        note.className = `match${state ? ` is-${state}` : ''}`;
+        note.textContent = state === 'ok' ? 'Şifreler eşleşiyor.' : state === 'bad' ? 'Şifreler henüz eşleşmiyor.' : '';
+    };
+    first.addEventListener('input', sync);
+    second.addEventListener('input', sync);
+});
+
 /* ---------- Arka plan hareketini durdur (seçim cihazda hatırlanır) ---------- */
 const stillButton = document.querySelector('[data-still]');
 if (stillButton && !reduceMotion) {
@@ -402,5 +426,5 @@ document.querySelectorAll('[data-demo]').forEach((demo) => {
     button.addEventListener('click', run);
 
     // Giriş vitrininde bir kez kendiliğinden oynar; döngü yok.
-    if (demo.hasAttribute('data-demo-autoplay')) setTimeout(run, reduceMotion ? 0 : 900);
+    if (demo.hasAttribute('data-demo-autoplay')) setTimeout(run, 900);
 });

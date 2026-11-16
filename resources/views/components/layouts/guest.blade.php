@@ -1,3 +1,4 @@
+@props(['title', 'flip' => false])
 @php
     use App\Models\Setting;
     $brand = Setting::brand();
@@ -18,7 +19,7 @@
 </head>
 <body>
     <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    <main class="auth">
+    <main @class(['auth', 'auth--flip' => $flip])>
         <div class="auth__form">
             <div class="auth__box enter">
                 <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
@@ -37,11 +38,15 @@
                 @if ($logo)<img src="{{ asset($logo) }}" alt="" height="26">@endif
                 <span>{{ $brand }}</span>
             </a>
-            <x-demo-card :autoplay="true" />
-            <div class="auth__pitch">
-                <h2>Kodun bir tık uzağında.</h2>
-                <p>Platform doğrulama kodu istediğinde düğmeye bas. Kod birkaç saniyede ekranında.</p>
-            </div>
+            @isset($aside)
+                {{ $aside }}
+            @else
+                <x-demo-card :autoplay="true" />
+                <div class="auth__pitch">
+                    <h2>Kodun bir tık uzağında.</h2>
+                    <p>Platform doğrulama kodu istediğinde düğmeye bas. Kod birkaç saniyede ekranında.</p>
+                </div>
+            @endisset
         </aside>
     </main>
 </body>
