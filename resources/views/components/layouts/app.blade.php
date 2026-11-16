@@ -48,10 +48,13 @@
                 @endforeach
             </nav>
             <div class="side__end">
-                <a href="{{ route('profile') }}" class="who" @if (request()->routeIs('profile')) aria-current="page" @endif>
-                    <span class="avatar" aria-hidden="true">{{ $initial }}</span>
-                    <span class="who__name">{{ $user->name }}</span>
-                </a>
+                <div class="side__who">
+                    <a href="{{ route('profile') }}" class="who" @if (request()->routeIs('profile')) aria-current="page" @endif>
+                        <span class="avatar" aria-hidden="true">{{ $initial }}</span>
+                        <span class="who__name">{{ $user->name }}</span>
+                    </a>
+                    <x-motion-toggle />
+                </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="btn btn--secondary btn--s btn--block">Çıkış yap</button>
@@ -66,6 +69,7 @@
                     <span>{{ $brand }}</span>
                 </a>
                 <div class="bar__end">
+                    <x-motion-toggle />
                     <a href="{{ route('profile') }}" class="who who--bar">
                         <span class="avatar" aria-hidden="true">{{ $initial }}</span>
                         <span class="who__name">{{ $user->name }}</span>
@@ -84,6 +88,7 @@
             <div class="topline container">
                 <a href="{{ $user->homePath() }}" class="brand">{{ $brand }}</a>
                 <div class="bar__end">
+                    <x-motion-toggle />
                     <a href="{{ route('profile') }}" class="who who--bar" aria-label="Hesabım"><span class="avatar" aria-hidden="true">{{ $initial }}</span></a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -104,12 +109,6 @@
             {{ $slot }}
         </main>
 
-        <footer class="foot">
-            <div class="container foot__inner">
-                <button type="button" class="still" data-motion-toggle aria-pressed="false">Hareketi durdur</button>
-                @if (Setting::get('contact_url'))<a href="{{ Setting::get('contact_url') }}" rel="noopener" target="_blank">Destek</a>@endif
-            </div>
-        </footer>
     </div>
 </body>
 </html>

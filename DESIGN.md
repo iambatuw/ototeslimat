@@ -39,7 +39,7 @@ Mağaza sahibi sitenin hareketli olmasını istedi; hareket her yerde var ama he
 - Panelde sayan rakamlar, soldan açılan grafik, dolan stok çubuğu, atan durum noktası.
 - Ana sayfada süzülen örnek kart, akan platform şeridi, kaydırma ilerleme çizgisi, yumuşak açılan sorular.
 
-**Kapatma:** altbilgideki "Hareketi durdur" düğmesi her şeyi durdurur ve seçim cihazda hatırlanır. Varsayılan olarak hareket herkeste oynar; Ayarlar > Özellikler'deki anahtar açılırsa, cihazında "hareketi azalt" seçili ziyaretçide site hareketsiz başlar. Karar `<head>` içindeki küçük betikte verilir ve `html[data-still]` ile uygulanır; CSS'te `prefers-reduced-motion` sorgusu kullanılmaz.
+**Kapatma:** yan menüdeki ve üst çubuktaki duraklat düğmesi her şeyi durdurur ve seçim cihazda hatırlanır. Varsayılan olarak hareket herkeste oynar; Ayarlar > Özellikler'deki anahtar açılırsa, cihazında "hareketi azalt" seçili ziyaretçide site hareketsiz başlar. Karar `<head>` içindeki küçük betikte verilir ve `html[data-still]` ile uygulanır; CSS'te `prefers-reduced-motion` sorgusu kullanılmaz.
 
 ## Kurallar
 

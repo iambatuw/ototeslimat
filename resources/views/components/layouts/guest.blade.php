@@ -22,6 +22,7 @@
     <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <main @class(['auth', 'auth--flip' => $flip])>
         <div class="auth__form">
+            <x-motion-toggle class="motion-btn--corner" />
             <div class="auth__box enter">
                 <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
                     @if ($logo)<img src="{{ asset($logo) }}" alt="" height="26">@endif

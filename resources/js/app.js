@@ -364,21 +364,24 @@ if (themePreview) {
 }
 
 /* ---------- Arka plan hareketini durdur (seçim cihazda hatırlanır) ---------- */
-const stillButton = document.querySelector('[data-motion-toggle]');
-if (stillButton) {
-    const store = { get: () => { try { return localStorage.getItem('still') === '1'; } catch { return false; } }, set: (on) => { try { localStorage.setItem('still', on ? '1' : '0'); } catch { /* özel pencere */ } } };
+const motionButtons = document.querySelectorAll('[data-motion-toggle]');
+if (motionButtons.length) {
+    const remember = (on) => { try { localStorage.setItem('still', on ? '1' : '0'); } catch { /* özel pencere */ } };
     const apply = (on) => {
         document.documentElement.toggleAttribute('data-still', on);
-        stillButton.textContent = on ? 'Hareketi başlat' : 'Hareketi durdur';
-        stillButton.setAttribute('aria-pressed', String(on));
+        motionButtons.forEach((button) => {
+            const label = on ? 'Hareketi başlat' : 'Hareketi durdur';
+            button.setAttribute('aria-pressed', String(on));
+            button.setAttribute('aria-label', label);
+            button.title = label;
+        });
     };
-    stillButton.hidden = false;
     apply(still());
-    stillButton.addEventListener('click', () => {
-        const on = !document.documentElement.hasAttribute('data-still');
-        store.set(on);
+    motionButtons.forEach((button) => button.addEventListener('click', () => {
+        const on = !still();
+        remember(on);
         apply(on);
-    });
+    }));
 }
 
 /* ---------- Cam: parlama imleci yumuşakça izler (aç/kapa yok, eğilme yok) ---------- */

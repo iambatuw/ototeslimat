@@ -32,6 +32,7 @@
                 <a href="#sss">Sorular</a>
             </nav>
             <div class="bar__end">
+                <x-motion-toggle />
                 <a href="{{ route('login') }}" class="btn btn--ghost btn--s">Giriş yap</a>
                 @if ($canRegister)<a href="{{ route('register') }}" class="btn btn--light btn--s">Kayıt ol</a>@endif
             </div>
@@ -138,11 +139,5 @@
 
     </main>
 
-    <footer class="foot">
-        <div class="container foot__inner">
-            <button type="button" class="still" data-motion-toggle aria-pressed="false">Hareketi durdur</button>
-            @if (Setting::get('contact_url'))<a href="{{ Setting::get('contact_url') }}" rel="noopener" target="_blank">Destek</a>@endif
-        </div>
-    </footer>
 </body>
 </html>

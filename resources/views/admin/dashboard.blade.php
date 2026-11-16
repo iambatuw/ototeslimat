@@ -102,7 +102,9 @@
     </section>
     </div>
 
-    <section class="panel" aria-labelledby="recent-title">
+    {{-- Kurulum adımları görünürken boş hareket kutusu yer kaplamasın. --}}
+    @unless (! $ready && $recent->isEmpty())
+    <section class="panel panel--scroll" aria-labelledby="recent-title">
         <div class="panel__head">
             <h2 id="recent-title">Son hareketler</h2>
             <a href="{{ route('admin.logs') }}" class="btn btn--secondary btn--s">Tümünü gör</a>
@@ -113,4 +115,5 @@
             @include('admin.partials.log-table', ['logs' => $recent])
         @endif
     </section>
+    @endunless
 </x-layouts.app>
