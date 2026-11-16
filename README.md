@@ -94,6 +94,6 @@ Bağımlılıklarda bilinen açık olup olmadığını görmek için: `composer 
 composer install && npm install
 cp .env.example .env && php artisan key:generate
 php artisan migrate --seed    # deneme verisi; giriş bilgileri database/seeders/DatabaseSeeder.php içinde
-npm run build && php artisan serve
+npm run build && php artisan guard:serve
 php artisan test
 ```
