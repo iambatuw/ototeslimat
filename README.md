@@ -1,4 +1,4 @@
-# Ototeslimat
+# Kodvar
 
 Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime Video, HBO Max, Disney+ gibi hesaplar satıyorsan, müşterin her girişte doğrulama kodu ister. Bu sistem kodu senin yerine teslim eder:
 

@@ -27,8 +27,9 @@
     <style nonce="{{ Vite::cspNonce() }}">{!! App\Support\Theme::css() !!}</style>
 </head>
 <body>
+    <div class="ambient ambient--calm" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <header class="bar">
-        <div class="container"><div class="bar__inner {{ $nav ? '' : 'bar__inner--plain' }}">
+        <div class="container"><div class="bar__inner glass {{ $nav ? '' : 'bar__inner--plain' }}">
             <a href="{{ $user->homePath() }}" class="brand" aria-label="{{ $brand }}">
                 @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
                 <span>{{ $brand }}</span>
@@ -64,7 +65,10 @@
     <footer class="foot">
         <div class="container foot__inner">
             <span>{{ $brand }}</span>
-            @if (Setting::get('contact_url'))<a href="{{ Setting::get('contact_url') }}" rel="noopener" target="_blank">Destek</a>@endif
+            <div class="foot__end">
+                <button type="button" class="still" data-still hidden>Hareketi durdur</button>
+                @if (Setting::get('contact_url'))<a href="{{ Setting::get('contact_url') }}" rel="noopener" target="_blank">Destek</a>@endif
+            </div>
         </div>
     </footer>
 </body>

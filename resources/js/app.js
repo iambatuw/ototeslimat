@@ -105,15 +105,50 @@ const el = (tag, className, text) => {
     return node;
 };
 
-/** Kodu hücrelere yazar; rakamlar sırayla yerine düşer. */
+/** Kodu hücrelere yazar: karakterler önce döner, sonra soldan sağa sırayla yerine oturur. */
 function fillCells(container, code) {
-    container.classList.remove('cells--wait', 'cells--expired');
-    container.replaceChildren(...[...code].map((char, i) => {
-        const cell = el('span', 'cell is-in', char);
-        cell.style.setProperty('--i', i);
+    const chars = [...code];
+    const pool = /^\d+$/.test(code) ? '0123456789' : 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const cells = chars.map(() => {
+        const cell = el('span', 'cell is-roll');
+        cell.setAttribute('aria-hidden', 'true');
+        cell.append(el('span', '', ''));
         return cell;
-    }));
-    container.setAttribute('aria-label', `Kod: ${[...code].join(' ')}`);
+    });
+    const settle = (cell, i) => {
+        cell.className = 'cell is-in';
+        cell.firstChild.textContent = chars[i];
+    };
+
+    container.classList.remove('cells--wait', 'cells--expired');
+    container.replaceChildren(...cells);
+    container.setAttribute('role', 'img');
+    container.setAttribute('aria-label', `Kod: ${chars.join(' ')}`);
+
+    if (reduceMotion) {
+        cells.forEach(settle);
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        const start = performance.now();
+        let lastSpin = 0;
+        const frame = (now) => {
+            const settled = Math.min(cells.length, Math.max(0, Math.floor((now - start - 380) / 140) + 1));
+            const spin = now - lastSpin > 45;
+            if (spin) lastSpin = now;
+            cells.forEach((cell, i) => {
+                if (i < settled) {
+                    if (cell.classList.contains('is-roll')) settle(cell, i);
+                } else if (spin) {
+                    cell.firstChild.textContent = pool[Math.floor(Math.random() * pool.length)];
+                }
+            });
+            if (settled >= cells.length) resolve();
+            else requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+    });
 }
 
 /** Beklerken boş, parıldayan hücreler. */
@@ -254,25 +289,110 @@ document.querySelectorAll('[data-game]').forEach((root) => {
     if (root.dataset.open === 'true') root.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
 });
 
+/* ---------- Şifreyi göster / gizle ---------- */
+document.querySelectorAll('[data-pass-toggle]').forEach((button) => {
+    const inputs = document.querySelectorAll(button.dataset.passToggle);
+    button.addEventListener('click', () => {
+        const show = button.getAttribute('aria-pressed') !== 'true';
+        inputs.forEach((input) => (input.type = show ? 'text' : 'password'));
+        button.setAttribute('aria-pressed', String(show));
+        button.textContent = show ? 'Gizle' : 'Göster';
+    });
+});
+
+/* ---------- Arka plan hareketini durdur (seçim cihazda hatırlanır) ---------- */
+const stillButton = document.querySelector('[data-still]');
+if (stillButton && !reduceMotion) {
+    const store = { get: () => { try { return localStorage.getItem('still') === '1'; } catch { return false; } }, set: (on) => { try { localStorage.setItem('still', on ? '1' : '0'); } catch { /* özel pencere */ } } };
+    const apply = (on) => {
+        document.documentElement.toggleAttribute('data-still', on);
+        stillButton.textContent = on ? 'Hareketi başlat' : 'Hareketi durdur';
+        stillButton.setAttribute('aria-pressed', String(on));
+    };
+    stillButton.hidden = false;
+    apply(store.get());
+    stillButton.addEventListener('click', () => {
+        const on = !document.documentElement.hasAttribute('data-still');
+        store.set(on);
+        apply(on);
+    });
+}
+
+/* ---------- Cam: parlama imleci yumuşakça izler (aç/kapa yok, eğilme yok) ---------- */
+if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
+    let frame = 0;
+    let point = null;
+    window.addEventListener('pointermove', (event) => {
+        point = event;
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+            frame = 0;
+            document.querySelectorAll('.glass').forEach((glass) => {
+                const box = glass.getBoundingClientRect();
+                glass.style.setProperty('--lx', `${point.clientX - box.left}px`);
+                glass.style.setProperty('--ly', `${point.clientY - box.top}px`);
+            });
+        });
+    }, { passive: true });
+}
+
+/* ---------- Başlık: kelime kelime gelir ---------- */
+document.querySelectorAll('.words').forEach((heading) => {
+    const words = heading.textContent.trim().split(/\s+/);
+    heading.setAttribute('aria-label', words.join(' '));
+    heading.replaceChildren(...words.flatMap((word, i) => {
+        const span = el('span', 'w', word);
+        span.setAttribute('aria-hidden', 'true');
+        span.style.setProperty('--i', i);
+        return i ? [' ', span] : [span];
+    }));
+});
+
+/* ---------- Kaydırınca beliren bölümler ---------- */
+const reveals = document.querySelectorAll('.reveal');
+if (reduceMotion || !('IntersectionObserver' in window)) {
+    reveals.forEach((node) => node.classList.add('is-in'));
+} else {
+    const seen = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-in');
+            seen.unobserve(entry.target);
+        });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    reveals.forEach((node) => seen.observe(node));
+}
+
 /* ---------- Ana sayfa ve giriş vitrini: denenebilen örnek ---------- */
 document.querySelectorAll('[data-demo]').forEach((demo) => {
     const button = demo.querySelector('[data-demo-run]');
     const cells = demo.querySelector('[data-demo-cells]');
     const note = demo.querySelector('[data-demo-note]');
+    const mail = demo.querySelector('[data-demo-mail]');
+    const title = demo.querySelector('[data-demo-title]');
+    const time = demo.querySelector('[data-demo-time]');
     const length = Number(cells.dataset.length || 4);
     let running = false;
 
+    // Sıra: posta kutusu okunur, platformun maili düşer, kod hücrelere oturur.
     const run = async () => {
         if (running) return;
         running = true;
         button.setAttribute('aria-busy', 'true');
         button.disabled = true;
         waitCells(cells, length);
-        note.textContent = 'Posta kutusu okunuyor…';
-        await sleep(1100);
+        mail.className = 'mail is-reading';
+        title.textContent = 'Posta kutusu';
+        note.textContent = 'Yeni mail bekleniyor…';
+        time.textContent = '';
+        await sleep(1200);
+        mail.className = 'mail is-new';
+        title.textContent = 'Netflix';
+        note.textContent = 'Giriş kodun geldi';
+        time.textContent = 'şimdi';
+        await sleep(650);
         const code = Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
-        fillCells(cells, code);
-        note.textContent = 'Kod az önce gelen mailden alındı.';
+        await fillCells(cells, code);
         button.setAttribute('aria-busy', 'false');
         button.disabled = false;
         button.textContent = 'Tekrar dene';

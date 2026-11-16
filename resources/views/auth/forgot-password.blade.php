@@ -12,5 +12,5 @@
         <button type="submit" class="btn btn--primary btn--block" data-busy-text="Gönderiliyor">Bağlantıyı gönder</button>
     </form>
 
-    <p class="auth__alt"><a href="{{ route('login') }}">Girişe dön</a></p>
+    <div class="auth__alt"><a href="{{ route('login') }}">Girişe dön</a></div>
 </x-layouts.guest>

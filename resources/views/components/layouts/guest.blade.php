@@ -17,6 +17,7 @@
     <style nonce="{{ Vite::cspNonce() }}">{!! App\Support\Theme::css() !!}</style>
 </head>
 <body>
+    <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <main class="auth">
         <div class="auth__form">
             <div class="auth__box enter">
@@ -32,9 +33,14 @@
         </div>
 
         <aside class="auth__show" aria-label="Ürün örneği">
-            <div>
-                <x-demo-card :autoplay="true" />
-                <p class="auth__caption">Platform kod istediğinde düğmeye bas, kod saniyeler içinde burada.</p>
+            <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
+                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="26">@endif
+                <span>{{ $brand }}</span>
+            </a>
+            <x-demo-card :autoplay="true" />
+            <div class="auth__pitch">
+                <h2>Kodun bir tık uzağında.</h2>
+                <p>Platform doğrulama kodu istediğinde düğmeye bas. Kod birkaç saniyede ekranında.</p>
             </div>
         </aside>
     </main>

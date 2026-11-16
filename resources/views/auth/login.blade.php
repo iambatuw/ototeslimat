@@ -1,6 +1,6 @@
 <x-layouts.guest title="Giriş yap">
-    <h1>Giriş yap</h1>
-    <p>Hesaplarının giriş kodlarını almak için oturum aç.</p>
+    <h1>Tekrar hoş geldin</h1>
+    <p>Kodlarını almak için hesabına giriş yap.</p>
 
     <form method="POST" action="{{ route('login') }}" class="stack" data-busy novalidate>
         @csrf
@@ -11,17 +11,23 @@
         </div>
         <div class="field">
             <label for="password">Şifre</label>
-            <input id="password" name="password" type="password" class="input" autocomplete="current-password" required @error('password') aria-invalid="true" @enderror>
-            <p class="error">@error('password'){{ $message }}@enderror</p>
+            <div class="pass">
+                <input id="password" name="password" type="password" class="input" autocomplete="current-password" required @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
+                <button type="button" class="pass__toggle" data-pass-toggle="#password" aria-pressed="false">Göster</button>
+            </div>
+            <p class="error" id="password-error">@error('password'){{ $message }}@enderror</p>
         </div>
-        <label class="check"><input type="checkbox" name="remember" value="1"> Bu cihazda açık kalsın</label>
-        <button type="submit" class="btn btn--primary btn--block" data-busy-text="Giriş yapılıyor">Giriş yap</button>
+        <div class="auth__row">
+            <label class="check"><input type="checkbox" name="remember" value="1" @checked(old('remember'))> Bu cihazda açık kalsın</label>
+            <a href="{{ route('password.request') }}">Şifremi unuttum</a>
+        </div>
+        <button type="submit" class="btn btn--primary btn--l btn--block">Giriş yap</button>
     </form>
 
-    <p class="auth__alt">
-        @if (\App\Models\Setting::flag('registration_open'))
-            Hesabın yok mu? <a href="{{ route('register') }}">Kayıt ol</a>.
-        @endif
-        Şifreni mi unuttun? <a href="{{ route('password.request') }}">Yenile</a>.
-    </p>
+    @if (\App\Models\Setting::flag('registration_open'))
+        <div class="auth__alt">
+            <span>Henüz hesabın yok mu?</span>
+            <a href="{{ route('register') }}" class="btn btn--secondary btn--block">Yeni hesap aç</a>
+        </div>
+    @endif
 </x-layouts.guest>

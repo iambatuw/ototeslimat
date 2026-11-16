@@ -6,14 +6,22 @@
     $line = $points->map(fn ($p) => $p[0].','.$p[1])->implode(' ');
     $area = 'M'.$points->first()[0].','.($h - $pad).' L'.$points->map(fn ($p) => $p[0].','.$p[1])->implode(' L').' L'.$points->last()[0].','.($h - $pad).' Z';
     $ready = $setup['account'] && $setup['key'] && $setup['sold'];
+    $now = ! $setup['account'] ? 'account' : (! $setup['key'] ? 'key' : 'sold');
+    $total = $series->sum('value');
+    $keys = $stats['unused'] + $stats['active'];
+    $freeWidth = $keys ? round($stats['unused'] / $keys * 100, 1) : 0;
+    $fmt = fn ($n) => number_format($n, 0, ',', '.');
 @endphp
 <x-layouts.app title="Panel">
     <div class="page-head">
         <div>
             <h1>Panel</h1>
-            <p>Mağazanın kısa özeti.</p>
+            <p>Mağazanda bugün neler oluyor, tek bakışta.</p>
         </div>
-        <a href="{{ route('admin.keys.index') }}" class="btn btn--primary">Anahtar üret</a>
+        <div class="page-head__actions">
+            <a href="{{ route('admin.accounts.create') }}" class="btn btn--secondary">Hesap ekle</a>
+            <a href="{{ route('admin.keys.index') }}" class="btn btn--primary">Anahtar üret</a>
+        </div>
     </div>
 
     @if ($failing > 0)
@@ -30,43 +38,36 @@
                     <p class="card__lead">Mağazanı üç adımda satışa hazırla.</p>
                 </div>
             </div>
+            @php
+                $steps = [
+                    ['account', 'Sattığın hesabı ekle', 'Kodun geldiği e-posta kutusunu ya da 2FA anahtarını gir.', route('admin.accounts.create'), 'Hesap ekle'],
+                    ['key', 'Anahtar üret', 'Her müşteriye bir anahtar verirsin. Anahtar o hesaba bağlanır.', route('admin.keys.index'), 'Anahtar üret'],
+                    ['sold', 'Anahtarı müşterine gönder', 'Müşteri siteye kayıt olup anahtarı ekler, kodu kendisi alır.', null, null],
+                ];
+            @endphp
             <ol class="setup">
-                <li @class(['is-done' => $setup['account']])>
-                    <div>
-                        <p class="setup__title">Sattığın hesabı ekle</p>
-                        <p class="setup__text">Kodun geldiği e-posta kutusunu ya da 2FA anahtarını gir.</p>
-                    </div>
-                    @unless ($setup['account'])<a href="{{ route('admin.accounts.create') }}" class="btn btn--primary btn--s">Hesap ekle</a>@endunless
-                </li>
-                <li @class(['is-done' => $setup['key']])>
-                    <div>
-                        <p class="setup__title">Anahtar üret</p>
-                        <p class="setup__text">Her müşterine bir anahtar verirsin. Anahtar o hesaba bağlanır.</p>
-                    </div>
-                    @if ($setup['account'] && ! $setup['key'])<a href="{{ route('admin.keys.index') }}" class="btn btn--primary btn--s">Anahtar üret</a>@endif
-                </li>
-                <li @class(['is-done' => $setup['sold']])>
-                    <div>
-                        <p class="setup__title">Anahtarı müşterine gönder</p>
-                        <p class="setup__text">Müşteri siteye kayıt olup anahtarı ekler, kodu kendisi alır.</p>
-                    </div>
-                </li>
+                @foreach ($steps as $i => [$id, $title, $text, $url, $action])
+                    <li @class(['is-done' => $setup[$id], 'is-now' => ! $setup[$id] && $now === $id]) @if (! $setup[$id] && $now === $id) aria-current="step" @endif>
+                        <span class="setup__dot">
+                            @if ($setup[$id])
+                                <svg viewBox="0 0 16 16" role="img" aria-label="Tamamlandı"><path d="m3 8.5 3.2 3L13 4.5"/></svg>
+                            @else
+                                {{ $i + 1 }}
+                            @endif
+                        </span>
+                        <p class="setup__title">{{ $title }}</p>
+                        <p class="setup__text">{{ $text }}</p>
+                        @if ($url && $now === $id)<a href="{{ $url }}" class="btn btn--primary btn--s">{{ $action }}</a>@endif
+                    </li>
+                @endforeach
             </ol>
         </section>
     @endunless
 
-    <dl class="figures section-gap">
-        <div><dt>Satılmayı bekleyen anahtar</dt><dd>{{ number_format($stats['unused'], 0, ',', '.') }}</dd></div>
-        <div><dt>Kullanımdaki anahtar</dt><dd>{{ number_format($stats['active'], 0, ',', '.') }}</dd></div>
-        <div><dt>Bu ay verilen kod</dt><dd>{{ number_format($stats['codes_month'], 0, ',', '.') }}</dd></div>
-        <div><dt>Müşteri</dt><dd>{{ number_format($stats['customers'], 0, ',', '.') }}</dd></div>
-    </dl>
-
+    <div class="overview">
     <section class="card" aria-labelledby="chart-title">
-        <div class="card__head">
-            <h2 id="chart-title" class="card__title">Son 14 günde verilen kod</h2>
-            <span class="muted small">Toplam {{ $series->sum('value') }}</span>
-        </div>
+        <h2 id="chart-title" class="card__title">Verilen kodlar</h2>
+        <p class="total"><strong>{{ $fmt($total) }}</strong> <span>son 14 günde, bu ay {{ $fmt($stats['codes_month']) }}</span></p>
         <figure class="chart__plot">
             <svg viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="none" role="img" aria-label="Son 14 günde günlük verilen kod sayısı">
                 @foreach ([0.25, 0.5, 0.75] as $g)
@@ -80,6 +81,26 @@
             </figcaption>
         </figure>
     </section>
+
+    <section class="card" aria-labelledby="stock-title">
+        <h2 id="stock-title" class="card__title">Anahtarlar</h2>
+        <p class="total"><strong>{{ $fmt($keys) }}</strong> <span>geçerli anahtar</span></p>
+        <div class="stock">
+            <svg viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="{{ $stats['unused'] }} anahtar satılmayı bekliyor, {{ $stats['active'] }} anahtar kullanımda">
+                @if ($keys)
+                    <rect class="stock__free" width="{{ $freeWidth }}" height="12" />
+                    <rect class="stock__used" x="{{ $freeWidth }}" width="{{ 100 - $freeWidth }}" height="12" />
+                @endif
+            </svg>
+        </div>
+        <ul class="facts">
+            <li><a href="{{ route('admin.keys.index') }}"><span class="dot dot--free"></span>Satılmayı bekleyen <strong>{{ $fmt($stats['unused']) }}</strong></a></li>
+            <li><a href="{{ route('admin.keys.index') }}"><span class="dot dot--used"></span>Kullanımda <strong>{{ $fmt($stats['active']) }}</strong></a></li>
+            <li><a href="{{ route('admin.accounts.index') }}"><span class="dot"></span>Aktif hesap <strong>{{ $fmt($stats['accounts']) }}</strong></a></li>
+            <li><a href="{{ route('admin.customers.index') }}"><span class="dot"></span>Müşteri <strong>{{ $fmt($stats['customers']) }}</strong></a></li>
+        </ul>
+    </section>
+    </div>
 
     <section class="card card--flush section-gap" aria-labelledby="recent-title">
         <div class="card__head">

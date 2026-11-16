@@ -1,35 +1,37 @@
-# Tasarım yönü
+# Tasarım yönü: Aurora cam
 
-Reading this as: bir kod teslim aracı, hesap satıcıları ve onların müşterileri için; Apple'ın koyu arayüz dili (macOS / iOS Dark), dial **ENERGY 2 / RHYTHM 2 / MOTION 2**.
+Bir kod teslim aracı; hesap satıcıları ve onların müşterileri için. Koyu zemin, arkada yavaş hareket eden renkli ışık, üstünde Liquid Glass yüzeyler.
 
 ## Neden koyu
 
-Müşteriler Netflix, HBO Max, Prime Video, Disney+ gibi kalıcı koyu arayüzlü yayın platformlarından geliyor ve kodu çoğu zaman gece istiyor. Apple'ın kuralı: sabit koyu görünüm, medya odaklı ve "arayüzün geri çekildiği" ürünlerde yerinde. Mağaza sahibi de koyu tema istedi. Tek tema gönderilir; açık tema yok, yarım çalışan ikinci bir tema da yok.
+Müşteriler Netflix, HBO Max, Prime Video gibi koyu arayüzlü platformlardan geliyor ve kodu çoğu zaman gece istiyor. Tek tema gönderilir; açık tema yok.
 
 ## Kimlik
 
-- **İmza öğe: kod hücreleri.** Doğrulama kodu, telefondaki tek kullanımlık kod alanı gibi her rakamı ayrı bir hücrede gösterilir ve rakamlar sırayla yerine düşer. Ana sayfada, müşteri ekranında ve giriş ekranının vitrininde aynı öğe kullanılır. Ürünü hatırlatan tek şey budur, geri kalan her şey sakin kalır.
-- **Vurgu:** tek renk (varsayılan Apple'ın koyu temadaki mavisi `#0a84ff`, mağaza sahibi değiştirebilir). Yalnızca ana eylemde, seçili durumda ve canlı sayaçta kullanılır.
-- **Font:** sistemin kendi arayüz fontu. Apple cihazlarda SF Pro, Windows'ta Segoe UI Variable. Ürün kullanıcının işletim sisteminin parçası gibi hissettirmeli; indirme yok, lisans yok. Kod ve anahtarlar sistemin eş aralıklı fontuyla (SF Mono / Cascadia).
+- **İmza öğe: kod hücreleri.** Kod, her karakteri ayrı bir hücrede gösterilir. Gelirken karakterler kısa süre döner, sonra soldan sağa sırayla yerine oturur. Ana sayfada, giriş ekranında ve müşteri ekranında aynı öğe kullanılır.
+- **Aurora:** sabit arka plan katmanında dört bulanık ışık alanı (vurgu rengi + mor, turkuaz, pembe). Çalışma ekranlarında (`ambient--calm`) daha kısık durur ki tablolar rahat okunsun.
+- **Cam (`.glass`):** yalnızca işlev taşıyan yüzen katmanda: üst çubuk ve örnek kod kartı. Parlama sabit ve hafiftir, imleci yumuşakça izler; hover ile açılıp kapanmaz, kart eğilmez. Şeffaflığı azalt ayarında düz yüzeye döner.
+- **Vurgu:** tek renk, mağaza sahibi ayarlardan değiştirir (varsayılan `#0a84ff`).
+- **Font:** sistemin arayüz fontu (SF Pro / Segoe UI Variable). Başlıklar kalın (700-800). Kod ve anahtarlar eş aralıklı.
 
-## Yüzeyler
+## Yerleşim
 
-- Zemin `#0b0b0d`, yükseltilmiş yüzey `#161618`, ikinci düzey `#1f1f22`. Saf siyah ve saf beyaz yok.
-- Kartlar kenar çizgisiyle ayrılır (1px, %8 beyaz); gölge yalnızca gerçekten yükselen öğede (açılır pencere, vitrin kartı).
-- **Liquid Glass yalnızca üstteki yüzen çubukta.** İçerik kaydıkça arkasından geçer. Kartta, listede, butonda cam yok. Şeffaflığı azalt ayarında düz yüzeye döner.
+- **Ana sayfa:** hero iki sütun; solda başlık ve eylem, sağda çalışan örnek kart. Ortalanmış hero yok. "Nasıl çalışır" ve "Sık sorulanlar" bölünmüş bölümdür: başlık solda sabit kalır, içerik sağda akar. Her adımın yanında anlattığı arayüz parçası durur. Ayrı bir kapanış çağrısı bloğu yok; eylem düğmesi "nasıl çalışır" başlığının altındadır.
+- **Giriş ekranları:** solda ışığın içinde ürün (örnek kart + kalın başlık), sağda sakin, koyu bir form alanı. Hata satırı yalnızca hata varken yer kaplar.
+- **Panel:** özdeş sayı kutuları yok. Verilen kodlar grafiğiyle birlikte tek kartta; anahtar stoğu tek çubuk ve altında satırlar. İlk kurulum adımları yatay bir iz olarak gösterilir, sıradaki adım eylemi taşır.
 
-## Hareket (MOTION 2)
+## Hareket
 
-Her hareketin bir işi var, sık tekrarlanan etkileşimde hareket yok:
+1. Sayfa geçişi: kısa çapraz geçiş (View Transitions).
+2. Ana sayfa başlığı kelime kelime gelir; alt bölümler ekrana girince bir kez yükselir.
+3. Kodun gelişi: posta satırı "bekleniyor" durumundan mailin düşmesine geçer, ardından karakterler dönerek yerine oturur.
+4. 2FA sayacı: halka şeklinde geri sayım, son 5 saniyede uyarı rengi.
+5. Arka plan ışığı çok yavaş süzülür; altbilgideki "Hareketi durdur" düğmesiyle durdurulur.
 
-1. **Sayfa geçişi:** sayfalar arası gezinmede beyaz flaş yerine kısa çapraz geçiş (View Transitions).
-2. **Sayfa açılışı:** içerik bir kez, 8px yukarı kayarak ve sırayla belirir. Kullanıcı ne olduğunu anlar, beklemez.
-3. **Kodun gelişi:** rakamlar hücrelerine sırayla düşer. Bu, bekleme anının bittiğini söyleyen tek kutlama.
-4. **2FA sayacı:** halka şeklinde geri sayım; süre azaldıkça halka kapanır, son 5 saniyede renk uyarıya döner.
-5. **Ana sayfa denemesi:** ziyaretçi örnek karttaki düğmeye basar, yükleniyor durumu ve ardından kodun gelişi oynar.
+`prefers-reduced-motion: reduce` açıkken hepsi anında ve hareketsiz gösterilir.
 
-`prefers-reduced-motion: reduce` açıkken hepsi anında, hareketsiz gösterilir.
+## Kurallar
 
-## Ritim
-
-Ana sayfa bölümleri birbirinden farklı kurulur: hero (ortada, ürün denemesi), nasıl çalışır (soldan sağa akış), platformlar (tek satır metin), sorular (liste). Üç özdeş kart, uydurma yorum, uydurma rakam yok.
+- CSP sıkı: satır içi `style=""` yok. Değişken değerler CSSOM (`style.setProperty`) ya da SVG öznitelikleriyle verilir.
+- Başlığın üstünde küçük etiket (eyebrow) yok, gradyan yazı yok, özdeş ikonlu kart dizisi yok, uydurma rakam ya da yorum yok.
+- İkon gerekiyorsa çizilmiş SVG; unicode işaret ya da emoji ikon yerine kullanılmaz.
