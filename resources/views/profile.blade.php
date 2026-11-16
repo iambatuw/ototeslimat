@@ -1,16 +1,19 @@
 <x-layouts.app title="Hesabım">
-    <div class="page-head">
-        <div>
-            <h1>Hesabım</h1>
-            <p>{{ $user->name }}, {{ $user->email }}</p>
+    <header class="head">
+        <div class="head__who">
+            <span class="avatar avatar--xl" aria-hidden="true">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+            <div>
+                <h1 class="words">{{ $user->name }}</h1>
+                <p>{{ $user->email }}</p>
+            </div>
         </div>
-    </div>
+    </header>
 
     @if (session('status') === 'password-updated')
         <p class="notice" role="status">Şifren değişti.</p>
     @endif
 
-    <form method="POST" action="{{ route('user-password.update') }}" class="card stack form-page" data-busy novalidate>
+    <form method="POST" action="{{ route('user-password.update') }}" class="panel panel--pad stack form-narrow" data-busy novalidate>
         @csrf
         @method('PUT')
         <h2 class="card__title">Şifreyi değiştir</h2>

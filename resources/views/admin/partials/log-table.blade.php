@@ -1,26 +1,24 @@
-<div class="table-wrap">
-    <table class="table table--stack">
-        <thead>
-            <tr>
-                <th scope="col">Zaman</th>
-                <th scope="col">Olay</th>
-                <th scope="col">Hesap</th>
-                <th scope="col">Kullanıcı</th>
-                <th scope="col">IP</th>
-                <th scope="col">Ayrıntı</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($logs as $log)
-                <tr>
-                    <td class="nowrap"><time datetime="{{ $log->created_at->toIso8601String() }}" title="{{ $log->created_at->format('d.m.Y H:i:s') }}">{{ $log->created_at->format('d.m H:i') }}</time></td>
-                    <td data-label="Olay"><span class="cell-title">{{ $log->label() }}</span></td>
-                    <td data-label="Hesap">{{ $log->account?->title }}</td>
-                    <td data-label="Kullanıcı">{{ $log->user?->email }}</td>
-                    <td data-label="IP" class="mono nowrap">{{ $log->ip }}</td>
-                    <td data-label="Ayrıntı" class="muted">@include('admin.partials.log-meta', ['log' => $log])</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
+{{-- Kayıtlar bir zaman akışı olarak gösterilir: nokta olayın türünü söyler. --}}
+@php
+    $tone = fn ($event) => match (true) {
+        in_array($event, ['code.issued', 'key.redeemed', 'key.picked', 'auth.registered'], true) => 'good',
+        in_array($event, ['code.failed', 'key.invalid', 'auth.failed', 'key.revoked'], true) => 'bad',
+        default => 'plain',
+    };
+@endphp
+<ol class="feed stagger" role="list">
+    @foreach ($logs as $log)
+        <li class="feed__item feed__item--{{ $tone($log->event) }}">
+            <time class="feed__time" datetime="{{ $log->created_at->toIso8601String() }}" title="{{ $log->created_at->format('d.m.Y H:i:s') }}">{{ $log->created_at->format('d.m H:i') }}</time>
+            <span class="feed__dot" aria-hidden="true"></span>
+            <div class="feed__body">
+                <p class="feed__title">{{ $log->label() }}@if ($log->account) <span>{{ $log->account->title }}</span>@endif</p>
+                <p class="feed__meta">@include('admin.partials.log-meta', ['log' => $log])</p>
+            </div>
+            <div class="feed__who">
+                @if ($log->user)<span>{{ $log->user->email }}</span>@endif
+                @if ($log->ip)<span class="mono">{{ $log->ip }}</span>@endif
+            </div>
+        </li>
+    @endforeach
+</ol>

@@ -4,15 +4,16 @@
     $reason = $blocked ?? ($down ? 'Şu an kod verilmiyor' : null);
 @endphp
 <div data-game @if (session('opened') === $key->id) data-open="true" @endif>
-    <div class="item__row">
+    <div class="acct__row">
+        <span class="plat" data-p="{{ $account->platform }}" aria-hidden="true">{{ mb_substr($account->platformLabel(), 0, 1) }}</span>
         <div>
-            <h3 class="item__title">{{ $account->title }}</h3>
-            <p class="item__meta">{{ implode(', ', array_filter($meta)) ?: $account->platformLabel() }}</p>
+            <h3 class="acct__title">{{ $account->title }}</h3>
+            <p class="acct__meta">{{ implode(', ', array_filter($meta)) ?: $account->platformLabel() }}</p>
         </div>
         @if ($reason)
             <span class="badge">{{ $reason }}</span>
         @else
-            <div class="item__actions">
+            <div class="acct__actions">
                 @if ($account->hasMailbox())
                     <button type="button" class="btn btn--primary" data-get-code data-url="{{ route('code', [$key, $account, 'mail']) }}" data-idle="Mail kodunu al">Mail kodunu al</button>
                 @endif

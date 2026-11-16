@@ -1,0 +1,113 @@
+/* Hareket katmanı. Her şey html[data-still] altında durur: ziyaretçi altbilgideki düğmeyle kapatır,
+   mağaza sahibi isterse sistemin "hareketi azalt" tercihine de uydurur (Ayarlar > Özellikler). */
+
+:root { interpolate-size: allow-keywords; }
+
+@keyframes bob { from { translate: 0 -6px; } to { translate: 0 6px; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes ping { from { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); } to { box-shadow: 0 0 0 8px transparent; } }
+@keyframes breathe { from { border-color: var(--color-rule-strong); } to { border-color: color-mix(in srgb, var(--color-accent) 55%, transparent); } }
+@keyframes glow { from { box-shadow: var(--cell-inset), 0 0 14px -8px var(--color-accent); } to { box-shadow: var(--cell-inset), 0 0 30px -4px var(--color-accent); } }
+@keyframes marquee { to { transform: translateX(calc(-100% - var(--space-md))); } }
+@keyframes tap { 0%, 70%, 100% { transform: none; } 80% { transform: scale(0.88); } }
+@keyframes slide-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+@keyframes bar-tight { to { min-height: 50px; } }
+
+/* ---------- Sıralı giriş: listeler, kutucuklar, tablo satırları ---------- */
+.stagger > * { animation: rise var(--dur-long) var(--ease-out) both; }
+.stagger > :nth-child(2) { animation-delay: 50ms; }
+.stagger > :nth-child(3) { animation-delay: 100ms; }
+.stagger > :nth-child(4) { animation-delay: 150ms; }
+.stagger > :nth-child(5) { animation-delay: 200ms; }
+.stagger > :nth-child(6) { animation-delay: 250ms; }
+.stagger > :nth-child(7) { animation-delay: 300ms; }
+.stagger > :nth-child(8) { animation-delay: 350ms; }
+.stagger > :nth-child(9) { animation-delay: 400ms; }
+.stagger > :nth-child(n+10) { animation-delay: 450ms; }
+
+/* ---------- Düğmeler: üstüne gelince ışık geçer, hafifçe kalkar ---------- */
+.btn { transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out), translate var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), background-position 0.7s var(--ease-out); }
+.btn:hover:not(:disabled, [aria-disabled="true"]) { translate: 0 -1px; }
+.btn--primary { background-image: linear-gradient(110deg, transparent 35%, var(--glass-highlight) 50%, transparent 65%); background-size: 250% 100%; background-position: 130% 0; background-repeat: no-repeat; }
+.btn--primary:hover { background-position: -30% 0; box-shadow: inset 0 1px 0 var(--glass-highlight), 0 12px 28px -8px var(--color-accent); }
+.is-done { animation: pop 0.35s var(--ease-spring); }
+
+/* ---------- Alanlar ---------- */
+.input, .select, .textarea { transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible { box-shadow: 0 0 24px -6px var(--color-accent); }
+.rules li.is-ok { animation: pop 0.35s var(--ease-spring); }
+
+/* ---------- Açılır bölümler yumuşak açılır ---------- */
+.faq details::details-content, .more::details-content { height: 0; overflow: clip; opacity: 0; transition: height 0.4s var(--ease-out), opacity 0.4s var(--ease-out), content-visibility 0.4s allow-discrete; }
+.faq details[open]::details-content, .more[open]::details-content { height: auto; opacity: 1; }
+.faq summary { transition: padding-left var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+.faq summary:hover { padding-left: var(--space-xs); }
+
+/* ---------- Durum noktası canlı atar ---------- */
+.state--on::before { animation: ping 2s var(--ease-out) infinite; }
+
+/* ---------- Kod hücreleri ---------- */
+.cells:not(.cells--wait, .cells--expired) .cell:not(.is-in, .is-roll) { animation: breathe 1.6s var(--ease-in-out) infinite alternate; }
+.cell:nth-child(2) { animation-delay: 0.15s; }
+.cell:nth-child(3) { animation-delay: 0.3s; }
+.cell:nth-child(4) { animation-delay: 0.45s; }
+.cell:nth-child(5) { animation-delay: 0.6s; }
+.cell:nth-child(6) { animation-delay: 0.75s; }
+.cells:not(.cells--expired) .cell.is-in { animation: glow 2.2s var(--ease-in-out) 0.6s infinite alternate; }
+.blank__art span { animation: bob 2.4s var(--ease-in-out) infinite alternate; }
+.blank__art span:nth-child(2) { animation-delay: 0.2s; }
+.blank__art span:nth-child(3) { animation-delay: 0.4s; }
+.blank__art span:nth-child(4) { animation-delay: 0.6s; }
+
+/* ---------- Ana sayfa ---------- */
+.hero__try { animation: bob 5s var(--ease-in-out) infinite alternate; }
+.progress { position: fixed; inset: 0 0 auto; z-index: var(--z-toast); height: 3px; background: linear-gradient(90deg, var(--color-accent), var(--aurora-2), var(--aurora-4)); transform: scaleX(0); transform-origin: 0 50%; animation: grow linear both; animation-timeline: scroll(root); }
+@supports not (animation-timeline: scroll()) { .progress { display: none; } }
+.bar__inner { animation: bar-tight linear both; animation-timeline: scroll(root); animation-range: 0 160px; }
+.marquee__row { animation: marquee 30s linear infinite; }
+.marquee:hover .marquee__row { animation-play-state: paused; }
+.marquee__row li { transition: transform var(--dur-short) var(--ease-spring), border-color var(--dur-short) var(--ease-out); }
+.marquee__row li:hover { transform: scale(1.06); border-color: var(--color-accent); }
+.steps .step:nth-child(2) { transition-delay: 0.12s; }
+.steps .step:nth-child(3) { transition-delay: 0.24s; }
+.step.is-in::before { animation: pop 0.6s var(--ease-spring) 0.2s both; }
+.step.is-in .mini__cells--on span { animation: cell-set 0.5s var(--ease-spring) both; }
+.step.is-in .mini__cells--on span:nth-child(1) { animation-delay: 0.5s; }
+.step.is-in .mini__cells--on span:nth-child(2) { animation-delay: 0.65s; }
+.step.is-in .mini__cells--on span:nth-child(3) { animation-delay: 0.8s; }
+.step.is-in .mini__cells--on span:nth-child(4) { animation-delay: 0.95s; }
+.mini__pill { animation: tap 2.6s var(--ease-in-out) 1s infinite; }
+.mini { transition: transform var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
+.step:hover .mini, .journey li:hover .mini { transform: translateY(-3px); border-color: var(--color-rule-hover); }
+
+/* ---------- Giriş ve kayıt ---------- */
+.journey li { animation: slide-in 0.6s var(--ease-out) both; }
+.journey li:nth-child(1) { animation-delay: 0.2s; }
+.journey li:nth-child(2) { animation-delay: 0.45s; }
+.journey li:nth-child(3) { animation-delay: 0.7s; }
+.auth__pitch { animation: rise 0.8s var(--ease-out) 0.5s both; }
+.auth__show .demo { animation: bob 5s var(--ease-in-out) infinite alternate; }
+
+/* ---------- Panel ---------- */
+.chart__plot svg { animation: wipe 1.6s var(--ease-out) 0.2s both; }
+.stock rect { transform-box: fill-box; transform-origin: 0 50%; animation: grow 1s var(--ease-out) 0.3s both; }
+.setup li.is-now .setup__dot { animation: ping 2s var(--ease-out) infinite; color: var(--color-accent-ink); }
+.feed__dot { animation: pop 0.5s var(--ease-spring) both; animation-delay: inherit; }
+.pips i { transform-origin: 0 50%; animation: grow 0.5s var(--ease-out) both; }
+.pips i:nth-child(2) { animation-delay: 0.08s; }
+.pips i:nth-child(3) { animation-delay: 0.16s; }
+.pips i:nth-child(4) { animation-delay: 0.24s; }
+.pips i:nth-child(n+5) { animation-delay: 0.32s; }
+.fresh { animation: rise var(--dur-long) var(--ease-out) both; }
+
+/* ---------- Hareket kapalı ---------- */
+html[data-still] .enter > *, html[data-still] .stagger > *, html[data-still] .notice, html[data-still] .code, html[data-still] .words .w, html[data-still] .journey li, html[data-still] .auth__pitch, html[data-still] .fresh, html[data-still] .feed__dot { animation: none; opacity: 1; filter: none; transform: none; }
+html[data-still] .reveal { opacity: 1; transform: none; transition: none; }
+html[data-still] .ambient i, html[data-still] .marquee__row, html[data-still] .hero__try, html[data-still] .auth__show .demo, html[data-still] .blank__art span, html[data-still] .cell, html[data-still] .cells--wait .cell, html[data-still] .mini__pill, html[data-still] .state--on::before, html[data-still] .setup__dot, html[data-still] .bar__inner, html[data-still] .mail.is-reading .mail__icon, html[data-still] .chart__plot svg, html[data-still] .stock rect, html[data-still] .pips i { animation: none !important; }
+html[data-still] .progress { display: none; }
+html[data-still] .btn:hover, html[data-still] .tile:hover, html[data-still] .choice:hover { translate: none; transform: none; }
+/* Kodun gelişi süs değil, geri bildirim: hareket kapalıyken kaymadan, düz bir belirmeyle kalır. */
+html[data-still] .cell.is-in > span, html[data-still] .mail.is-new { animation: fade 0.3s linear both !important; animation-duration: 0.3s !important; }
+html[data-still] .ring__bar { transition: none; }

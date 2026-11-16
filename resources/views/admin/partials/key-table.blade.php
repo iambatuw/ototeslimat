@@ -10,7 +10,7 @@
                 <th scope="col"><span class="visually-hidden">İşlem</span></th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="stagger">
             @foreach ($keys as $key)
                 @php($status = $key->status())
                 <tr class="{{ in_array($status, ['revoked', 'expired', 'used_up'], true) ? 'is-dim' : '' }}">
@@ -24,7 +24,7 @@
                         @if ($key->rulesSummary() !== 'Sınırsız')<span class="cell-sub">{{ $key->rulesSummary() }}</span>@endif
                     </td>
                     <td data-label="Durum">
-                        <span @class(['badge', 'badge--accent' => $status === 'active'])>{{ $key->statusLabel() }}</span>
+                        <span @class(['state', 'state--on' => $status === 'active', 'state--new' => $status === 'unused', 'state--bad' => in_array($status, ['revoked', 'expired', 'used_up'], true)])>{{ $key->statusLabel() }}</span>
                         @if ($key->expires_at && $status === 'active')<span class="cell-sub">{{ $key->expires_at->format('d.m.Y') }} bitiş</span>@endif
                     </td>
                     <td data-label="Müşteri">{{ $key->customer?->email ?? '' }}</td>

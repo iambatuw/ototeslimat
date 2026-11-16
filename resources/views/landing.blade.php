@@ -14,11 +14,13 @@
     <meta name="description" content="{{ Setting::get('tagline') }}">
     <title>{{ Setting::get('tab_title') ?: $brand }}</title>
     @if ($favicon)<link rel="icon" href="{{ asset($favicon) }}">@endif
+    <x-motion />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style nonce="{{ Vite::cspNonce() }}">{!! App\Support\Theme::css() !!}</style>
 </head>
 <body>
     <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="progress" aria-hidden="true"></div>
     <header class="bar">
         <div class="container"><div class="bar__inner glass">
             <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
@@ -96,8 +98,15 @@
             </ol>
         </section>
 
-        <section class="container section reveal" aria-label="Desteklenen platformlar">
-            <p class="platforms">{{ $platforms->implode(', ') }} <span>ve kodunu mail ya da 2FA ile gönderen diğerleri.</span></p>
+        <section class="section reveal" aria-labelledby="platform-title">
+            <div class="container"><h2 class="platforms" id="platform-title">Aldığın platform hangisiyse, <span>kodu burada.</span></h2></div>
+            <div class="marquee">
+                @foreach ([false, true] as $copy)
+                    <ul class="marquee__row" @if ($copy) aria-hidden="true" @endif>
+                        @foreach ($platforms as $platform)<li>{{ $platform }}</li>@endforeach
+                    </ul>
+                @endforeach
+            </div>
         </section>
 
         <section class="container section split" id="sss" aria-labelledby="sss-title">
@@ -131,11 +140,8 @@
 
     <footer class="foot">
         <div class="container foot__inner">
-            <span>{{ $brand }}</span>
-            <div class="foot__end">
-                <button type="button" class="still" data-still hidden>Hareketi durdur</button>
-                @if (Setting::get('contact_url'))<a href="{{ Setting::get('contact_url') }}" rel="noopener" target="_blank">Destek</a>@endif
-            </div>
+            <button type="button" class="still" data-motion-toggle aria-pressed="false">Hareketi durdur</button>
+            @if (Setting::get('contact_url'))<a href="{{ Setting::get('contact_url') }}" rel="noopener" target="_blank">Destek</a>@endif
         </div>
     </footer>
 </body>

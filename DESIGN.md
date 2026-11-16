@@ -20,15 +20,26 @@ Müşteriler Netflix, HBO Max, Prime Video gibi koyu arayüzlü platformlardan g
 - **Giriş ekranları:** solda ışığın içinde ürün (örnek kart + kalın başlık), sağda sakin, koyu bir form alanı. Hata satırı yalnızca hata varken yer kaplar.
 - **Panel:** özdeş sayı kutuları yok. Verilen kodlar grafiğiyle birlikte tek kartta; anahtar stoğu tek çubuk ve altında satırlar. İlk kurulum adımları yatay bir iz olarak gösterilir, sıradaki adım eylemi taşır.
 
+## Çalışma ekranları
+
+- **Yönetim iskeleti:** solda yüzen cam yan menü (simge + ad); seçili sayfa vurgu rengiyle dolar ve sayfa geçişinde yerine kayar. Telefonda aynı menü alt sekme çubuğuna döner.
+- **Hesaplar ve paketler:** platform rozetli kutucuk ızgarası. Rozet, platformun baş harfi ve rengi.
+- **Anahtarlar:** üstte tek satırlık üretici (hedef, adet seçici, düğme); yeni anahtarlar tek tek kopyalanabilen çipler olarak çıkar; liste durum haplarıyla süzülür.
+- **Müşteriler:** avatarlı satırlar. **Kayıtlar:** zaman akışı; nokta olayın türünü söyler (yeşil başarılı, kırmızı başarısız).
+- **Formlar:** solda bölümün ne olduğu, sağda alanlar; kaydet çubuğu altta yapışık durur.
+- **Müşteri (Kodlarım):** solda hesap kartları, sağda yapışık "Anahtar ekle" kutusu ve "Kod gelmedi mi?" adımları.
+
 ## Hareket
 
-1. Sayfa geçişi: kısa çapraz geçiş (View Transitions).
-2. Ana sayfa başlığı kelime kelime gelir; alt bölümler ekrana girince bir kez yükselir.
-3. Kodun gelişi: posta satırı "bekleniyor" durumundan mailin düşmesine geçer, ardından karakterler dönerek yerine oturur.
-4. 2FA sayacı: halka şeklinde geri sayım, son 5 saniyede uyarı rengi.
-5. Arka plan ışığı çok yavaş süzülür; altbilgideki "Hareketi durdur" düğmesiyle durdurulur.
+Mağaza sahibi sitenin hareketli olmasını istedi; hareket her yerde var ama her biri kısa ve tek işlidir.
 
-`prefers-reduced-motion: reduce` açıkken hepsi anında ve hareketsiz gösterilir.
+- Sayfa geçişi (View Transitions), başlığın kelime kelime gelişi, liste ve kutucukların sırayla belirmesi.
+- Kodun gelişi: posta satırı, ardından dönen ve sırayla oturan karakterler; oturan hücreler hafifçe parlar.
+- Düğmelerde ışık geçişi ve kalkma, kutucuklarda imleci izleyen ışık, rozetlerde küçük dönme.
+- Panelde sayan rakamlar, soldan açılan grafik, dolan stok çubuğu, atan durum noktası.
+- Ana sayfada süzülen örnek kart, akan platform şeridi, kaydırma ilerleme çizgisi, yumuşak açılan sorular.
+
+**Kapatma:** altbilgideki "Hareketi durdur" düğmesi her şeyi durdurur ve seçim cihazda hatırlanır. Varsayılan olarak hareket herkeste oynar; Ayarlar > Özellikler'deki anahtar açılırsa, cihazında "hareketi azalt" seçili ziyaretçide site hareketsiz başlar. Karar `<head>` içindeki küçük betikte verilir ve `html[data-still]` ile uygulanır; CSS'te `prefers-reduced-motion` sorgusu kullanılmaz.
 
 ## Kurallar
 

@@ -34,7 +34,10 @@ class SettingsController extends Controller
                 'contact_url' => ['nullable', 'url:https', 'max:300'],
             ], [], ['brand_name' => 'marka adı', 'tab_title' => 'sekme başlığı', 'tagline' => 'karşılama yazısı', 'announcement' => 'duyuru', 'contact_url' => 'iletişim bağlantısı']),
             'gorunum' => $this->appearance($request),
-            'ozellikler' => ['registration_open' => $request->boolean('registration_open') ? '1' : '0'],
+            'ozellikler' => [
+                'registration_open' => $request->boolean('registration_open') ? '1' : '0',
+                'respect_reduced_motion' => $request->boolean('respect_reduced_motion') ? '1' : '0',
+            ],
         };
 
         Setting::put($values);

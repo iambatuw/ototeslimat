@@ -5,16 +5,16 @@
     $useTotp = (bool) old('use_totp', $editing ? $account->hasTotp() : false);
 @endphp
 <x-layouts.app :title="$editing ? $account->title : 'Hesap ekle'">
-    <div class="form-page">
+    <div class="form-page enter">
         <a href="{{ route('admin.accounts.index') }}" class="back">Hesaplara dön</a>
         <div class="page-head">
             <div>
-                <h1>{{ $editing ? $account->title : 'Hesap ekle' }}</h1>
+                <h1 class="words">{{ $editing ? $account->title : 'Hesap ekle' }}</h1>
                 <p>Müşteri yalnızca hesap adını ve kodu görür. E-posta şifresi ve 2FA anahtarı şifreli saklanır.</p>
             </div>
             @if ($editing)
                 <div class="row">
-                    <form method="POST" action="{{ route('admin.accounts.test', $account) }}" data-busy>
+                    <form method="POST" class="sheet" action="{{ route('admin.accounts.test', $account) }}" data-busy>
                         @csrf
                         <button type="submit" class="btn btn--secondary" data-busy-text="Deneniyor">Bağlantıyı dene</button>
                     </form>
@@ -29,9 +29,12 @@
             @csrf
             @if ($editing) @method('PUT') @endif
 
-            <section class="card">
-                <h2 class="card__title">1. Hesap</h2>
-                <p class="card__lead">Müşterinin listesinde görünecek ad.</p>
+            <section class="sheet__row reveal">
+                <div class="sheet__aside">
+                    <h2>Hesap</h2>
+                    <p>Müşterinin listesinde görünecek ad.</p>
+                </div>
+                <div class="sheet__body">
                 <div class="grid-2 section-gap">
                     <div class="field">
                         <label for="platform">Platform</label>
@@ -55,10 +58,15 @@
                 </div>
                 <input type="hidden" name="is_active" value="0">
                 <label class="check"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $account->is_active ?? true))> Bu hesap kod versin</label>
+            </div>
             </section>
 
-            <section class="card">
-                <h2 class="card__title">2. Mail kodu</h2>
+            <section class="sheet__row reveal">
+                <div class="sheet__aside">
+                    <h2>Mail kodu</h2>
+                    <p>Platform giriş kodunu e-postayla gönderiyorsa o kutunun bilgilerini gir.</p>
+                </div>
+                <div class="sheet__body">
                 <input type="hidden" name="use_mail" value="0">
                 <label class="check"><input type="checkbox" name="use_mail" value="1" data-toggle="#mail-fields" @checked($useMail)> Platform giriş kodunu e-postaya gönderiyor</label>
                 <p class="error">@error('use_mail'){{ $message }}@enderror</p>
@@ -122,10 +130,15 @@
                         </div>
                     </details>
                 </div>
+            </div>
             </section>
 
-            <section class="card">
-                <h2 class="card__title">3. Authenticator (2FA)</h2>
+            <section class="sheet__row reveal">
+                <div class="sheet__aside">
+                    <h2>Authenticator (2FA)</h2>
+                    <p>Hesapta iki adımlı doğrulama açıksa kurulum anahtarını gir.</p>
+                </div>
+                <div class="sheet__body">
                 <input type="hidden" name="use_totp" value="0">
                 <label class="check"><input type="checkbox" name="use_totp" value="1" data-toggle="#totp-fields" @checked($useTotp)> Hesapta iki adımlı doğrulama açık</label>
 
@@ -138,16 +151,17 @@
                         <p class="error">@error('totp_secret'){{ $message }}@enderror</p>
                     </div>
                 </div>
+            </div>
             </section>
 
-            <div class="form-actions">
+            <div class="savebar glass">
                 <button type="submit" class="btn btn--primary btn--l" data-busy-text="Kaydediliyor">{{ $editing ? 'Kaydet' : 'Hesabı ekle' }}</button>
                 <a href="{{ route('admin.accounts.index') }}" class="btn btn--ghost btn--l">Vazgeç</a>
             </div>
         </form>
 
         @if ($editing)
-            <form method="POST" action="{{ route('admin.accounts.destroy', $account) }}" class="card section-gap row" data-confirm="{{ $account->title }} silinsin mi? Bağlı anahtarlar artık kod vermez.">
+            <form method="POST" action="{{ route('admin.accounts.destroy', $account) }}" class="danger" data-confirm="{{ $account->title }} silinsin mi? Bağlı anahtarlar artık kod vermez.">
                 @csrf @method('DELETE')
                 <p class="muted small">Hesabı silersen bağlı anahtarlar kod vermeyi bırakır. Kayıtlar kalır.</p>
                 <button type="submit" class="btn btn--danger btn--s">Hesabı sil</button>

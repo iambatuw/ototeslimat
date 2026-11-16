@@ -1,30 +1,30 @@
-@php $hasTargets = $accounts->isNotEmpty() || $packages->isNotEmpty(); @endphp
+@php
+    $hasTargets = $accounts->isNotEmpty() || $packages->isNotEmpty();
+    $activeStatus = $filters['status'] ?? '';
+    $statusUrl = fn ($value) => route('admin.keys.index', array_filter(['q' => $filters['q'] ?? null, 'status' => $value]));
+@endphp
 <x-layouts.app title="Anahtarlar">
-    <div class="page-head">
+    <header class="head">
         <div>
-            <h1>Anahtarlar</h1>
+            <h1 class="words">Anahtarlar</h1>
             <p>Müşterine verdiğin her anahtar bir hesaba ya da pakete bağlıdır.</p>
         </div>
-    </div>
+    </header>
 
     @if (! $hasTargets)
-        <div class="card empty">
+        <div class="blank">
+            <div class="blank__art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
             <h2>Önce bir hesap ekle</h2>
             <p>Anahtar, sattığın bir hesaba bağlı üretilir. Hesabı ekledikten sonra buraya dön.</p>
             <a href="{{ route('admin.accounts.create') }}" class="btn btn--primary">Hesap ekle</a>
         </div>
     @else
-        <form method="POST" action="{{ route('admin.keys.store') }}" class="card" data-busy novalidate>
+        {{-- Üretim: tek satırlık bir araç. Sonuç hemen altında, kopyalanmaya hazır çıkar. --}}
+        <form method="POST" action="{{ route('admin.keys.store') }}" class="maker glass" data-busy novalidate>
             @csrf
-            <div class="card__head">
-                <div>
-                    <h2 class="card__title">Anahtar üret</h2>
-                    <p class="card__lead">Üretilen anahtarları kopyalayıp müşterilerine gönder.</p>
-                </div>
-            </div>
-            <div class="gen">
+            <div class="maker__row">
                 <div class="field">
-                    <label for="target">Ne için?</label>
+                    <label for="target">Ne için anahtar üretilsin?</label>
                     <select id="target" name="target" class="select" required @if ($errors->has('account_id') || $errors->has('package_id')) aria-invalid="true" @endif>
                         <option value="">Hesap ya da paket seç</option>
                         @if ($accounts->isNotEmpty())
@@ -45,15 +45,23 @@
                     <p class="error">{{ $errors->first('account_id') ?: $errors->first('package_id') }}</p>
                 </div>
                 <div class="field">
-                    <label for="count">Kaç tane?</label>
-                    <input id="count" name="count" type="number" class="input" min="1" max="500" value="{{ old('count', 1) }}" inputmode="numeric" required @error('count') aria-invalid="true" @enderror>
+                    <label for="count">Adet</label>
+                    <div class="stepper" data-stepper>
+                        <button type="button" data-step="-1" aria-label="Bir azalt">
+                            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9"/></svg>
+                        </button>
+                        <input id="count" name="count" type="number" class="input" min="1" max="500" value="{{ old('count', 1) }}" inputmode="numeric" required @error('count') aria-invalid="true" @enderror>
+                        <button type="button" data-step="1" aria-label="Bir artır">
+                            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M8 3.5v9"/></svg>
+                        </button>
+                    </div>
                     <p class="error">@error('count'){{ $message }}@enderror</p>
                 </div>
-                <button type="submit" class="btn btn--primary" data-busy-text="Üretiliyor">Üret</button>
+                <button type="submit" class="btn btn--primary btn--l">Anahtar üret</button>
             </div>
 
             <details class="more" @if ($errors->hasAny(['max_uses', 'valid_days', 'cooldown_minutes', 'label'])) open @endif>
-                <summary>Gelişmiş ayarlar <span class="optional">(boş bırakırsan sınırsız ve süresiz)</span></summary>
+                <summary>Sınır ve süre ekle <span class="optional">(boş bırakırsan sınırsız ve süresiz)</span></summary>
                 <div class="more__body">
                     <div class="grid-3">
                         <div class="field">
@@ -82,21 +90,26 @@
         </form>
 
         @if ($fresh)
-            <section class="card fresh" aria-labelledby="fresh-title">
-                <div class="card__head">
+            <section class="fresh" aria-labelledby="fresh-title">
+                <div class="fresh__head">
                     <div>
-                        <h2 id="fresh-title" class="card__title">{{ count($fresh) }} yeni anahtar</h2>
-                        <p class="card__lead">Bu liste sayfadan ayrılınca kapanır; anahtarlar aşağıdaki tabloda kalır.</p>
+                        <h2 id="fresh-title">{{ count($fresh) }} yeni anahtar hazır</h2>
+                        <p>Bu liste sayfadan ayrılınca kapanır; anahtarlar aşağıdaki tabloda kalır.</p>
                     </div>
                     <button type="button" class="btn btn--primary btn--s" data-copy="#fresh-list">Hepsini kopyala</button>
                 </div>
-                <textarea id="fresh-list" class="textarea" readonly rows="{{ min(10, count($fresh)) }}">{{ implode("\n", $fresh) }}</textarea>
+                <pre id="fresh-list" class="visually-hidden">{{ implode("\n", $fresh) }}</pre>
+                <ul class="fresh__list stagger" role="list">
+                    @foreach ($fresh as $code)
+                        <li><button type="button" class="keychip" data-copy="{{ $code }}" data-label="{{ $code }}">{{ $code }}</button></li>
+                    @endforeach
+                </ul>
             </section>
         @endif
 
-        <section class="card card--flush" aria-labelledby="list-title">
-            <div class="card__head">
-                <h2 id="list-title" class="card__title">Tüm anahtarlar</h2>
+        <section class="panel" aria-labelledby="list-title">
+            <div class="panel__head">
+                <h2 id="list-title">Tüm anahtarlar</h2>
                 <div class="row">
                     <a href="{{ route('admin.keys.export', request()->query()) }}" class="btn btn--secondary btn--s">CSV indir</a>
                     <form method="POST" action="{{ route('admin.keys.purge') }}" data-confirm="İptal edilmiş, süresi dolmuş ve hakkı bitmiş anahtarlar silinsin mi? Kayıtlar kalır.">
@@ -105,20 +118,22 @@
                     </form>
                 </div>
             </div>
-            <form method="GET" class="filters" role="search">
-                <label for="q" class="visually-hidden">Ara</label>
-                <input id="q" name="q" type="search" class="input" value="{{ $filters['q'] ?? '' }}" placeholder="Tam anahtar ya da not ara">
-                <label for="f-status" class="visually-hidden">Durum</label>
-                <select id="f-status" name="status" class="select" data-autosubmit>
-                    <option value="">Tüm durumlar</option>
+            <div class="panel__tools">
+                <nav class="pills" aria-label="Duruma göre süz">
+                    <a href="{{ $statusUrl(null) }}" @if ($activeStatus === '') aria-current="true" @endif>Hepsi</a>
                     @foreach (\App\Models\ProductKey::STATUS_LABELS as $value => $label)
-                        <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                        <a href="{{ $statusUrl($value) }}" @if ($activeStatus === $value) aria-current="true" @endif>{{ $label }}</a>
                     @endforeach
-                </select>
-                <button type="submit" class="btn btn--secondary btn--s">Ara</button>
-            </form>
+                </nav>
+                <form method="GET" class="search" role="search">
+                    @if ($activeStatus)<input type="hidden" name="status" value="{{ $activeStatus }}">@endif
+                    <label for="q" class="visually-hidden">Ara</label>
+                    <input id="q" name="q" type="search" class="input" value="{{ $filters['q'] ?? '' }}" placeholder="Tam anahtar ya da not ara">
+                    <button type="submit" class="btn btn--secondary btn--s">Ara</button>
+                </form>
+            </div>
             @if ($keys->isEmpty())
-                <div class="empty"><p>{{ array_filter($filters) ? 'Bu aramaya uyan anahtar yok.' : 'Henüz anahtar yok. Yukarıdan ilkini üret.' }}</p></div>
+                <div class="blank blank--s"><p>{{ array_filter($filters) ? 'Bu aramaya uyan anahtar yok.' : 'Henüz anahtar yok. Yukarıdan ilkini üret.' }}</p></div>
             @else
                 @include('admin.partials.key-table', ['keys' => $keys])
                 <x-pager :paginator="$keys" />

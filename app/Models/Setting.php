@@ -29,6 +29,7 @@ class Setting extends Model
         'announcement' => null,
         'contact_url' => null,
         'registration_open' => '1',
+        'respect_reduced_motion' => '0',   // '1': ziyaretçinin sistemi hareketi azalt diyorsa animasyonlar kapalı başlar
     ];
 
     public static function values(): array

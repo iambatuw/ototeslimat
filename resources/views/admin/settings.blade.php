@@ -1,20 +1,22 @@
 @php use App\Http\Controllers\Admin\SettingsController; @endphp
 <x-layouts.app title="Ayarlar">
-    <div class="page-head">
+    <header class="head">
         <div>
-            <h1>Ayarlar</h1>
+            <h1 class="words">Ayarlar</h1>
             <p>Mağazanın adı, rengi ve müşterilerin göreceği yazılar.</p>
         </div>
-    </div>
+    </header>
 
-    <div class="settings">
-        <nav class="settings__nav" aria-label="Ayar bölümleri">
+    <div class="toolbar">
+        <nav class="segmented" aria-label="Ayar bölümleri">
             @foreach (SettingsController::TABS as $key => $label)
                 <a href="{{ route('admin.settings', $key) }}" @if ($tab === $key) aria-current="page" @endif>{{ $label }}</a>
             @endforeach
         </nav>
+    </div>
 
-        <section class="card">
+    <div class="settings">
+        <section class="panel panel--pad">
             @if ($tab === 'genel')
                 <form method="POST" action="{{ route('admin.settings.update', 'genel') }}" class="stack" data-busy novalidate>
                     @csrf
@@ -60,6 +62,10 @@
                         </div>
                         <p class="{{ $errors->has('theme_color') ? 'error' : 'hint' }}">{{ $errors->first('theme_color') ?: 'Düğmeler ve vurgular bu renkte olur. Yazı rengi okunurluğa göre kendiliğinden seçilir.' }}</p>
                     </div>
+                    <div class="theme-preview" data-theme-preview aria-hidden="true">
+                        <span class="btn btn--primary btn--s">Mail kodunu al</span>
+                        <span class="cells"><span class="cell is-in"><span>4</span></span><span class="cell is-in"><span>7</span></span><span class="cell is-in"><span>2</span></span><span class="cell is-in"><span>9</span></span></span>
+                    </div>
                     <div class="grid-2">
                         <div class="field">
                             <label for="logo">Logo</label>
@@ -91,6 +97,14 @@
                         </div>
                         <input type="hidden" name="registration_open" value="0">
                         <input type="checkbox" class="switch" name="registration_open" value="1" aria-label="Yeni müşteri kaydı" @checked($settings['registration_open'])>
+                    </div>
+                    <div class="switch-row">
+                        <div>
+                            <p class="cell-title">Sistemin “hareketi azalt” ayarına uy</p>
+                            <p class="muted small">Açıkken, cihazında animasyonları kapatmış ziyaretçide site hareketsiz başlar. Kapalıyken animasyonlar herkeste oynar; ziyaretçi sayfanın altındaki düğmeyle durdurabilir.</p>
+                        </div>
+                        <input type="hidden" name="respect_reduced_motion" value="0">
+                        <input type="checkbox" class="switch" name="respect_reduced_motion" value="1" aria-label="Sistemin hareketi azalt ayarına uy" @checked($settings['respect_reduced_motion'])>
                     </div>
                     <div><button type="submit" class="btn btn--primary" data-busy-text="Kaydediliyor">Kaydet</button></div>
                 </form>

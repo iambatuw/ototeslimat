@@ -4,22 +4,26 @@
     $byPlatform = $accounts->groupBy(fn ($a) => $a->platformLabel());
 @endphp
 <x-layouts.app :title="$editing ? $package->name : 'Paket oluştur'">
-    <div class="form-page">
+    <div class="form-page enter">
         <a href="{{ route('admin.packages.index') }}" class="back">Paketlere dön</a>
         <div class="page-head">
             <div>
-                <h1>{{ $editing ? $package->name : 'Paket oluştur' }}</h1>
+                <h1 class="words">{{ $editing ? $package->name : 'Paket oluştur' }}</h1>
                 <p>Müşteri paketin anahtarını ekleyince bu listeden belirlediğin sayıda hesap seçer.</p>
             </div>
             @if ($editing)<a href="{{ route('admin.keys.index', ['hedef' => 'package:'.$package->id]) }}" class="btn btn--primary">Anahtar üret</a>@endif
         </div>
 
-        <form method="POST" action="{{ $editing ? route('admin.packages.update', $package) : route('admin.packages.store') }}" data-busy novalidate>
+        <form method="POST" class="sheet" action="{{ $editing ? route('admin.packages.update', $package) : route('admin.packages.store') }}" data-busy novalidate>
             @csrf
             @if ($editing) @method('PUT') @endif
 
-            <section class="card">
-                <h2 class="card__title">1. Paket</h2>
+            <section class="sheet__row reveal">
+                <div class="sheet__aside">
+                    <h2>Paket</h2>
+                    <p>Müşterinin listesinde görünecek ad ve kaç hesap seçebileceği.</p>
+                </div>
+                <div class="sheet__body">
                 <div class="grid-2 section-gap">
                     <div class="field">
                         <label for="name">Paket adı</label>
@@ -39,10 +43,15 @@
                 </div>
                 <input type="hidden" name="is_active" value="0">
                 <label class="check"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $package->is_active ?? true))> Paket açık</label>
+            </div>
             </section>
 
-            <section class="card">
-                <h2 class="card__title">2. Paketteki hesaplar</h2>
+            <section class="sheet__row reveal">
+                <div class="sheet__aside">
+                    <h2>Paketteki hesaplar</h2>
+                    <p>Müşterinin arasından seçeceği hesapları işaretle.</p>
+                </div>
+                <div class="sheet__body">
                 <p class="{{ $errors->has('accounts') || $errors->has('accounts.*') ? 'error' : 'card__lead' }}">
                     {{ $errors->first('accounts') ?: ($errors->first('accounts.*') ?: 'Müşteri bunların arasından seçer.') }}
                 </p>
@@ -61,16 +70,17 @@
                         </div>
                     @endforeach
                 @endif
+            </div>
             </section>
 
-            <div class="form-actions">
+            <div class="savebar glass">
                 <button type="submit" class="btn btn--primary btn--l" data-busy-text="Kaydediliyor">{{ $editing ? 'Kaydet' : 'Paketi oluştur' }}</button>
                 <a href="{{ route('admin.packages.index') }}" class="btn btn--ghost btn--l">Vazgeç</a>
             </div>
         </form>
 
         @if ($editing)
-            <form method="POST" action="{{ route('admin.packages.destroy', $package) }}" class="card section-gap row" data-confirm="{{ $package->name }} silinsin mi? Bağlı anahtarlar artık kod vermez.">
+            <form method="POST" action="{{ route('admin.packages.destroy', $package) }}" class="danger" data-confirm="{{ $package->name }} silinsin mi? Bağlı anahtarlar artık kod vermez.">
                 @csrf @method('DELETE')
                 <p class="muted small">Paketi silersen bağlı anahtarlar kod vermeyi bırakır. Hesaplar silinmez.</p>
                 <button type="submit" class="btn btn--danger btn--s">Paketi sil</button>

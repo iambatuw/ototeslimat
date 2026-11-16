@@ -14,6 +14,7 @@
     <meta name="description" content="{{ Setting::get('tagline') }}">
     <title>{{ $title }} | {{ Setting::get('tab_title') ?: $brand }}</title>
     @if ($favicon)<link rel="icon" href="{{ asset($favicon) }}">@endif
+    <x-motion />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style nonce="{{ Vite::cspNonce() }}">{!! App\Support\Theme::css() !!}</style>
 </head>

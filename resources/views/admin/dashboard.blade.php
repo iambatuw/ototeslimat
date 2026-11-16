@@ -13,16 +13,16 @@
     $fmt = fn ($n) => number_format($n, 0, ',', '.');
 @endphp
 <x-layouts.app title="Panel">
-    <div class="page-head">
+    <header class="head">
         <div>
-            <h1>Panel</h1>
+            <h1 class="words">Panel</h1>
             <p>Mağazanda bugün neler oluyor, tek bakışta.</p>
         </div>
         <div class="page-head__actions">
             <a href="{{ route('admin.accounts.create') }}" class="btn btn--secondary">Hesap ekle</a>
             <a href="{{ route('admin.keys.index') }}" class="btn btn--primary">Anahtar üret</a>
         </div>
-    </div>
+    </header>
 
     @if ($failing > 0)
         <p class="notice notice--error" role="alert">
@@ -67,14 +67,14 @@
     <div class="overview">
     <section class="card" aria-labelledby="chart-title">
         <h2 id="chart-title" class="card__title">Verilen kodlar</h2>
-        <p class="total"><strong>{{ $fmt($total) }}</strong> <span>son 14 günde, bu ay {{ $fmt($stats['codes_month']) }}</span></p>
+        <p class="total"><strong data-count="{{ $total }}">{{ $fmt($total) }}</strong> <span>son 14 günde, bu ay {{ $fmt($stats['codes_month']) }}</span></p>
         <figure class="chart__plot">
             <svg viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="none" role="img" aria-label="Son 14 günde günlük verilen kod sayısı">
                 @foreach ([0.25, 0.5, 0.75] as $g)
                     <line x1="0" x2="{{ $w }}" y1="{{ $pad + ($h - $pad * 2) * $g }}" y2="{{ $pad + ($h - $pad * 2) * $g }}" class="chart__grid" />
                 @endforeach
                 <path d="{{ $area }}" class="chart__area" />
-                <polyline points="{{ $line }}" class="chart__line" vector-effect="non-scaling-stroke" />
+                <polyline points="{{ $line }}" pathLength="1" class="chart__line" vector-effect="non-scaling-stroke" />
             </svg>
             <figcaption class="chart__axis" aria-hidden="true">
                 @foreach ($series as $i => $p)<span @class(['is-sparse' => $i % 2 === 1])>{{ $p['label'] }}</span>@endforeach
@@ -84,7 +84,7 @@
 
     <section class="card" aria-labelledby="stock-title">
         <h2 id="stock-title" class="card__title">Anahtarlar</h2>
-        <p class="total"><strong>{{ $fmt($keys) }}</strong> <span>geçerli anahtar</span></p>
+        <p class="total"><strong data-count="{{ $keys }}">{{ $fmt($keys) }}</strong> <span>geçerli anahtar</span></p>
         <div class="stock">
             <svg viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="{{ $stats['unused'] }} anahtar satılmayı bekliyor, {{ $stats['active'] }} anahtar kullanımda">
                 @if ($keys)
@@ -102,13 +102,13 @@
     </section>
     </div>
 
-    <section class="card card--flush section-gap" aria-labelledby="recent-title">
-        <div class="card__head">
-            <h2 id="recent-title" class="card__title">Son hareketler</h2>
+    <section class="panel" aria-labelledby="recent-title">
+        <div class="panel__head">
+            <h2 id="recent-title">Son hareketler</h2>
             <a href="{{ route('admin.logs') }}" class="btn btn--secondary btn--s">Tümünü gör</a>
         </div>
         @if ($recent->isEmpty())
-            <div class="empty"><p>Müşteriler anahtar ekleyip kod aldıkça burada görünür.</p></div>
+            <div class="blank blank--s"><p>Müşteriler anahtar ekleyip kod aldıkça burada görünür.</p></div>
         @else
             @include('admin.partials.log-table', ['logs' => $recent])
         @endif

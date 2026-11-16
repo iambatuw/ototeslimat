@@ -1,5 +1,6 @@
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Hareket kapalı mı? Karar <head> içindeki küçük betikte verilir, altbilgideki düğme değiştirir. */
+const still = () => document.documentElement.hasAttribute('data-still');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /* ---------- Kopyalama ---------- */
@@ -18,7 +19,11 @@ async function copyText(text, button) {
         const label = button.dataset.label ?? button.textContent;
         button.dataset.label = label;
         button.textContent = 'Kopyalandı';
-        setTimeout(() => (button.textContent = label), 1600);
+        button.classList.add('is-done');
+        setTimeout(() => {
+            button.textContent = label;
+            button.classList.remove('is-done');
+        }, 1600);
     }
 }
 
@@ -281,7 +286,7 @@ class CodePanel {
 
 document.querySelectorAll('[data-game]').forEach((root) => {
     new CodePanel(root);
-    if (root.dataset.open === 'true') root.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    if (root.dataset.open === 'true') root.scrollIntoView({ block: 'center', behavior: still() ? 'auto' : 'smooth' });
 });
 
 /* ---------- Şifreyi göster / gizle ---------- */
@@ -324,9 +329,43 @@ document.querySelectorAll('[data-match]').forEach((note) => {
     second.addEventListener('input', sync);
 });
 
+/* ---------- Rakamlar sıfırdan sayarak gelir ---------- */
+document.querySelectorAll('[data-count]').forEach((node) => {
+    const target = Number(node.dataset.count);
+    if (!target || still()) return;
+    const format = new Intl.NumberFormat('tr-TR');
+    const start = performance.now();
+    const duration = 900;
+    const frame = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        node.textContent = format.format(Math.round(target * (1 - (1 - t) ** 3)));
+        if (t < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+});
+
+/* ---------- Adet seçici ---------- */
+document.querySelectorAll('[data-stepper]').forEach((box) => {
+    const input = box.querySelector('input');
+    box.querySelectorAll('[data-step]').forEach((button) => button.addEventListener('click', () => {
+        const min = Number(input.min || 1);
+        const max = Number(input.max || Infinity);
+        input.value = Math.min(max, Math.max(min, (Number(input.value) || min) + Number(button.dataset.step)));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }));
+});
+
+/* ---------- Tema rengi: kaydetmeden önce canlı örnek ---------- */
+const themePreview = document.querySelector('[data-theme-preview]');
+if (themePreview) {
+    document.querySelectorAll('[data-color-sync]').forEach((input) => input.addEventListener('input', () => {
+        if (/^#[0-9a-f]{6}$/i.test(input.value)) themePreview.style.setProperty('--color-accent', input.value);
+    }));
+}
+
 /* ---------- Arka plan hareketini durdur (seçim cihazda hatırlanır) ---------- */
-const stillButton = document.querySelector('[data-still]');
-if (stillButton && !reduceMotion) {
+const stillButton = document.querySelector('[data-motion-toggle]');
+if (stillButton) {
     const store = { get: () => { try { return localStorage.getItem('still') === '1'; } catch { return false; } }, set: (on) => { try { localStorage.setItem('still', on ? '1' : '0'); } catch { /* özel pencere */ } } };
     const apply = (on) => {
         document.documentElement.toggleAttribute('data-still', on);
@@ -334,7 +373,7 @@ if (stillButton && !reduceMotion) {
         stillButton.setAttribute('aria-pressed', String(on));
     };
     stillButton.hidden = false;
-    apply(store.get());
+    apply(still());
     stillButton.addEventListener('click', () => {
         const on = !document.documentElement.hasAttribute('data-still');
         store.set(on);
@@ -343,7 +382,7 @@ if (stillButton && !reduceMotion) {
 }
 
 /* ---------- Cam: parlama imleci yumuşakça izler (aç/kapa yok, eğilme yok) ---------- */
-if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
+if (window.matchMedia('(pointer: fine)').matches) {
     let frame = 0;
     let point = null;
     window.addEventListener('pointermove', (event) => {
@@ -351,7 +390,7 @@ if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
         if (frame) return;
         frame = requestAnimationFrame(() => {
             frame = 0;
-            document.querySelectorAll('.glass').forEach((glass) => {
+            document.querySelectorAll('.glass, .spot').forEach((glass) => {
                 const box = glass.getBoundingClientRect();
                 glass.style.setProperty('--lx', `${point.clientX - box.left}px`);
                 glass.style.setProperty('--ly', `${point.clientY - box.top}px`);
@@ -374,7 +413,7 @@ document.querySelectorAll('.words').forEach((heading) => {
 
 /* ---------- Kaydırınca beliren bölümler ---------- */
 const reveals = document.querySelectorAll('.reveal');
-if (reduceMotion || !('IntersectionObserver' in window)) {
+if (!('IntersectionObserver' in window)) {
     reveals.forEach((node) => node.classList.add('is-in'));
 } else {
     const seen = new IntersectionObserver((entries) => {
