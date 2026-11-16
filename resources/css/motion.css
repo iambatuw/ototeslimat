@@ -7,13 +7,11 @@
 @keyframes pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ping { from { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); } to { box-shadow: 0 0 0 8px transparent; } }
-@keyframes breathe { from { border-color: var(--color-rule-strong); } to { border-color: color-mix(in srgb, var(--color-accent) 55%, transparent); } }
-@keyframes glow { from { box-shadow: var(--cell-inset), 0 0 14px -8px var(--color-accent); } to { box-shadow: var(--cell-inset), 0 0 30px -4px var(--color-accent); } }
+@keyframes ring { from { opacity: 0.6; transform: scale(1); } to { opacity: 0; transform: scale(2.8); } }
+@keyframes breathe { from { opacity: 0; } to { opacity: 0.6; } }
 @keyframes marquee { to { transform: translateX(calc(-100% - var(--space-md))); } }
 @keyframes tap { 0%, 70%, 100% { transform: none; } 80% { transform: scale(0.88); } }
 @keyframes slide-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
-@keyframes bar-tight { to { min-height: 50px; } }
 
 /* ---------- Sıralı giriş: listeler, kutucuklar, tablo satırları ---------- */
 .stagger > * { animation: rise var(--dur-long) var(--ease-out) both; }
@@ -46,27 +44,28 @@
 .faq summary:hover { padding-left: var(--space-xs); }
 
 /* ---------- Durum noktası canlı atar ---------- */
-.state--on::before { animation: ping 2s var(--ease-out) infinite; }
+/* The pulse is a second dot that scales and fades: handled by the compositor, no repaint. */
+.state { position: relative; }
+.state--on::after { content: ""; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: currentColor; animation: ring 2s var(--ease-out) infinite; }
 
 /* ---------- Kod hücreleri ---------- */
-.cells:not(.cells--wait, .cells--expired) .cell:not(.is-in, .is-roll) { animation: breathe 1.6s var(--ease-in-out) infinite alternate; }
-.cell:nth-child(2) { animation-delay: 0.15s; }
-.cell:nth-child(3) { animation-delay: 0.3s; }
-.cell:nth-child(4) { animation-delay: 0.45s; }
-.cell:nth-child(5) { animation-delay: 0.6s; }
-.cell:nth-child(6) { animation-delay: 0.75s; }
-.cells:not(.cells--expired) .cell.is-in { animation: glow 2.2s var(--ease-in-out) 0.6s infinite alternate; }
+/* Waiting cells pulse through an overlay ring that only changes opacity. */
+.cell { position: relative; }
+.cells:not(.cells--wait, .cells--expired) .cell:not(.is-in, .is-roll)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: var(--rule-hair) solid var(--color-accent); opacity: 0; animation: breathe 1.6s var(--ease-in-out) infinite alternate; }
+.cell:nth-child(2)::after { animation-delay: 0.15s; }
+.cell:nth-child(3)::after { animation-delay: 0.3s; }
+.cell:nth-child(4)::after { animation-delay: 0.45s; }
+.cell:nth-child(5)::after { animation-delay: 0.6s; }
+.cell:nth-child(6)::after { animation-delay: 0.75s; }
 .blank__art span { animation: bob 2.4s var(--ease-in-out) infinite alternate; }
 .blank__art span:nth-child(2) { animation-delay: 0.2s; }
 .blank__art span:nth-child(3) { animation-delay: 0.4s; }
 .blank__art span:nth-child(4) { animation-delay: 0.6s; }
 
 /* ---------- Ana sayfa ---------- */
-.hero__try { animation: bob 5s var(--ease-in-out) infinite alternate; }
 .progress { position: fixed; inset: 0 0 auto; z-index: var(--z-toast); height: 3px; background: linear-gradient(90deg, var(--color-accent), var(--aurora-2), var(--aurora-4)); transform: scaleX(0); transform-origin: 0 50%; animation: grow linear both; animation-timeline: scroll(root); }
 @supports not (animation-timeline: scroll()) { .progress { display: none; } }
-.bar__inner { animation: bar-tight linear both; animation-timeline: scroll(root); animation-range: 0 160px; }
-.marquee__row { animation: marquee 30s linear infinite; }
+.marquee__row { animation: marquee 30s linear infinite; will-change: transform; }
 .marquee:hover .marquee__row { animation-play-state: paused; }
 .marquee__row li { transition: transform var(--dur-short) var(--ease-spring), border-color var(--dur-short) var(--ease-out); }
 .marquee__row li:hover { transform: scale(1.06); border-color: var(--color-accent); }
@@ -88,12 +87,10 @@
 .journey li:nth-child(2) { animation-delay: 0.45s; }
 .journey li:nth-child(3) { animation-delay: 0.7s; }
 .auth__pitch { animation: rise 0.8s var(--ease-out) 0.5s both; }
-.auth__show .demo { animation: bob 5s var(--ease-in-out) infinite alternate; }
 
 /* ---------- Panel ---------- */
 .chart__plot svg { animation: wipe 1.6s var(--ease-out) 0.2s both; }
 .stock rect { transform-box: fill-box; transform-origin: 0 50%; animation: grow 1s var(--ease-out) 0.3s both; }
-.setup li.is-now .setup__dot { animation: ping 2s var(--ease-out) infinite; color: var(--color-accent-ink); }
 .feed__dot { animation: pop 0.5s var(--ease-spring) both; animation-delay: inherit; }
 .pips i { transform-origin: 0 50%; animation: grow 0.5s var(--ease-out) both; }
 .pips i:nth-child(2) { animation-delay: 0.08s; }
@@ -105,7 +102,7 @@
 /* ---------- Hareket kapalı ---------- */
 html[data-still] .enter > *, html[data-still] .stagger > *, html[data-still] .notice, html[data-still] .code, html[data-still] .words .w, html[data-still] .journey li, html[data-still] .auth__pitch, html[data-still] .fresh, html[data-still] .feed__dot { animation: none; opacity: 1; filter: none; transform: none; }
 html[data-still] .reveal { opacity: 1; transform: none; transition: none; }
-html[data-still] .ambient i, html[data-still] .marquee__row, html[data-still] .hero__try, html[data-still] .auth__show .demo, html[data-still] .blank__art span, html[data-still] .cell, html[data-still] .cells--wait .cell, html[data-still] .mini__pill, html[data-still] .state--on::before, html[data-still] .setup__dot, html[data-still] .bar__inner, html[data-still] .mail.is-reading .mail__icon, html[data-still] .chart__plot svg, html[data-still] .stock rect, html[data-still] .pips i { animation: none !important; }
+html[data-still] .ambient i, html[data-still] .marquee__row, html[data-still] .blank__art span, html[data-still] .cell::after, html[data-still] .cells--wait .cell, html[data-still] .mini__pill, html[data-still] .state--on::after, html[data-still] .mail.is-reading .mail__icon, html[data-still] .chart__plot svg, html[data-still] .stock rect, html[data-still] .pips i { animation: none !important; }
 html[data-still] .progress { display: none; }
 html[data-still] .btn:hover, html[data-still] .tile:hover, html[data-still] .choice:hover { translate: none; transform: none; }
 /* Kodun gelişi süs değil, geri bildirim: hareket kapalıyken kaymadan, düz bir belirmeyle kalır. */

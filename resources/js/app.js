@@ -393,11 +393,12 @@ if (window.matchMedia('(pointer: fine)').matches) {
         if (frame) return;
         frame = requestAnimationFrame(() => {
             frame = 0;
-            document.querySelectorAll('.glass, .spot').forEach((glass) => {
-                const box = glass.getBoundingClientRect();
-                glass.style.setProperty('--lx', `${point.clientX - box.left}px`);
-                glass.style.setProperty('--ly', `${point.clientY - box.top}px`);
-            });
+            // Yalnızca imlecin üstünde durduğu yüzey güncellenir; sayfadaki bütün camlar değil.
+            const surface = point.target instanceof Element ? point.target.closest('.glass, .spot') : null;
+            if (!surface) return;
+            const box = surface.getBoundingClientRect();
+            surface.style.setProperty('--lx', `${point.clientX - box.left}px`);
+            surface.style.setProperty('--ly', `${point.clientY - box.top}px`);
         });
     }, { passive: true });
 }
@@ -468,5 +469,5 @@ document.querySelectorAll('[data-demo]').forEach((demo) => {
     button.addEventListener('click', run);
 
     // Giriş vitrininde bir kez kendiliğinden oynar; döngü yok.
-    if (demo.hasAttribute('data-demo-autoplay')) setTimeout(run, 900);
+    if (demo.hasAttribute('data-demo-autoplay')) setTimeout(run, 1600);
 });
