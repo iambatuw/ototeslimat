@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KeyController;
@@ -29,6 +30,7 @@ Route::middleware('auth')->group(function () {
     // Yönetim (mağaza sahibi)
     Route::middleware('role:admin')->prefix('yonetim')->name('admin.')->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/ara', SearchController::class)->name('search');
 
         Route::get('/hesaplar', [AccountController::class, 'index'])->name('accounts.index');
         Route::get('/hesaplar/yeni', [AccountController::class, 'create'])->name('accounts.create');

@@ -39,6 +39,10 @@
                 @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
                 <span>{{ $brand }}</span>
             </a>
+            <form method="GET" action="{{ route('admin.search') }}" class="side__search" role="search">
+                <label for="side-q" class="visually-hidden">Ara</label>
+                <input id="side-q" name="q" type="search" class="input" placeholder="Ara" value="{{ request()->routeIs('admin.search') ? request('q') : '' }}">
+            </form>
             <nav class="side__nav" aria-label="Yönetim">
                 @foreach ($nav as [$route, $pattern, $label, $icon])
                     <a href="{{ route($route) }}" @if (request()->routeIs(...explode('|', $pattern))) aria-current="page" @endif>

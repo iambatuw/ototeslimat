@@ -34,16 +34,27 @@ class SettingsController extends Controller
                 'contact_url' => ['nullable', 'url:https', 'max:300'],
             ], [], ['brand_name' => 'marka adı', 'tab_title' => 'sekme başlığı', 'tagline' => 'karşılama yazısı', 'announcement' => 'duyuru', 'contact_url' => 'iletişim bağlantısı']),
             'gorunum' => $this->appearance($request),
-            'ozellikler' => [
-                'registration_open' => $request->boolean('registration_open') ? '1' : '0',
-                'respect_reduced_motion' => $request->boolean('respect_reduced_motion') ? '1' : '0',
-            ],
+            'ozellikler' => $this->features($request),
         };
 
         Setting::put($values);
         Activity::log('settings.updated', ['meta' => ['tab' => $tab, 'fields' => array_keys($values)]]);
 
         return redirect()->route('admin.settings', $tab)->with('status', 'Ayarlar kaydedildi.');
+    }
+
+    private function features(Request $request): array
+    {
+        $data = $request->validate([
+            'low_stock_threshold' => ['required', 'integer', 'min:0', 'max:1000'],
+        ], [], ['low_stock_threshold' => 'stok uyarı eşiği']);
+
+        return [
+            'registration_open' => $request->boolean('registration_open') ? '1' : '0',
+            'respect_reduced_motion' => $request->boolean('respect_reduced_motion') ? '1' : '0',
+            'daily_summary' => $request->boolean('daily_summary') ? '1' : '0',
+            'low_stock_threshold' => (string) $data['low_stock_threshold'],
+        ];
     }
 
     private function appearance(Request $request): array

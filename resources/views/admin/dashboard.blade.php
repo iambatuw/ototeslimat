@@ -19,16 +19,14 @@
             <p>Mağazanda bugün neler oluyor, tek bakışta.</p>
         </div>
         <div class="page-head__actions">
+            <form method="GET" action="{{ route('admin.search') }}" class="search search--head" role="search">
+                <label for="head-q" class="visually-hidden">Ara</label>
+                <input id="head-q" name="q" type="search" class="input" placeholder="Anahtar, müşteri ya da hesap ara">
+            </form>
             <a href="{{ route('admin.accounts.create') }}" class="btn btn--secondary">Hesap ekle</a>
             <a href="{{ route('admin.keys.index') }}" class="btn btn--primary">Anahtar üret</a>
         </div>
     </header>
-
-    @if ($failing > 0)
-        <p class="notice notice--error" role="alert">
-            Son 24 saatte {{ $failing }} kod isteği başarısız oldu. <a href="{{ route('admin.logs', ['event' => 'code.failed']) }}">Nedenlerine bak</a>
-        </p>
-    @endif
 
     @unless ($ready)
         <section class="card section-gap" aria-labelledby="setup-title">
@@ -100,6 +98,95 @@
             <li><a href="{{ route('admin.customers.index') }}"><span class="dot"></span>Müşteri <strong>{{ $fmt($stats['customers']) }}</strong></a></li>
         </ul>
     </section>
+    </div>
+
+    <div class="insights">
+        <section class="panel" aria-labelledby="health-title">
+            <div class="panel__head">
+                <h2 id="health-title">Hesap sağlığı</h2>
+                <span class="muted small">son 24 saat</span>
+            </div>
+            @if ($troubled->isEmpty())
+                <p class="allgood"><span class="state state--on">Sorun yok</span> Kod veremeyen hesap yok.</p>
+            @else
+                <ul class="rows" role="list">
+                    @foreach ($troubled as $row)
+                        <li>
+                            <a href="{{ route('admin.accounts.edit', $row->account) }}" class="rowlink">
+                                <span class="plat plat--s" data-p="{{ $row->account->platform }}" aria-hidden="true">{{ mb_substr($row->account->platformLabel(), 0, 1) }}</span>
+                                <span><strong>{{ $row->account->title }}</strong><small>{{ $row->reason ? 'Son neden: '.$row->reason : 'Kod verilemedi' }}{{ $row->issued ? ', '.$row->issued.' kod verildi' : '' }}</small></span>
+                                <span class="state state--bad">{{ $row->failed }} hata</span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        <section class="panel" aria-labelledby="stock-low-title">
+            <div class="panel__head">
+                <h2 id="stock-low-title">Stok</h2>
+                <span class="muted small">{{ \App\Support\StoreInsights::lowStockThreshold() }} ve altı</span>
+            </div>
+            @if ($lowStock->isEmpty())
+                <p class="allgood"><span class="state state--on">Yeterli</span> Anahtarı azalan hesap ya da paket yok.</p>
+            @else
+                <ul class="rows" role="list">
+                    @foreach ($lowStock->take(5) as $item)
+                        <li>
+                            <a href="{{ route('admin.keys.index', ['hedef' => $item->target]) }}" class="rowlink">
+                                <span><strong>{{ $item->title }}</strong><small>{{ $item->left === 0 ? 'Satılacak anahtar kalmadı' : $item->left.' anahtar kaldı' }}</small></span>
+                                <span class="btn btn--secondary btn--s">Üret</span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                @if ($lowStock->count() > 5)<p class="allgood">ve {{ $lowStock->count() - 5 }} tane daha.</p>@endif
+            @endif
+        </section>
+
+        <section class="panel" aria-labelledby="platform-title">
+            <div class="panel__head">
+                <h2 id="platform-title">Platformlar</h2>
+                <span class="muted small">son 30 gün</span>
+            </div>
+            @if ($platforms->isEmpty())
+                <p class="allgood">Kod verildikçe platformlara göre dağılım burada görünür.</p>
+            @else
+                @php($top = max(1, $platforms->max('issued')))
+                <ul class="bars" role="list">
+                    @foreach ($platforms as $platform)
+                        <li>
+                            <span>{{ $platform->label }}</span>
+                            <svg viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><rect width="{{ round($platform->issued / $top * 100, 1) }}" height="8" /></svg>
+                            <span><strong>{{ $fmt($platform->issued) }}</strong>@if ($platform->failed) <em>{{ $platform->failed }} hata</em>@endif</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        <section class="panel" aria-labelledby="top-title">
+            <div class="panel__head">
+                <h2 id="top-title">En çok kod alanlar</h2>
+                <span class="muted small">son 30 gün</span>
+            </div>
+            @if ($topCustomers->isEmpty())
+                <p class="allgood">Müşteriler kod aldıkça burada sıralanır.</p>
+            @else
+                <ul class="rows" role="list">
+                    @foreach ($topCustomers as $row)
+                        <li>
+                            <a href="{{ route('admin.logs', ['q' => $row->user->email, 'event' => 'code.issued']) }}" class="rowlink">
+                                <span class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($row->user->name, 0, 1)) }}</span>
+                                <span><strong>{{ $row->user->name }}</strong><small>{{ $row->user->email }}</small></span>
+                                <span class="count">{{ $fmt($row->codes) }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
     </div>
 
     {{-- Kurulum adımları görünürken boş hareket kutusu yer kaplamasın. --}}

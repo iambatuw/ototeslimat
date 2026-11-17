@@ -97,3 +97,16 @@ php artisan migrate --seed    # deneme verisi; giriş bilgileri database/seeders
 npm run build && php artisan guard:serve
 php artisan test
 ```
+
+## Günlük özet e-postası
+
+Ayarlar > Özellikler'den açılır. Her sabah 09:00'da yöneticilere dünün özeti gider (verilen kod, hatalar, kod veremeyen hesaplar, azalan stok). Çalışması için sunucuda iki şey gerekir:
+
+1. `.env` içinde gerçek bir e-posta ayarı (`MAIL_MAILER=smtp` ve ilgili `MAIL_*` satırları). Varsayılan `log` ayarında e-posta gönderilmez, yalnızca `storage/logs` içine yazılır.
+2. Zamanlayıcıyı dakikada bir çalıştıran cron satırı:
+
+```
+* * * * * cd /site/yolu && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Elle denemek için: `php artisan guard:daily-summary --force`

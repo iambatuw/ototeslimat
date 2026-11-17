@@ -106,6 +106,19 @@
                         <input type="hidden" name="respect_reduced_motion" value="0">
                         <input type="checkbox" class="switch" name="respect_reduced_motion" value="1" aria-label="Sistemin hareketi azalt ayarına uy" @checked($settings['respect_reduced_motion'])>
                     </div>
+                    <div class="switch-row">
+                        <div>
+                            <p class="cell-title">Günlük özet e-postası</p>
+                            <p class="muted small">Her sabah yöneticilere dünün özeti gider: verilen kod, hatalar, bozuk hesaplar, azalan stok. Sunucuda zamanlanmış görev ve e-posta ayarı gerekir.</p>
+                        </div>
+                        <input type="hidden" name="daily_summary" value="0">
+                        <input type="checkbox" class="switch" name="daily_summary" value="1" aria-label="Günlük özet e-postası" @checked($settings['daily_summary'])>
+                    </div>
+                    <div class="field">
+                        <label for="low_stock_threshold">Stok uyarı eşiği</label>
+                        <input id="low_stock_threshold" name="low_stock_threshold" type="number" class="input" min="0" max="1000" inputmode="numeric" value="{{ old('low_stock_threshold', $settings['low_stock_threshold']) }}" @error('low_stock_threshold') aria-invalid="true" @enderror>
+                        <p class="{{ $errors->has('low_stock_threshold') ? 'error' : 'hint' }}">{{ $errors->first('low_stock_threshold') ?: 'Bir hesabın ya da paketin satılmamış anahtarı bu sayıya düşünce panelde uyarı çıkar.' }}</p>
+                    </div>
                     <div><button type="submit" class="btn btn--primary" data-busy-text="Kaydediliyor">Kaydet</button></div>
                 </form>
             @endif

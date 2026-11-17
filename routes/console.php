@@ -56,3 +56,35 @@ Artisan::command('guard:serve {--host=127.0.0.1} {--port=8000}', function () {
 
     return $process->run(fn ($type, $line) => $this->output->write($line));
 })->purpose('Yerel sunucuyu OPcache açık başlatır');
+
+/*
+ * Günlük özet: dünün rakamları yöneticilere e-postayla gider. Ayarlar > Özellikler'den açılır.
+ * Sunucuda dakikada bir "php artisan schedule:run" çalıştıran bir cron satırı gerekir.
+ */
+Artisan::command('guard:daily-summary {--force : Ayar kapalı olsa da gönder}', function () {
+    if (! $this->option('force') && ! App\Models\Setting::flag('daily_summary')) {
+        $this->line('Günlük özet kapalı.');
+
+        return 0;
+    }
+
+    $admins = User::where('role', User::ROLE_ADMIN)->where('is_active', true)->pluck('email');
+
+    if ($admins->isEmpty()) {
+        $this->warn('Gönderilecek yönetici yok.');
+
+        return 0;
+    }
+
+    Illuminate\Support\Facades\Mail::to($admins->all())->send(new App\Mail\DailySummary(
+        App\Support\StoreInsights::day(now()->subDay()),
+        App\Support\StoreInsights::troubledAccounts(),
+        App\Support\StoreInsights::lowStock(),
+    ));
+
+    $this->info($admins->count().' yöneticiye gönderildi.');
+
+    return 0;
+})->purpose('Dünün özetini yöneticilere e-postayla gönderir');
+
+Illuminate\Support\Facades\Schedule::command('guard:daily-summary')->dailyAt('09:00');

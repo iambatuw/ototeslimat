@@ -1,21 +1,6 @@
 @php
     $m = $log->meta ?? [];
-    $reasons = [
-        'not_found' => 'böyle bir anahtar yok',
-        'unavailable' => 'anahtar iptal ya da hesap silinmiş',
-        'taken' => 'başka hesapta kullanılmış',
-        'no_mail' => 'son mailde kod yok',
-        'imap_connect' => 'posta kutusuna bağlanılamadı',
-        'imap_read' => 'posta okunamadı',
-        'totp_secret' => '2FA anahtarı bozuk',
-        'no_totp' => 'hesapta 2FA yok',
-        'no_mailbox' => 'hesapta posta kutusu yok',
-        'inactive' => 'hesap durdurulmuş',
-        'revoked' => 'anahtar iptal',
-        'expired' => 'süresi dolmuş',
-        'used_up' => 'hakkı bitmiş',
-        'cooldown' => 'bekleme süresinde',
-    ];
+    $reasons = \App\Models\ActivityLog::REASONS;
     $types = ['mail' => 'mail', '2fa' => '2FA'];
 @endphp
 @switch($log->event)

@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\ActivityLog;
 use App\Models\ProductKey;
 use App\Models\User;
+use App\Support\StoreInsights;
 use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
@@ -35,6 +36,10 @@ class DashboardController extends Controller
                 'customers' => User::where('role', User::ROLE_CUSTOMER)->count(),
             ],
             'series' => $series,
+            'troubled' => StoreInsights::troubledAccounts(),
+            'lowStock' => StoreInsights::lowStock(),
+            'platforms' => StoreInsights::platforms(),
+            'topCustomers' => StoreInsights::topCustomers(),
             // İlk kurulumda gösterilen adımlar
             'setup' => [
                 'account' => Account::exists(),
