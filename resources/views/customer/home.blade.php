@@ -61,14 +61,65 @@
         <p class="notice">{{ Setting::get('announcement') }}</p>
     @endif
 
-    <div @class(['wallet', 'wallet--empty' => $cards->isEmpty()])>
+    @if ($cards->isEmpty())
+        {{-- Boş cüzdan: ilk kartın yeri anahtar formunun kendisi. Yanda sonra ne olacağı, gerçek arayüz parçalarıyla. --}}
+        <div class="wallet wallet--empty">
+            <section class="wallet__main" aria-labelledby="wallet-title">
+                <header class="wallet__head">
+                    <h1 id="wallet-title" class="words">Cüzdanın boş</h1>
+                    <p>Sana teslim edilen anahtarı ekle; hesabın burada bir kart olarak belirir ve kodunu kartın üstünden alırsın.</p>
+                </header>
+
+                <form method="POST" action="{{ route('redeem') }}" class="firstcard" data-busy novalidate>
+                    @csrf
+                    <div class="firstcard__top">
+                        <span class="firstcard__mark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                        </span>
+                        <label for="key" class="firstcard__title">İlk anahtarını ekle</label>
+                    </div>
+                    <p class="firstcard__lead">Sipariş mesajında <span class="mono">{{ config('guard.key_prefix') }}-</span> ile başlayan anahtar. Tire ve boşluk yazmasan da olur.</p>
+                    <div class="firstcard__row">
+                        <input id="key" name="key" type="text" class="firstcard__input" value="{{ old('key') }}"
+                            placeholder="{{ config('guard.key_prefix') }}-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters"
+                            spellcheck="false" maxlength="64" required autofocus data-key-input aria-describedby="key-error"
+                            @error('key') aria-invalid="true" @enderror>
+                        <button type="submit" class="btn wcard__btn firstcard__go" data-busy-text="Ekleniyor">Cüzdanıma ekle</button>
+                    </div>
+                    <p id="key-error" class="firstcard__error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
+                </form>
+            </section>
+
+            <aside class="wallet__side" aria-labelledby="next-title">
+                <section class="after">
+                    <h2 id="next-title">Ekleyince ne olur?</h2>
+                    <ol class="after__steps" role="list">
+                        <li>
+                            <div class="after__art" aria-hidden="true"><span class="after__key">{{ config('guard.key_prefix') }}-7H2K9QXD</span></div>
+                            <div><h3>Anahtar hesabına bağlanır</h3><p>Bir kez eklersin; başka biri aynı anahtarı kullanamaz.</p></div>
+                        </li>
+                        <li>
+                            <div class="after__art" aria-hidden="true">
+                                <span class="after__strips"><i data-p="netflix"></i><i data-p="steam"></i><i data-p="chatgpt"></i></span>
+                            </div>
+                            <div><h3>Hesabın kart olarak gelir</h3><p>Her hesap kendi renginde bir kart; kaç hesabın varsa üst üste dizilir.</p></div>
+                        </li>
+                        <li>
+                            <div class="after__art" aria-hidden="true"><span class="after__cells"><i>5</i><i>8</i><i>2</i><i>1</i></span></div>
+                            <div><h3>Kodu karttan alırsın</h3><p>Platform kod sorduğunda karttaki düğmeye bas; kod birkaç saniyede kartın üstünde.</p></div>
+                        </li>
+                    </ol>
+                    <p class="after__note">Anahtarın yoksa satın aldığın yerden iste.@if ($contact) <a href="{{ $contact }}" rel="noopener" target="_blank">Destek</a>@endif</p>
+                </section>
+            </aside>
+        </div>
+    @else
+    <div class="wallet">
         <section class="wallet__main" aria-labelledby="wallet-title">
             <header class="wallet__head">
                 <h1 id="wallet-title" class="words">Kodların</h1>
                 <p>
-                    @if ($cards->isEmpty())
-                        Henüz kartın yok. Sana teslim edilen anahtarı ekle, hesabın burada kart olarak belirsin.
-                    @elseif ($cards->count() === 1)
+                    @if ($cards->count() === 1)
                         Platform kod istediğinde kartın üstündeki düğmeye bas; kod kartın yüzüne gelir.
                     @else
                         {{ $cards->count() }} kart. Bir karta dokun, öne gelsin; kod kartın yüzüne gelir.
@@ -76,14 +127,6 @@
                 </p>
             </header>
 
-            @if ($cards->isEmpty())
-                <div class="wallet__blank">
-                    <div class="wallet__ghost" aria-hidden="true">
-                        <span></span><span></span><span></span><span></span>
-                    </div>
-                    <p>İlk kartın burada duracak.</p>
-                </div>
-            @else
                 <div class="stack" data-stack aria-label="Hesap kartların">
                     @foreach ($cards as $card)
                         @include('customer.partials.wallet-card', ['card' => $card])
@@ -92,7 +135,6 @@
                 @if ($usable === 0)
                     <p class="wallet__warn">Kod verebilen kartın kalmadı. Yeni bir anahtar ekleyebilir ya da satıcınla iletişime geçebilirsin.</p>
                 @endif
-            @endif
         </section>
 
         <aside class="wallet__side" aria-label="Anahtar ekle ve yardım">
@@ -103,7 +145,7 @@
                 <input id="key" name="key" type="text" class="input input--l input--key" value="{{ old('key') }}"
                     placeholder="{{ config('guard.key_prefix') }}-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters"
                     spellcheck="false" maxlength="64" required data-key-input aria-describedby="key-error"
-                    @if ($cards->isEmpty()) autofocus @endif @error('key') aria-invalid="true" @enderror>
+                    @error('key') aria-invalid="true" @enderror>
                 <p id="key-error" class="error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
                 <button type="submit" class="btn btn--primary btn--l btn--block" data-busy-text="Ekleniyor">Cüzdanıma ekle</button>
             </form>
@@ -118,4 +160,5 @@
             </section>
         </aside>
     </div>
+    @endif
 </x-layouts.app>

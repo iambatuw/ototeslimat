@@ -108,14 +108,56 @@
 .wcard__choice-title { font-weight: 700; }
 .wcard__choice-sub { color: rgb(255 255 255 / 0.72); font-size: var(--text-xs); }
 
-/* ---------- Boş cüzdan ---------- */
-.wallet__blank { display: grid; justify-items: start; gap: var(--space-md); max-width: 46rem; }
-.wallet__ghost { width: 100%; aspect-ratio: 16 / 7; max-height: 18rem; display: flex; align-items: flex-end; gap: var(--space-xs); padding: var(--space-lg); border-radius: 26px; border: 1.5px dashed var(--color-rule-hover); background: var(--color-fill); }
-.wallet__ghost span { width: 3.25rem; aspect-ratio: 4 / 5; border-radius: var(--radius-cell); background: var(--color-well); border: var(--rule-hair) solid var(--color-rule-strong); box-shadow: var(--cell-inset); animation: bob 2.4s var(--ease-in-out) infinite alternate; }
-.wallet__ghost span:nth-child(2) { animation-delay: 0.2s; }
-.wallet__ghost span:nth-child(3) { animation-delay: 0.4s; }
-.wallet__ghost span:nth-child(4) { animation-delay: 0.6s; }
-.wallet__blank p { color: var(--color-muted); }
+/* ---------- Boş cüzdan: ilk kartın yeri anahtar formunun kendisi ---------- */
+/* Gerçek kart oranı (yaklaşık 1.6:1); başlık üstte, anahtar alanı kartın altında. Zemin mağazanın
+   vurgu renginden bağımsız koyu mor-turkuaz: açık bir vurgu seçilse de beyaz yazı okunur. */
+.firstcard {
+  position: relative; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: var(--space-md);
+  max-width: 46rem; min-height: clamp(19rem, 30vw, 27rem); padding: var(--space-xl) var(--space-xl) var(--space-lg);
+  border-radius: 30px; color: var(--color-white); overflow: hidden;
+  background:
+    radial-gradient(110% 120% at 0% 0%, rgb(255 255 255 / 0.16), transparent 50%),
+    radial-gradient(80% 110% at 100% 100%, color-mix(in srgb, var(--aurora-3) 50%, transparent), transparent 62%),
+    linear-gradient(150deg, color-mix(in srgb, var(--aurora-2) 78%, #000) 0%, color-mix(in srgb, var(--aurora-2) 40%, var(--color-paper)) 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.24), 0 40px 80px -36px rgb(0 0 0 / 0.9);
+}
+.firstcard__row { grid-row: 4; }
+.firstcard__error { grid-row: 5; }
+.firstcard__top { display: flex; align-items: center; gap: var(--space-sm); }
+.firstcard__mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgb(0 0 0 / 0.22); }
+.firstcard__mark svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.firstcard__title { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.firstcard__lead { max-width: 48ch; color: rgb(255 255 255 / 0.86); }
+.firstcard__lead .mono { font-weight: 600; }
+.firstcard__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-xs); margin-top: var(--space-xs); padding: var(--space-xs); border-radius: 20px; background: rgb(0 0 0 / 0.3); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); }
+.firstcard__row:focus-within { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.85); }
+.firstcard__row:has([aria-invalid="true"]) { box-shadow: inset 0 0 0 2px var(--color-error); }
+.firstcard__input {
+  min-width: 0; min-height: 3.5rem; padding: 0 var(--space-md); border: 0; border-radius: 14px; background: none; outline: none;
+  color: var(--color-white); caret-color: var(--color-white); font-family: var(--font-outlier); font-size: clamp(1rem, 1.6vw, 1.25rem); font-weight: 600; letter-spacing: 0.02em; text-overflow: ellipsis;
+}
+.firstcard__input::placeholder { color: rgb(255 255 255 / 0.55); }
+.firstcard__go { min-height: 3.5rem; border-radius: 14px; }
+.firstcard__error { padding: var(--space-xs) var(--space-sm); border-radius: 12px; background: rgb(0 0 0 / 0.35); color: var(--color-white); font-size: var(--text-sm); font-weight: 600; }
+.firstcard__error:empty { display: none; }
+
+/* Yanda: ekleyince ne olur, gerçek arayüz parçalarıyla */
+.after { display: grid; gap: var(--space-lg); padding: var(--space-lg); border-radius: 26px; border: var(--rule-hair) solid var(--color-rule); background: var(--color-paper-2); }
+.after h2 { max-width: none; font-size: var(--text-lg); font-weight: 800; letter-spacing: -0.02em; }
+.after__steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-lg); }
+.after__steps li { display: grid; gap: var(--space-sm); }
+.after__steps h3 { max-width: none; font-size: var(--text-md); font-weight: 700; letter-spacing: -0.01em; }
+.after__steps p { margin-top: var(--space-3xs); color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; }
+.after__art { display: flex; align-items: center; min-height: 3.25rem; }
+.after__key { padding: var(--space-xs) var(--space-sm); border-radius: 10px; background: var(--color-well); border: var(--rule-hair) solid var(--color-rule-strong); font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-ink); }
+.after__strips { display: grid; width: 12rem; }
+.after__strips i { display: block; height: 22px; border-radius: 9px 9px 0 0; background: linear-gradient(160deg, var(--p), color-mix(in srgb, var(--p) 65%, var(--color-paper))); box-shadow: 0 -6px 14px -8px rgb(0 0 0 / 0.8); }
+.after__strips i + i { margin-top: -4px; }
+.after__strips i:last-child { height: 28px; border-radius: 9px; }
+.after__cells { display: flex; gap: 6px; }
+.after__cells i { display: grid; place-items: center; width: 2.25rem; aspect-ratio: 4 / 5; border-radius: 10px; background: var(--color-well); border: var(--rule-hair) solid color-mix(in srgb, var(--color-accent) 60%, transparent); box-shadow: var(--cell-inset); font-family: var(--font-outlier); font-size: var(--text-lg); font-style: normal; font-weight: 600; }
+.after__note { padding-top: var(--space-md); border-top: var(--rule-hair) solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
+.after__note a { color: var(--color-accent); font-weight: 600; text-underline-offset: 3px; }
 
 /* ---------- Yan: anahtar ekle ve yardım ---------- */
 .addkey { display: grid; gap: var(--space-xs); padding: var(--space-lg); border-radius: 26px; }
@@ -137,10 +179,7 @@
 @media (max-width: 60rem) {
   .wallet { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
   .wallet__side { position: static; }
-  /* Boş cüzdanda telefonda başlığın hemen altına anahtar kutusu gelsin; boş kart taslağı yer kaplamasın. */
-  .wallet--empty .wallet__blank { display: none; }
-  .wallet--empty .wallet__head { margin-bottom: 0; }
-  .stack { max-width: none; }
+  .stack, .firstcard { max-width: none; }
 }
 @media (max-width: 40rem) {
   .wcard { --lap: 18px; border-radius: 22px; }
@@ -148,7 +187,8 @@
   .wcard__face { padding: 0 var(--space-md) var(--space-md); }
   .wcard__meta { padding-left: 0; margin-top: 0; }
   .wcard__actions .wcard__btn { flex: 1 1 100%; }
+  .firstcard { min-height: 0; padding: var(--space-lg) var(--space-md) var(--space-md); border-radius: 22px; }
+  .firstcard__row { grid-template-columns: minmax(0, 1fr); }
 }
 
-html[data-still] .wallet__ghost span { animation: none; }
 html[data-still] .wcard { transition: none; }
