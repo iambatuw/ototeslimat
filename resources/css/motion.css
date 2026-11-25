@@ -93,17 +93,12 @@
 .chart__plot svg { animation: wipe 1.6s var(--ease-out) 0.2s both; }
 .stock rect { transform-box: fill-box; transform-origin: 0 50%; animation: grow 1s var(--ease-out) 0.3s both; }
 .feed__dot { animation: pop 0.5s var(--ease-spring) both; animation-delay: inherit; }
-.pips i { transform-origin: 0 50%; animation: grow 0.5s var(--ease-out) both; }
-.pips i:nth-child(2) { animation-delay: 0.08s; }
-.pips i:nth-child(3) { animation-delay: 0.16s; }
-.pips i:nth-child(4) { animation-delay: 0.24s; }
-.pips i:nth-child(n+5) { animation-delay: 0.32s; }
 .fresh { animation: rise var(--dur-long) var(--ease-out) both; }
 
 /* ---------- Hareket kapalı ---------- */
 html[data-still] .enter > *, html[data-still] .stagger > *, html[data-still] .notice, html[data-still] .code, html[data-still] .words .w, html[data-still] .journey li, html[data-still] .auth__pitch, html[data-still] .fresh, html[data-still] .feed__dot { animation: none; opacity: 1; filter: none; transform: none; }
 html[data-still] .reveal { opacity: 1; transform: none; transition: none; }
-html[data-still] .ambient i, html[data-still] .marquee__row, html[data-still] .blank__art span, html[data-still] .cell::after, html[data-still] .cells--wait .cell, html[data-still] .mini__pill, html[data-still] .state--on::after, html[data-still] .mail.is-reading .mail__icon, html[data-still] .chart__plot svg, html[data-still] .stock rect, html[data-still] .pips i { animation: none !important; }
+html[data-still] .ambient i, html[data-still] .marquee__row, html[data-still] .blank__art span, html[data-still] .cell::after, html[data-still] .cells--wait .cell, html[data-still] .mini__pill, html[data-still] .state--on::after, html[data-still] .mail.is-reading .mail__icon, html[data-still] .chart__plot svg, html[data-still] .stock rect { animation: none !important; }
 html[data-still] .progress { display: none; }
 html[data-still] .btn:hover, html[data-still] .tile:hover, html[data-still] .choice:hover { translate: none; transform: none; }
 /* Kodun gelişi süs değil, geri bildirim: hareket kapalıyken kaymadan, düz bir belirmeyle kalır. */

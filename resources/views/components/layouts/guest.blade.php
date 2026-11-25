@@ -1,4 +1,4 @@
-@props(['title', 'flip' => false])
+@props(['title', 'flip' => false, 'bare' => false])
 @php
     use App\Models\Setting;
     $brand = Setting::brand();
@@ -20,6 +20,20 @@
 </head>
 <body>
     <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    @if ($bare)
+        {{-- Sayfa kendi yerleşimini kurar (kayıt: adım adım). Marka ve hareket düğmesi burada. --}}
+        <header class="bare-bar">
+            <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
+                @if ($logo)<img src="{{ asset($logo) }}" alt="" height="26">@endif
+                <span>{{ $brand }}</span>
+            </a>
+            <div class="bare-bar__end">
+                {{ $end ?? '' }}
+                <x-motion-toggle />
+            </div>
+        </header>
+        <main class="bare">{{ $slot }}</main>
+    @else
     <main @class(['auth', 'auth--flip' => $flip])>
         <div class="auth__form">
             <x-motion-toggle class="motion-btn--corner" />
@@ -51,5 +65,6 @@
             @endisset
         </aside>
     </main>
+    @endif
 </body>
 </html>

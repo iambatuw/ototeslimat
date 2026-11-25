@@ -25,7 +25,7 @@
                     @foreach ($accounts as $account)
                         <li>
                             <a href="{{ route('admin.accounts.edit', $account) }}" class="rowlink">
-                                <span class="plat plat--s" data-p="{{ $account->platform }}" aria-hidden="true">{{ mb_substr($account->platformLabel(), 0, 1) }}</span>
+                                <span class="plat plat--s" data-p="{{ $account->platform }}" aria-hidden="true">{{ $account->platformMark() }}</span>
                                 <span><strong>{{ $account->title }}</strong><small>{{ $account->platformLabel() }}{{ $account->mail_username ? ', '.$account->mail_username : '' }}</small></span>
                             </a>
                         </li>

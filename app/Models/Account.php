@@ -54,6 +54,16 @@ class Account extends Model
         return $this->platformConfig()['label'];
     }
 
+    /**
+     * Rozette görünen kısa işaret. Varsayılan platform adının ilk harfi; aynı harf ve
+     * benzer renge düşen platformlar (Netflix/Nintendo, Prime/PlayStation) config'te
+     * kendi işaretini taşır, listede karışmasın.
+     */
+    public function platformMark(): string
+    {
+        return $this->platformConfig()['mark'] ?? mb_substr($this->platformLabel(), 0, 1);
+    }
+
     public function hasMailbox(): bool
     {
         return filled($this->mail_host) && filled($this->mail_username) && filled($this->mail_password);

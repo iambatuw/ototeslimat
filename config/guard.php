@@ -72,12 +72,12 @@ return [
             'anchors' => ['chatgpt code is', 'chatgpt kodun', 'temporary verification code', 'verification code', 'doğrulama kodu', 'enter this code', 'code is'],
         ],
         'prime' => [
-            'label' => 'Prime Video', 'group' => 'stream', 'format' => 'digits6',
+            'label' => 'Prime Video', 'mark' => 'PV', 'group' => 'stream', 'format' => 'digits6',
             'from' => ['amazon'],
             'anchors' => ['one time password', 'one-time password', 'otp', 'verification code', 'tek kullanımlık şifre', 'doğrulama kodu'],
         ],
         'hbomax' => [
-            'label' => 'HBO Max', 'group' => 'stream', 'format' => 'digits6',
+            'label' => 'HBO Max', 'mark' => 'M', 'group' => 'stream', 'format' => 'digits6',
             'from' => ['hbomax.com', 'max.com'],
             'anchors' => ['one-time code', 'verification code', 'doğrulama kodu', 'tek kullanımlık kod'],
         ],
@@ -148,7 +148,7 @@ return [
         // Microsoft hesabı güvenlik kodu (Xbox, Game Pass, Minecraft). Kod çoğunlukla 6, bazen 7-8 hane.
         // Microsoft hesabında üçüncü taraf Authenticator uygulaması açıksa 2FA da çalışır.
         'xbox' => [
-            'label' => 'Xbox / Microsoft', 'group' => 'game', 'format' => 'digits6to8',
+            'label' => 'Xbox / Microsoft', 'mark' => 'X', 'group' => 'game', 'format' => 'digits6to8',
             'from' => ['accountprotection.microsoft.com', 'microsoft.com', 'xbox.com'],
             'anchors' => ['security code', 'single-use code', 'one-time code', 'verification code', 'güvenlik kodu', 'tek kullanımlık kod', 'doğrulama kodu'],
         ],
@@ -156,14 +156,14 @@ return [
         // PSN 2 adımlı doğrulaması SMS ya da Authenticator uygulamasıyla çalışır (playstation.com/support/account/2sv-login).
         // Authenticator anahtarı girilirse 2FA kodu verilir; mail kodu yalnızca e-postayla gelen doğrulamalar için.
         'playstation' => [
-            'label' => 'PlayStation', 'group' => 'game', 'format' => 'digits6',
+            'label' => 'PlayStation', 'mark' => 'PS', 'group' => 'game', 'format' => 'digits6',
             'from' => ['playstation.com', 'sonyentertainmentnetwork.com', 'sony.com'],
             'anchors' => ['verification code', 'sign-in code', 'security code', 'doğrulama kodu', 'giriş kodu'],
         ],
         // Nintendo hesabı kimlik doğrulama kodu: no-reply@accounts.nintendo.com. Uzunluk resmi olarak
         // yazılmıyor (hesap açılışında 4 hane), bu yüzden 4-6 hane kabul edilir.
         'nintendo' => [
-            'label' => 'Nintendo', 'group' => 'game', 'format' => 'digits4to6',
+            'label' => 'Nintendo', 'mark' => 'NS', 'group' => 'game', 'format' => 'digits4to6',
             'from' => ['accounts.nintendo.com', 'nintendo.com', 'nintendo.net'],
             'anchors' => ['verification code', 'identity verification', 'kimlik doğrulama', 'doğrulama kodu'],
         ],

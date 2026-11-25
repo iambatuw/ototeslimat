@@ -1,129 +1,118 @@
 @php
     use App\Models\Setting;
-    $firstName = explode(' ', trim(auth()->user()->name))[0];
     $contact = Setting::get('contact_url');
+
+    // Her anahtar cüzdanda bir ya da daha çok karta dönüşür: tek hesap = bir kart,
+    // paket = seçilmiş her hesap için bir kart + seçim hakkı kaldıysa bir "seç" kartı.
+    $cards = collect();
+    foreach ($keys as $key) {
+        $status = $key->status();
+        $blocked = in_array($status, ['revoked', 'expired', 'used_up'], true) ? $key->statusLabel() : null;
+        $meta = array_values(array_filter([
+            $key->max_uses ? $key->usesLeft().' kod hakkı' : 'Sınırsız kod',
+            $key->expires_at ? $key->expires_at->format('d.m.Y').' tarihine kadar' : null,
+            $key->cooldown_minutes ? 'kodlar arası '.$key->cooldown_minutes.' dk' : null,
+        ]));
+        // Şeritte bir bakışta görülecek durum: az gün kaldıysa o, yoksa kalan hak.
+        $daysLeft = $key->expires_at ? (int) ceil(now()->diffInDays($key->expires_at, false)) : null;
+        $chip = match (true) {
+            $daysLeft !== null && $daysLeft <= 7 => ($daysLeft <= 0 ? 'Bugün bitiyor' : $daysLeft.' gün kaldı'),
+            $key->max_uses !== null => $key->usesLeft().' kod hakkı',
+            $daysLeft !== null => $daysLeft.' gün kaldı',
+            default => null,
+        };
+
+        if (! $key->isPackage()) {
+            $cards->push(['kind' => 'account', 'key' => $key, 'account' => $key->account, 'meta' => $meta, 'status' => $chip, 'blocked' => $blocked, 'id' => 'k'.$key->id]);
+
+            continue;
+        }
+
+        $package = $key->package;
+        $picked = $key->selections;
+        $packageDown = $package->trashed() || ! $package->is_active;
+        $left = max(0, $package->pick_count - $picked->count());
+
+        foreach ($picked as $account) {
+            $cards->push(['kind' => 'account', 'key' => $key, 'account' => $account, 'meta' => ['Paket: '.$package->name, ...$meta], 'status' => $chip,
+                'blocked' => $blocked ?? ($packageDown ? 'Paket kapatıldı' : null), 'id' => 'k'.$key->id.'a'.$account->id]);
+        }
+
+        if ($left > 0 && ! $blocked && ! $packageDown) {
+            $cards->push(['kind' => 'pick', 'key' => $key, 'package' => $package, 'left' => $left, 'picked' => $picked->count(), 'meta' => $meta, 'blocked' => null, 'id' => 'k'.$key->id.'p',
+                'choices' => $package->accounts->reject(fn ($a) => $picked->contains('id', $a->id))]);
+        }
+    }
+
+    // Öndeki kart: az önce eklenen/seçilen anahtar, yoksa kod verebilen ilk kart.
+    $opened = session('opened');
+    $find = fn (callable $test) => ($i = $cards->search($test)) === false ? null : $i;
+    $front = $find(fn ($c) => $c['key']->id === $opened && $c['kind'] === 'pick')
+        ?? $find(fn ($c) => $c['key']->id === $opened)
+        ?? $find(fn ($c) => ! $c['blocked'] && $c['kind'] === 'account' && ! $c['account']->trashed() && $c['account']->is_active)
+        ?? 0;
+    $cards = $cards->map(fn ($c, $i) => $c + ['active' => $i === $front]);
+    // Öndeki kart yığının başında tam açık durur; diğerleri altında şerit olarak dizilir.
+    $cards = collect([$cards[$front] ?? null])->filter()->concat($cards->reject(fn ($c) => $c['active']))->values();
+    $usable = $cards->filter(fn ($c) => $c['kind'] === 'account' && ! $c['blocked'])->count();
 @endphp
 <x-layouts.app title="Kodlarım">
-    <header class="head">
-        <div>
-            <h1 class="words">Merhaba, {{ $firstName }}</h1>
-            <p>Platform senden kod istediğinde hesabının düğmesine bas. Kod birkaç saniyede burada.</p>
-        </div>
-    </header>
-
     @if (Setting::get('announcement'))
         <p class="notice">{{ Setting::get('announcement') }}</p>
     @endif
 
-    <div @class(['desk', 'desk--empty' => $keys->isEmpty()])>
-        <div class="desk__main">
-            @if ($keys->isEmpty())
-                <div class="blank">
-                    <div class="blank__art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-                    <h2>İlk hesabını ekle</h2>
-                    <p>Siparişinle birlikte sana teslim edilen ürün anahtarını “Anahtar ekle” kutusuna yapıştır. Hesabın burada görünür.</p>
+    <div @class(['wallet', 'wallet--empty' => $cards->isEmpty()])>
+        <section class="wallet__main" aria-labelledby="wallet-title">
+            <header class="wallet__head">
+                <h1 id="wallet-title" class="words">Kodların</h1>
+                <p>
+                    @if ($cards->isEmpty())
+                        Henüz kartın yok. Sana teslim edilen anahtarı ekle, hesabın burada kart olarak belirsin.
+                    @elseif ($cards->count() === 1)
+                        Platform kod istediğinde kartın üstündeki düğmeye bas; kod kartın yüzüne gelir.
+                    @else
+                        {{ $cards->count() }} kart. Bir karta dokun, öne gelsin; kod kartın yüzüne gelir.
+                    @endif
+                </p>
+            </header>
+
+            @if ($cards->isEmpty())
+                <div class="wallet__blank">
+                    <div class="wallet__ghost" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <p>İlk kartın burada duracak.</p>
                 </div>
             @else
-                <ul class="accts stagger" role="list">
-                    @foreach ($keys as $key)
-                        @php
-                            $status = $key->status();
-                            $blocked = in_array($status, ['revoked', 'expired', 'used_up'], true) ? $key->statusLabel() : null;
-                            $rules = [
-                                $key->max_uses ? $key->usesLeft().' kod hakkın kaldı' : null,
-                                $key->expires_at ? $key->expires_at->format('d.m.Y').' tarihine kadar' : null,
-                                $key->cooldown_minutes ? 'kodlar arası '.$key->cooldown_minutes.' dk' : null,
-                            ];
-                        @endphp
-
-                        @if (! $key->isPackage())
-                            <li class="acct spot">
-                                @include('customer.partials.account-row', ['account' => $key->account, 'meta' => [$key->account->platformLabel(), ...$rules]])
-                            </li>
-                        @else
-                            @php
-                                $package = $key->package;
-                                $picked = $key->selections;
-                                $left = max(0, $package->pick_count - $picked->count());
-                                $packageDown = $package->trashed() || ! $package->is_active;
-                                $choices = $package->accounts->reject(fn ($a) => $picked->contains('id', $a->id));
-                            @endphp
-                            <li @class(['acct', 'acct--pack', 'spot', 'acct--off' => $blocked || $packageDown])>
-                                <div class="acct__row">
-                                    <span class="plat plat--pack" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
-                                    </span>
-                                    <div>
-                                        <h2 class="acct__title">{{ $package->name }}</h2>
-                                        <p class="acct__meta">{{ implode(', ', array_filter(['Paket', ...$rules])) }}</p>
-                                    </div>
-                                    @if ($blocked)
-                                        <span class="badge">{{ $blocked }}</span>
-                                    @else
-                                        <div class="pips" role="img" aria-label="{{ $picked->count() }} / {{ $package->pick_count }} hesap seçildi">
-                                            @for ($i = 0; $i < $package->pick_count; $i++)<i @class(['is-on' => $i < $picked->count()])></i>@endfor
-                                            <span>{{ $picked->count() }} / {{ $package->pick_count }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                                @if ($package->description)<p class="acct__note">{{ $package->description }}</p>@endif
-
-                                @if ($picked->isNotEmpty())
-                                    <ul class="acct__sub" role="list">
-                                        @foreach ($picked as $account)
-                                            <li>@include('customer.partials.account-row', ['meta' => [$account->platformLabel()], 'blocked' => $blocked ?? ($packageDown ? 'Paket kapatıldı' : null)])</li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-
-                                @if ($left > 0 && ! $blocked && ! $packageDown)
-                                    <div class="acct__pick">
-                                        <p>{{ $left }} hesap daha seçebilirsin. Seçimini sonradan değiştiremezsin.</p>
-                                        <ul class="choices" role="list">
-                                            @foreach ($choices as $account)
-                                                @php($unavailable = $account->trashed() || ! $account->is_active)
-                                                <li>
-                                                    <form method="POST" action="{{ route('pick', $key) }}" data-confirm="{{ $account->title }} seçilsin mi? Sonradan değiştiremezsin.">
-                                                        @csrf
-                                                        <input type="hidden" name="account_id" value="{{ $account->id }}">
-                                                        <button type="submit" class="choice" @disabled($unavailable)>
-                                                            <span class="plat plat--s" data-p="{{ $account->platform }}" aria-hidden="true">{{ mb_substr($account->platformLabel(), 0, 1) }}</span>
-                                                            <span>
-                                                                <span class="choice__title">{{ $account->title }}</span>
-                                                                <span class="choice__sub">{{ $unavailable ? 'Şu an seçilemiyor' : $account->platformLabel() }}</span>
-                                                            </span>
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-                            </li>
-                        @endif
+                <div class="stack" data-stack aria-label="Hesap kartların">
+                    @foreach ($cards as $card)
+                        @include('customer.partials.wallet-card', ['card' => $card])
                     @endforeach
-                </ul>
+                </div>
+                @if ($usable === 0)
+                    <p class="wallet__warn">Kod verebilen kartın kalmadı. Yeni bir anahtar ekleyebilir ya da satıcınla iletişime geçebilirsin.</p>
+                @endif
             @endif
-        </div>
+        </section>
 
-        <aside class="desk__side">
-            <form method="POST" action="{{ route('redeem') }}" class="keybox glass" data-busy novalidate>
+        <aside class="wallet__side" aria-label="Anahtar ekle ve yardım">
+            <form method="POST" action="{{ route('redeem') }}" class="addkey glass" data-busy novalidate>
                 @csrf
-                <label for="key" class="keybox__title">Anahtar ekle</label>
-                <p class="keybox__lead">Sana teslim edilen ürün anahtarını yapıştır. Tire ve boşluk yazmasan da olur.</p>
+                <label for="key" class="addkey__title">Anahtar ekle</label>
+                <p class="addkey__lead">Siparişinle gelen anahtarı yapıştır. Tire ve boşluk yazmasan da olur.</p>
                 <input id="key" name="key" type="text" class="input input--l input--key" value="{{ old('key') }}"
                     placeholder="{{ config('guard.key_prefix') }}-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters"
                     spellcheck="false" maxlength="64" required data-key-input aria-describedby="key-error"
-                    @if ($keys->isEmpty()) autofocus @endif @error('key') aria-invalid="true" @enderror>
+                    @if ($cards->isEmpty()) autofocus @endif @error('key') aria-invalid="true" @enderror>
                 <p id="key-error" class="error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
-                <button type="submit" class="btn btn--primary btn--l btn--block">Hesabıma ekle</button>
+                <button type="submit" class="btn btn--primary btn--l btn--block" data-busy-text="Ekleniyor">Cüzdanıma ekle</button>
             </form>
 
-            <section class="tips" aria-labelledby="tips-title">
-                <h2 id="tips-title">Kod gelmedi mi?</h2>
+            <section class="help" aria-labelledby="help-title">
+                <h2 id="help-title">Kod gelmedi mi?</h2>
                 <ol>
                     <li>Platformda “kodu tekrar gönder”e bas.</li>
-                    <li>30 saniye bekle, sonra düğmeye yeniden bas.</li>
+                    <li>Mail kodunda sayfa 2 dakika kendiliğinden bekler; kapatma.</li>
                     <li>Yine gelmezse @if ($contact)<a href="{{ $contact }}" rel="noopener" target="_blank">destekle iletişime geç</a>.@else satıcınla iletişime geç.@endif</li>
                 </ol>
             </section>

@@ -30,3 +30,7 @@ Thumbs.db
 /.hallmark
 /.claude
 /public/uploads
+
+# Impeccable: makineye özel ve geçici dosyalar
+/.impeccable/config.local.json
+/.impeccable/hook.cache.json

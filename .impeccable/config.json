@@ -1,0 +1,224 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/board.html"
+        ],
+        "createdAt": "2026-11-25T13:09:07.797Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/board.html"
+        ],
+        "createdAt": "2026-11-25T13:09:07.909Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/board.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.020Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/wallet.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.135Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/wallet.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.245Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/wallet.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.349Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/command.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.455Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/command.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.564Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/command.html"
+        ],
+        "createdAt": "2026-11-25T13:09:08.685Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped; real page is audited at build"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/steps.html"
+        ],
+        "createdAt": "2026-11-25T13:11:36.608Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/steps.html"
+        ],
+        "createdAt": "2026-11-25T13:11:36.720Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/steps.html"
+        ],
+        "createdAt": "2026-11-25T13:11:36.830Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/sheet.html"
+        ],
+        "createdAt": "2026-11-25T13:11:36.940Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/sheet.html"
+        ],
+        "createdAt": "2026-11-25T13:11:37.052Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/sheet.html"
+        ],
+        "createdAt": "2026-11-25T13:11:37.163Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/band.html"
+        ],
+        "createdAt": "2026-11-25T13:11:37.272Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/band.html"
+        ],
+        "createdAt": "2026-11-25T13:11:37.391Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/band.html"
+        ],
+        "createdAt": "2026-11-25T13:11:37.502Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/board.html"
+        ],
+        "createdAt": "2026-11-25T13:19:00.076Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/wallet.html"
+        ],
+        "createdAt": "2026-11-25T13:19:00.191Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/command.html"
+        ],
+        "createdAt": "2026-11-25T13:19:00.310Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/steps.html"
+        ],
+        "createdAt": "2026-11-25T13:19:00.428Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/sheet.html"
+        ],
+        "createdAt": "2026-11-25T13:19:00.547Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/band.html"
+        ],
+        "createdAt": "2026-11-25T13:19:00.667Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      }
+    ]
+  }
+}

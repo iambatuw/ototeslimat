@@ -113,7 +113,7 @@
                     @foreach ($troubled as $row)
                         <li>
                             <a href="{{ route('admin.accounts.edit', $row->account) }}" class="rowlink">
-                                <span class="plat plat--s" data-p="{{ $row->account->platform }}" aria-hidden="true">{{ mb_substr($row->account->platformLabel(), 0, 1) }}</span>
+                                <span class="plat plat--s" data-p="{{ $row->account->platform }}" aria-hidden="true">{{ $row->account->platformMark() }}</span>
                                 <span><strong>{{ $row->account->title }}</strong><small>{{ $row->reason ? 'Son neden: '.$row->reason : 'Kod verilemedi' }}{{ $row->issued ? ', '.$row->issued.' kod verildi' : '' }}</small></span>
                                 <span class="state state--bad">{{ $row->failed }} hata</span>
                             </a>

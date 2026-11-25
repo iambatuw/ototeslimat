@@ -17,17 +17,18 @@ Müşteriler Netflix, HBO Max, Prime Video gibi koyu arayüzlü platformlardan g
 ## Yerleşim
 
 - **Ana sayfa:** hero iki sütun; solda başlık ve eylem, sağda çalışan örnek kart. Ortalanmış hero yok. "Nasıl çalışır" ve "Sık sorulanlar" bölünmüş bölümdür: başlık solda sabit kalır, içerik sağda akar. Her adımın yanında anlattığı arayüz parçası durur. Ayrı bir kapanış çağrısı bloğu yok; eylem düğmesi "nasıl çalışır" başlığının altındadır.
-- **Giriş ekranları:** solda ışığın içinde ürün (örnek kart + kalın başlık), sağda sakin, koyu bir form alanı. Hata satırı yalnızca hata varken yer kaplar.
+- **Giriş ve şifre ekranları:** solda ışığın içinde ürün (örnek kart + kalın başlık), sağda sakin, koyu bir form alanı. Hata satırı yalnızca hata varken yer kaplar.
 - **Panel:** özdeş sayı kutuları yok. Verilen kodlar grafiğiyle birlikte tek kartta; anahtar stoğu tek çubuk ve altında satırlar. İlk kurulum adımları yatay bir iz olarak gösterilir, sıradaki adım eylemi taşır.
 
 ## Çalışma ekranları
 
 - **Yönetim iskeleti:** solda yüzen cam yan menü (simge + ad); seçili sayfa vurgu rengiyle dolar ve sayfa geçişinde yerine kayar. Telefonda aynı menü alt sekme çubuğuna döner.
-- **Hesaplar ve paketler:** platform rozetli kutucuk ızgarası. Rozet, platformun baş harfi ve rengi.
+- **Hesaplar ve paketler:** platform rozetli kutucuk ızgarası. Rozet, platformun kısa işareti (`platformMark`) ve rengi.
 - **Anahtarlar:** üstte tek satırlık üretici (hedef, adet seçici, düğme); yeni anahtarlar tek tek kopyalanabilen çipler olarak çıkar; liste durum haplarıyla süzülür.
 - **Müşteriler:** avatarlı satırlar. **Kayıtlar:** zaman akışı; nokta olayın türünü söyler (yeşil başarılı, kırmızı başarısız).
 - **Formlar:** solda bölümün ne olduğu, sağda alanlar; kaydet çubuğu altta yapışık durur.
-- **Müşteri (Kodlarım):** solda hesap kartları, sağda yapışık "Anahtar ekle" kutusu ve "Kod gelmedi mi?" adımları.
+- **Müşteri (Kodlarım): cüzdan.** Her hesap platform renginde, gradyanlı bir kart; kartlar üst üste biner. Öndeki kart yığının başında tam açıktır: ad, durum çipi (kalan gün ya da kalan hak), meta, kod düğmeleri ve kod hücreleri doğrudan kart yüzünde (iç kutu yok, rakamlar kartın en büyük yazısı). Diğer kartlar altında şerit olarak dizilir; şeride basınca kart View Transition ile öne kayar. Şerit platformu değil durumu söyler. Platform rozeti kısa işarettir (`platformMark`); aynı harf ve renge düşenler ayrı işaret taşır (NS, PS, PV). Paket anahtarında seçim hakkı kalan bir "seç" kartı olur. Sağda yapışık "Anahtar ekle" cam kutusu ve "Kod gelmedi mi?" adımları; telefonda bunlar alta iner, boş cüzdanda başlığın hemen altına anahtar kutusu gelir. Öndeki kartın en üstte olması bilinçli: 3-10 şerit üstte dursa kod telefonda ilk ekranın dışında kalırdı.
+- **Kayıt: adım adım.** Yalın misafir iskeleti (`layouts.guest :bare`). Her ekranda tek soru, 4.75rem'e kadar kalın; ilerleme dört kod hücresiyle gösterilir, biten hücrede rakam yeşil onay işaretine döner. Enter sonraki soruya geçer, hatalar adımın altında söylenir, sunucu bir alanı reddederse o adımdan açılır. Sağda adıyla seslenen kısa özet. JS yoksa dört alan alt alta düz form olarak çalışır.
 
 ## Hareket
 

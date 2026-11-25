@@ -347,6 +347,46 @@ class CodePanel {
     }
 }
 
+/* ---------- Müşteri: cüzdan yığını ----------
+ * Arkadaki bir kartın şeridine basınca kart öne (yığının başına) gelir, yüzü açılır;
+ * önceki öndeki kart yığına döner. Destekleyen tarayıcıda View Transitions ile kayar. */
+document.querySelectorAll('[data-stack]').forEach((stack) => {
+    const cards = () => [...stack.querySelectorAll(':scope > [data-wcard]')];
+    // CSP satır içi stile izin vermez; geçiş adları CSSOM ile verilir.
+    cards().forEach((card, i) => card.style.setProperty('view-transition-name', `wcard-${i}`));
+
+    const bringToFront = (card) => {
+        const current = stack.querySelector(':scope > .is-front');
+        if (card === current) return;
+        const swap = () => {
+            if (current) {
+                current.classList.remove('is-front');
+                current.querySelector('.wcard__face').hidden = true;
+                current.querySelector('[data-wcard-tab]').setAttribute('aria-expanded', 'false');
+            }
+            card.classList.add('is-front');
+            card.querySelector('.wcard__face').hidden = false;
+            card.querySelector('[data-wcard-tab]').setAttribute('aria-expanded', 'true');
+            stack.prepend(card);
+        };
+        const reveal = (smooth) => {
+            if (card.getBoundingClientRect().top < 80) card.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' });
+        };
+        if (document.startViewTransition && !still()) {
+            document.startViewTransition(swap).finished.then(() => reveal(true));
+        } else {
+            swap();
+            reveal(false);
+        }
+        card.querySelector('[data-wcard-tab]').focus({ preventScroll: true });
+    };
+
+    stack.addEventListener('click', (event) => {
+        const tab = event.target.closest('[data-wcard-tab]');
+        if (tab) bringToFront(tab.closest('[data-wcard]'));
+    });
+});
+
 document.querySelectorAll('[data-game]').forEach((root) => {
     new CodePanel(root);
     if (root.dataset.open === 'true') root.scrollIntoView({ block: 'center', behavior: still() ? 'auto' : 'smooth' });
@@ -362,6 +402,130 @@ document.querySelectorAll('[data-pass-toggle]').forEach((button) => {
         button.textContent = show ? 'Gizle' : 'Göster';
     });
 });
+
+/* ---------- Kayıt: adım adım ----------
+ * JS yoksa form düz çalışır. Varsa her ekranda tek soru gösterilir, Enter sonraki
+ * soruya geçer, ilerleme hücreleri dolar, sağdaki özet girilenleri toplar. */
+const signup = document.querySelector('[data-signup]');
+if (signup) {
+    const steps = [...signup.querySelectorAll('[data-step]')];
+    const cells = [...signup.querySelectorAll('[data-cell]')];
+    const where = signup.querySelector('[data-signup-where]');
+    const back = signup.querySelector('[data-back]');
+    const backLabel = signup.querySelector('[data-back-label]');
+    const submit = signup.querySelector('[type="submit"]');
+    const field = (name) => signup.querySelector(`[name="${name}"]`);
+    const min = Number(signup.querySelector('[data-rules]')?.dataset.min || 8);
+    const greet = document.querySelector('[data-signup-greet]');
+    const lead = document.querySelector('[data-signup-lead]');
+    const summary = (key) => document.querySelector(`[data-summary="${key}"]`);
+    let current = Math.min(steps.length - 1, Number(signup.dataset.start) || 0);
+
+    const checks = [
+        () => (field('name').value.trim() ? '' : 'Adını yaz.'),
+        () => {
+            const email = field('email');
+            if (!email.value.trim()) return 'E-posta adresini yaz.';
+            return email.checkValidity() ? '' : 'Bu bir e-posta adresine benzemiyor. Örnek: ad@ornek.com';
+        },
+        () => {
+            const value = field('password').value;
+            return value.length >= min && /\p{L}/u.test(value) && /\d/.test(value)
+                ? '' : `Şifre en az ${min} karakter olmalı, bir harf ve bir rakam içermeli.`;
+        },
+        () => (field('password_confirmation').value === field('password').value && field('password').value
+            ? '' : 'Şifreler aynı değil. İkinci şifreyi yeniden yaz.'),
+    ];
+
+    const setError = (i, message) => {
+        const step = steps[i];
+        const error = step.querySelector('[data-error]');
+        const input = step.querySelector('.ask__input');
+        error.textContent = message;
+        error.toggleAttribute('role', false);
+        if (message) error.setAttribute('role', 'alert');
+        input.toggleAttribute('aria-invalid', Boolean(message));
+        if (message) input.setAttribute('aria-invalid', 'true');
+    };
+
+    const firstName = () => field('name').value.trim().split(/\s+/)[0] || '';
+    const syncSide = () => {
+        const name = firstName();
+        summary('name').textContent = field('name').value.trim() || '—';
+        summary('email').textContent = field('email').value.trim() || '—';
+        const length = field('password').value.length;
+        summary('password').textContent = length ? `${'•'.repeat(Math.min(length, 12))} (${length} karakter)` : '—';
+        const lines = [
+            ['Bir dakikada hesabın hazır.', 'Dört kısa soru. Sonra sana teslim edilen anahtarı ekleyip kodunu alırsın.'],
+            [name ? `Merhaba ${name}.` : 'Merhaba.', 'Sırada şifre var; ardından hesabın hazır.'],
+            [name ? `${name}, az kaldı.` : 'Az kaldı.', 'Başka bir yerde kullanmadığın bir şifre seç.'],
+            [name ? `${name}, neredeyse bitti.` : 'Neredeyse bitti.', `${field('email').value.trim() || 'Bu adres'} ile hesabın açılıyor.`],
+        ];
+        greet.textContent = lines[current][0];
+        lead.textContent = lines[current][1];
+    };
+
+    const show = (i, { backwards = false, focus = true } = {}) => {
+        current = i;
+        steps.forEach((step, n) => {
+            step.classList.toggle('is-current', n === i);
+            step.classList.toggle('is-back', n === i && backwards);
+        });
+        cells.forEach((cell, n) => {
+            cell.classList.toggle('is-done', n < i);
+            cell.classList.toggle('is-now', n === i);
+        });
+        where.textContent = `${i + 1} / ${steps.length} · ${steps[i].dataset.label}`;
+        back.hidden = i === 0;
+        if (i > 0) backLabel.textContent = `Geri: ${steps[i - 1].dataset.label}`;
+        syncSide();
+        if (focus) steps[i].querySelector('.ask__input').focus({ preventScroll: true });
+    };
+
+    const advance = () => {
+        const message = checks[current]();
+        setError(current, message);
+        if (message) {
+            steps[current].querySelector('.ask__input').focus();
+            return;
+        }
+        if (current < steps.length - 1) show(current + 1);
+        else signup.requestSubmit(submit);
+    };
+
+    signup.classList.add('is-stepped');
+    signup.querySelector('[data-signup-progress]').hidden = false;
+    show(current, { focus: true });
+
+    signup.addEventListener('click', (event) => {
+        if (event.target.closest('[data-next]')) advance();
+        if (event.target.closest('[data-back]') && current > 0) show(current - 1, { backwards: true });
+    });
+
+    signup.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' || !event.target.matches('.ask__input')) return;
+        event.preventDefault();
+        advance();
+    });
+
+    signup.addEventListener('input', (event) => {
+        const step = event.target.closest('[data-step]');
+        if (step && step.querySelector('[data-error]').textContent) setError(Number(step.dataset.step), '');
+        syncSide();
+    });
+
+    signup.addEventListener('submit', (event) => {
+        const failing = checks.findIndex((check) => check());
+        if (failing !== -1) {
+            event.preventDefault();
+            show(failing, { backwards: failing < current });
+            setError(failing, checks[failing]());
+            return;
+        }
+        submit.setAttribute('aria-busy', 'true');
+        submit.disabled = true;
+    });
+}
 
 /* ---------- Kayıt: şifre koşulları yazarken işaretlenir ---------- */
 document.querySelectorAll('[data-rules]').forEach((list) => {

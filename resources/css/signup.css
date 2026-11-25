@@ -1,0 +1,115 @@
+/*
+ * Kayıt: adım adım. Her ekranda tek soru, ilerleme kod hücreleriyle.
+ * JS yoksa dört soru alt alta düz form olarak görünür; JS gelince
+ * form .is-stepped olur ve yalnızca sıradaki soru gösterilir.
+ */
+
+/* ---------- Yalın misafir iskeleti (layouts.guest :bare) ---------- */
+.bare-bar { position: relative; z-index: var(--z-raised); display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding: var(--space-lg) clamp(var(--space-md), 6vw, var(--space-3xl)); }
+.bare-bar__end { display: flex; align-items: center; gap: var(--space-md); }
+.bare-bar__ask { color: var(--color-ink-2); font-size: var(--text-sm); }
+.bare-bar__ask a { color: var(--color-accent); font-weight: 600; text-underline-offset: 3px; }
+.bare { position: relative; z-index: var(--z-base); flex: 1; }
+
+/* ---------- Yerleşim ---------- */
+.signup {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: clamp(var(--space-xl), 6vw, var(--space-4xl));
+  align-items: start; padding: clamp(var(--space-lg), 8dvh, var(--space-3xl)) clamp(var(--space-md), 6vw, var(--space-3xl)) var(--space-2xl);
+  min-height: calc(100dvh - 5.5rem);
+}
+.signup__form { display: grid; gap: var(--space-2xl); max-width: 46rem; }
+.signup__form.is-stepped { gap: 0; }
+
+/* ---------- İlerleme: dört kod hücresi ---------- */
+.signup__progress { display: flex; align-items: center; gap: var(--space-md); margin-bottom: clamp(var(--space-xl), 7dvh, var(--space-3xl)); }
+.signup__progress[hidden] { display: none; }
+.steps-cells { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--space-xs); }
+.steps-cells__cell {
+  position: relative; display: grid; place-items: center; width: 2.75rem; aspect-ratio: 4 / 5; border-radius: 12px;
+  background: var(--color-well); border: var(--rule-hair) solid var(--color-rule-strong); box-shadow: var(--cell-inset);
+  color: var(--color-placeholder); font-family: var(--font-outlier); font-size: var(--text-lg); font-weight: 600;
+  transition: border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+.steps-cells__tick { position: absolute; width: 1.25rem; height: 1.25rem; fill: none; stroke: var(--color-success); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 16; stroke-dashoffset: 16; opacity: 0; }
+.steps-cells__cell.is-now { border-color: var(--color-accent); color: var(--color-ink); }
+.steps-cells__cell.is-done { border-color: color-mix(in srgb, var(--color-success) 60%, transparent); background: color-mix(in srgb, var(--color-success) 10%, var(--color-well)); }
+.steps-cells__cell.is-done .steps-cells__num { opacity: 0; scale: 0.6; }
+.steps-cells__cell.is-done .steps-cells__tick { opacity: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 0.4s var(--ease-out) 0.08s, opacity 0.1s linear; }
+.steps-cells__num { transition: opacity var(--dur-short) var(--ease-out), scale var(--dur-short) var(--ease-out); }
+.signup__where { color: var(--color-ink-2); font-size: var(--text-md); }
+
+/* ---------- Soru ---------- */
+.ask { display: grid; gap: var(--space-sm); margin: 0; padding: 0; border: 0; min-width: 0; }
+.is-stepped .ask:not(.is-current) { display: none; }
+.ask.is-current { animation: step-in 0.5s var(--ease-out) both; }
+.ask.is-current.is-back { animation-name: step-back; }
+@keyframes step-in { from { opacity: 0; translate: 0 28px; filter: blur(6px); } }
+@keyframes step-back { from { opacity: 0; translate: 0 -28px; filter: blur(6px); } }
+
+.ask__q { max-width: 14ch; font-size: clamp(2.25rem, 5.6vw, 4.75rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; text-wrap: balance; color: var(--color-ink); }
+.ask__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-xs);
+  margin-top: var(--space-lg); padding: var(--space-xs); border-radius: 22px;
+  background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-rule-strong);
+  transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out);
+}
+.ask__row--pass { grid-template-columns: minmax(0, 1fr) auto auto; }
+.ask__row:focus-within { border-color: var(--color-accent); box-shadow: 0 18px 44px -26px var(--color-accent); }
+.ask__row:has([aria-invalid="true"]) { border-color: var(--color-error); }
+.ask__input {
+  min-width: 0; min-height: 3.75rem; padding: 0 var(--space-md); border: 0; border-radius: 14px; background: none; outline: none;
+  color: var(--color-ink); font: inherit; font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 500; letter-spacing: -0.01em;
+  caret-color: var(--color-accent);
+}
+.ask__input::placeholder { color: var(--color-placeholder); }
+.ask__input:-webkit-autofill { -webkit-text-fill-color: var(--color-ink); transition: background-color 9999s; }
+.ask__next { min-height: 3.25rem; padding-inline: var(--space-lg); border-radius: 16px; font-size: var(--text-md); }
+.ask__row .pass__toggle { position: static; translate: none; min-height: 3.25rem; }
+.ask__hint { color: var(--color-muted); font-size: var(--text-sm); max-width: 52ch; }
+.ask .rules { margin-top: var(--space-2xs); }
+.ask .error { color: var(--color-error); font-size: var(--text-sm); font-weight: 500; }
+.ask .error:empty, .ask .match:empty { display: none; }
+/* Hata satırı varken canlı eşleşme notu aynı şeyi ikinci kez söylemesin. */
+.ask:has([data-error]:not(:empty)) .match { display: none; }
+/* E-posta zaten kayıtlıysa çıkış yolu: giriş ya da şifre sıfırlama. Hata silinince kaybolur. */
+.ask__recover { color: var(--color-ink-2); font-size: var(--text-sm); }
+.ask__recover a { color: var(--color-accent); font-weight: 600; text-underline-offset: 3px; }
+.ask:has([data-error]:empty) .ask__recover { display: none; }
+
+/* Geri */
+.signup__back { justify-self: start; display: inline-flex; align-items: center; gap: var(--space-2xs); margin-top: var(--space-xl); padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-2xs); border: 0; border-radius: 12px; background: none; color: var(--color-ink-2); font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.signup__back[hidden] { display: none; }
+.signup__back:hover { background: var(--color-fill); color: var(--color-ink); }
+.signup__back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Yan: kişisel özet ---------- */
+.signup__side { position: sticky; top: var(--space-xl); display: grid; gap: var(--space-md); padding-top: clamp(0px, 9dvh, 7.5rem); }
+.signup__side h2 { max-width: none; font-size: var(--text-2xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+.signup__side > p { color: var(--color-ink-2); line-height: 1.55; }
+.signup__summary { display: grid; margin: var(--space-xs) 0 0; border-top: var(--rule-hair) solid var(--color-rule); }
+.signup__summary div { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: var(--space-sm); padding: var(--space-sm) 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.signup__summary dt { color: var(--color-muted); font-size: var(--text-sm); }
+.signup__summary dd { margin: 0; overflow: hidden; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.signup__after { color: var(--color-muted); font-size: var(--text-sm); line-height: 1.55; }
+
+/* ---------- Dar ekran ---------- */
+@media (max-width: 60rem) {
+  .signup { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xl); min-height: 0; }
+  .signup__side { position: static; padding-top: 0; }
+  .signup__after { display: none; }
+}
+@media (max-width: 40rem) {
+  .bare-bar__q { display: none; }
+  /* Telefonda alan kendi çerçevesinde, Devam düğmesi altında; çerçevenin içinde yalnızca yazılacak yer kalır. */
+  .ask__row, .ask__row--pass { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-sm); padding: 0; background: none; border: 0; }
+  .ask__row:focus-within { box-shadow: none; }
+  .ask__input { min-height: 3.5rem; background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-rule-strong); border-radius: 18px; }
+  .ask__input:focus { border-color: var(--color-accent); }
+  .ask__row:has([aria-invalid="true"]) .ask__input { border-color: var(--color-error); }
+  .ask__row:not(.ask__row--pass) .ask__input { grid-column: 1 / -1; }
+  .ask__next { grid-column: 1 / -1; width: 100%; }
+  .signup__progress { margin-bottom: var(--space-xl); }
+}
+
+html[data-still] .ask.is-current { animation: none; }
+html[data-still] .steps-cells__cell.is-done .steps-cells__tick { transition: none; }
