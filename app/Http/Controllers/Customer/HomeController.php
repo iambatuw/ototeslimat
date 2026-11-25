@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\ActivityLog;
 use App\Models\ProductKey;
 use App\Services\Guard\CodeService;
 use App\Services\Guard\GuardException;
 use App\Support\Activity;
+use App\Support\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +30,17 @@ class HomeController extends Controller
             ->latest('redeemed_at')
             ->get();
 
-        return view('customer.home', ['keys' => $keys]);
+        $user = $request->user();
+
+        // Müşterinin hesaplara verdiği adlar ve her hesaptan en son ne zaman kod aldığı:
+        // aynı platformdan birkaç hesabı olan müşteri hangisini en son kullandığını görsün.
+        $lastCodes = ActivityLog::where('user_id', $user->id)->where('event', 'code.issued')
+            ->selectRaw('account_id, max(created_at) as last')->groupBy('account_id')->pluck('last', 'account_id')
+            ->map(fn ($at) => Carbon::parse($at))->all();
+
+        $selected = is_string($request->query('hesap')) ? $request->query('hesap') : null;
+
+        return view('customer.home', Wallet::build($keys, $user->accountLabels(), $lastCodes, session('opened'), $selected));
     }
 
     public function redeem(Request $request)
@@ -74,6 +87,34 @@ class HomeController extends Controller
             : $key->account->title.' hesabına eklendi. Kodunu aşağıdan alabilirsin.';
 
         return redirect()->route('home')->with('status', $message)->with('opened', $key->id);
+    }
+
+    /**
+     * Müşteri bir hesaba kendi adını verir ya da adı siler. Aynı platformdan birkaç
+     * hesabı olan müşteri (örneğin üç Steam) kartlarını bu adla ayırır.
+     */
+    public function label(Request $request, Account $account)
+    {
+        $user = $request->user();
+        abort_unless($user->canUseAccount($account), 404);
+
+        $data = $request->validate(['label' => ['nullable', 'string', 'max:40']], [], ['label' => 'ad']);
+        $label = trim(preg_replace('/\s+/u', ' ', (string) ($data['label'] ?? '')));
+
+        if ($label === '') {
+            DB::table('account_labels')->where(['user_id' => $user->id, 'account_id' => $account->id])->delete();
+        } else {
+            DB::table('account_labels')->updateOrInsert(
+                ['user_id' => $user->id, 'account_id' => $account->id],
+                ['label' => $label, 'updated_at' => now(), 'created_at' => now()],
+            );
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['label' => $label]);
+        }
+
+        return back()->with('status', $label === '' ? 'Kartın adı kaldırıldı.' : 'Kartın adı kaydedildi.');
     }
 
     /** Paket anahtarında listeden bir hesap seçer. Seçim geri alınmaz. */

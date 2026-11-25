@@ -347,43 +347,106 @@ class CodePanel {
     }
 }
 
-/* ---------- Müşteri: cüzdan yığını ----------
- * Arkadaki bir kartın şeridine basınca kart öne (yığının başına) gelir, yüzü açılır;
- * önceki öndeki kart yığına döner. Destekleyen tarayıcıda View Transitions ile kayar. */
-document.querySelectorAll('[data-stack]').forEach((stack) => {
-    const cards = () => [...stack.querySelectorAll(':scope > [data-wcard]')];
-    // CSP satır içi stile izin vermez; geçiş adları CSSOM ile verilir.
-    cards().forEach((card, i) => card.style.setProperty('view-transition-name', `wcard-${i}`));
-
-    const bringToFront = (card) => {
-        const current = stack.querySelector(':scope > .is-front');
-        if (card === current) return;
-        const swap = () => {
-            if (current) {
-                current.classList.remove('is-front');
-                current.querySelector('.wcard__face').hidden = true;
-                current.querySelector('[data-wcard-tab]').setAttribute('aria-expanded', 'false');
-            }
-            card.classList.add('is-front');
-            card.querySelector('.wcard__face').hidden = false;
-            card.querySelector('[data-wcard-tab]').setAttribute('aria-expanded', 'true');
-            stack.prepend(card);
-        };
-        const reveal = (smooth) => {
-            if (card.getBoundingClientRect().top < 80) card.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' });
-        };
-        if (document.startViewTransition && !still()) {
-            document.startViewTransition(swap).finished.then(() => reveal(true));
-        } else {
-            swap();
-            reveal(false);
+/* ---------- Müşteri: Kodlarım ----------
+ * Raftaki "Kod al" sayfayı yenilemeden o hesabı üstteki büyük karta getirir; hesabın tek
+ * kod türü varsa kodu da hemen ister. JS yoksa bağlantı ?hesap= ile aynı şeyi sunucuda yapar. */
+const heroes = document.querySelector('[data-heroes]');
+if (heroes) {
+    const heroLabel = heroes.querySelector('[data-hero-label]');
+    const show = (id, { fetchCode = false } = {}) => {
+        const next = heroes.querySelector(`[data-hero="${id}"]`);
+        if (!next) return false;
+        const current = heroes.querySelector('[data-hero]:not([hidden])');
+        if (current !== next) {
+            if (current) current.hidden = true;
+            next.hidden = false;
+            next.classList.remove('is-swapping');
+            void next.offsetWidth; // animasyonu yeniden başlat
+            next.classList.add('is-swapping');
+            heroLabel.textContent = 'Seçtiğin hesap';
+            document.querySelectorAll('[data-row]').forEach((row) => {
+                const active = row.dataset.row === id;
+                row.classList.toggle('is-active', active);
+                const last = row.querySelector('.arow__last');
+                if (active) {
+                    last.dataset.was = last.textContent.trim();
+                    last.innerHTML = '<span class="arow__here">Yukarıda açık</span>';
+                } else if (last.dataset.was) {
+                    last.textContent = last.dataset.was;
+                    delete last.dataset.was;
+                }
+            });
+            history.replaceState(null, '', `?hesap=${encodeURIComponent(id)}`);
         }
-        card.querySelector('[data-wcard-tab]').focus({ preventScroll: true });
+        next.scrollIntoView({ block: 'start', behavior: still() ? 'auto' : 'smooth' });
+        const buttons = next.querySelectorAll('[data-get-code]');
+        if (fetchCode && buttons.length === 1) buttons[0].click();
+        else buttons[0]?.focus({ preventScroll: true });
+        return true;
     };
 
-    stack.addEventListener('click', (event) => {
-        const tab = event.target.closest('[data-wcard-tab]');
-        if (tab) bringToFront(tab.closest('[data-wcard]'));
+    document.addEventListener('click', (event) => {
+        const go = event.target.closest('[data-show]');
+        if (!go) return;
+        if (show(go.dataset.show, { fetchCode: true })) event.preventDefault();
+    });
+}
+
+/* Arama ve platform hapları: rafları süzer; boşalan raf gizlenir. */
+const shelves = document.querySelector('[data-shelves]');
+if (shelves) {
+    const input = document.querySelector('[data-search-input]');
+    const chips = [...document.querySelectorAll('[data-filter]')];
+    const none = shelves.querySelector('[data-none]');
+    let platform = '';
+    const fold = (text) => text.toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
+    const apply = () => {
+        const query = fold(input?.value.trim() ?? '');
+        let shown = 0;
+        shelves.querySelectorAll('[data-shelf]').forEach((shelf) => {
+            let visible = 0;
+            shelf.querySelectorAll('[data-row]').forEach((row) => {
+                const match = (!platform || row.dataset.platform === platform) && (!query || fold(row.dataset.search).includes(query));
+                row.hidden = !match;
+                if (match) visible++;
+            });
+            shelf.hidden = visible === 0;
+            shown += visible;
+        });
+        none.hidden = shown > 0;
+    };
+    input?.addEventListener('input', apply);
+    chips.forEach((chip) => chip.addEventListener('click', () => {
+        platform = chip.dataset.filter;
+        chips.forEach((c) => {
+            c.classList.toggle('is-on', c === chip);
+            c.setAttribute('aria-pressed', String(c === chip));
+        });
+        apply();
+    }));
+}
+
+/* Hesaba kendi adını ver: sayfa yenilenmeden kaydedilir, adın göründüğü her yer güncellenir. */
+document.querySelectorAll('[data-label-form]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = form.querySelector('[type="submit"]');
+        button.disabled = true;
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
+                body: new FormData(form),
+                credentials: 'same-origin',
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.message ?? 'Ad kaydedilemedi.');
+            // Ad değişince satır alt yazısı ve aranan metin de değişir; en sağlam yol sayfayı tazelemek.
+            window.location.reload();
+        } catch (error) {
+            button.disabled = false;
+            window.alert(error.message);
+        }
     });
 });
 
@@ -468,6 +531,7 @@ if (signup) {
     const show = (i, { backwards = false, focus = true } = {}) => {
         current = i;
         steps.forEach((step, n) => {
+            step.classList.remove('is-initial');
             step.classList.toggle('is-current', n === i);
             step.classList.toggle('is-back', n === i && backwards);
         });
@@ -496,6 +560,7 @@ if (signup) {
     signup.classList.add('is-stepped');
     signup.querySelector('[data-signup-progress]').hidden = false;
     show(current, { focus: true });
+    steps[current].classList.add("is-initial"); // ilk soru sayfa açılınca yükselmez; yalnızca adım değişince
 
     signup.addEventListener('click', (event) => {
         if (event.target.closest('[data-next]')) advance();
@@ -629,18 +694,6 @@ if (window.matchMedia('(pointer: fine)').matches) {
         });
     }, { passive: true });
 }
-
-/* ---------- Başlık: kelime kelime gelir ---------- */
-document.querySelectorAll('.words').forEach((heading) => {
-    const words = heading.textContent.trim().split(/\s+/);
-    heading.setAttribute('aria-label', words.join(' '));
-    heading.replaceChildren(...words.flatMap((word, i) => {
-        const span = el('span', 'w', word);
-        span.setAttribute('aria-hidden', 'true');
-        span.style.setProperty('--i', i);
-        return i ? [' ', span] : [span];
-    }));
-});
 
 /* ---------- Kaydırınca beliren bölümler ---------- */
 const reveals = document.querySelectorAll('.reveal');

@@ -42,7 +42,7 @@
     <main>
         <section class="container hero">
             <div class="enter">
-                <h1 class="words">{{ Setting::get('tagline') }}</h1>
+                <h1>{{ Setting::get('tagline') }}</h1>
                 <p class="lead">Satın aldığın hesaba girerken istenen doğrulama kodu için satıcıya yazıp cevap bekleme. Gece yarısı bile tek tıkla ekranında.</p>
                 @if (Setting::get('announcement'))
                     <p class="notice hero__note">{{ Setting::get('announcement') }}</p>

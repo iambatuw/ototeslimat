@@ -8,7 +8,7 @@ web
 
 ## Users
 
-- **Müşteri (son kullanıcı):** Bir hesap satıcısından Netflix, ChatGPT, Steam gibi bir hesap (ya da birkaç hesap) satın almış kişi. Platformda oturum açarken doğrulama kodu istendiğinde bu siteye gelir, kodu alır, platforma yazar. Kodlarım sayfasını telefondan ve bilgisayardan yaklaşık yarı yarıya açar; platform çoğu zaman başka bir ekranda (TV, bilgisayar) açıktır. Bir müşteride genelde 3-10 hesap olur.
+- **Müşteri (son kullanıcı):** Bir hesap satıcısından Netflix, ChatGPT, Steam gibi bir hesap (ya da birkaç hesap) satın almış kişi. Platformda oturum açarken doğrulama kodu istendiğinde bu siteye gelir, kodu alır, platforma yazar. Kodlarım sayfasını telefondan ve bilgisayardan yaklaşık yarı yarıya açar; platform çoğu zaman başka bir ekranda (TV, bilgisayar) açıktır. Bir müşteride genelde 3-10 hesap olur; aynı platformdan birkaç hesap olabilir (örneğin 3 Steam) ve müşteri her birine farklı zamanlarda girer, bu yüzden hesaplara kendi adını verebilir ve en son kullandığı hesap öne gelir.
 - **Mağaza sahibi (yönetici):** Kodu satın alıp kendi mağazası olarak kuran satıcı. Hesapları, posta kutularını, 2FA anahtarlarını ve ürün anahtarlarını yönetim panelinden yönetir.
 
 ## Product Purpose

@@ -2,7 +2,7 @@
 <x-layouts.app title="Ayarlar">
     <header class="head">
         <div>
-            <h1 class="words">Ayarlar</h1>
+            <h1>Ayarlar</h1>
             <p>Mağazanın adı, rengi ve müşterilerin göreceği yazılar.</p>
         </div>
     </header>

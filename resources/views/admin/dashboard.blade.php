@@ -15,7 +15,7 @@
 <x-layouts.app title="Panel">
     <header class="head">
         <div>
-            <h1 class="words">Panel</h1>
+            <h1>Panel</h1>
             <p>Mağazanda bugün neler oluyor, tek bakışta.</p>
         </div>
         <div class="page-head__actions">

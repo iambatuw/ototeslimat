@@ -6,7 +6,7 @@
 <x-layouts.app title="Anahtarlar">
     <header class="head">
         <div>
-            <h1 class="words">Anahtarlar</h1>
+            <h1>Anahtarlar</h1>
             <p>Müşterine verdiğin her anahtar bir hesaba ya da pakete bağlıdır.</p>
         </div>
     </header>

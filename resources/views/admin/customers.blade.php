@@ -1,7 +1,7 @@
 <x-layouts.app title="Müşteriler">
     <header class="head">
         <div>
-            <h1 class="words">Müşteriler</h1>
+            <h1>Müşteriler</h1>
             <p>Kayıtlı müşteriler. Engellediğin müşteri giriş yapamaz ve kod alamaz.</p>
         </div>
     </header>

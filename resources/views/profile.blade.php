@@ -3,7 +3,7 @@
         <div class="head__who">
             <span class="avatar avatar--xl" aria-hidden="true">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
             <div>
-                <h1 class="words">{{ $user->name }}</h1>
+                <h1>{{ $user->name }}</h1>
                 <p>{{ $user->email }}</p>
             </div>
         </div>

@@ -10,7 +10,7 @@
         <a href="{{ route('admin.accounts.index') }}" class="back">Hesaplara dön</a>
         <div class="page-head">
             <div>
-                <h1 class="words">{{ $editing ? $account->title : 'Hesap ekle' }}</h1>
+                <h1>{{ $editing ? $account->title : 'Hesap ekle' }}</h1>
                 <p>Müşteri yalnızca hesap adını ve kodu görür. E-posta şifresi ve 2FA anahtarı şifreli saklanır.</p>
             </div>
             @if ($editing)

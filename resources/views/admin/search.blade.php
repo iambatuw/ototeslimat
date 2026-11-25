@@ -2,7 +2,7 @@
 <x-layouts.app title="Arama">
     <header class="head">
         <div>
-            <h1 class="words">Arama</h1>
+            <h1>Arama</h1>
             <p>Tam anahtar, anahtar notu, müşteri adı ya da e-postası, hesap adı.</p>
         </div>
     </header>

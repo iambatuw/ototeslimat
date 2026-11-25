@@ -113,3 +113,4 @@
 
 html[data-still] .ask.is-current { animation: none; }
 html[data-still] .steps-cells__cell.is-done .steps-cells__tick { transition: none; }
+.ask.is-current.is-initial { animation: none; }

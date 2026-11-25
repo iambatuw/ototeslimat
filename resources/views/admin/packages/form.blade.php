@@ -8,7 +8,7 @@
         <a href="{{ route('admin.packages.index') }}" class="back">Paketlere dön</a>
         <div class="page-head">
             <div>
-                <h1 class="words">{{ $editing ? $package->name : 'Paket oluştur' }}</h1>
+                <h1>{{ $editing ? $package->name : 'Paket oluştur' }}</h1>
                 <p>Müşteri paketin anahtarını ekleyince bu listeden belirlediğin sayıda hesap seçer.</p>
             </div>
             @if ($editing)<a href="{{ route('admin.keys.index', ['hedef' => 'package:'.$package->id]) }}" class="btn btn--primary">Anahtar üret</a>@endif

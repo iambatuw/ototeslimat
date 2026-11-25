@@ -2,7 +2,7 @@
 <x-layouts.app title="Hesaplar">
     <header class="head">
         <div>
-            <h1 class="words">Hesaplar</h1>
+            <h1>Hesaplar</h1>
             <p>Sattığın hesaplar. Düzenlemek ya da anahtar üretmek için birine dokun.</p>
         </div>
         <a href="{{ route('admin.accounts.create') }}" class="btn btn--primary">Hesap ekle</a>

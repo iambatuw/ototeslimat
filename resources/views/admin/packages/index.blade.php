@@ -1,7 +1,7 @@
 <x-layouts.app title="Paketler">
     <header class="head">
         <div>
-            <h1 class="words">Paketler</h1>
+            <h1>Paketler</h1>
             <p>Tek anahtarla müşterinin listeden birkaç hesap seçtiği ürünler.</p>
         </div>
         <a href="{{ route('admin.packages.create') }}" class="btn btn--primary">Paket oluştur</a>

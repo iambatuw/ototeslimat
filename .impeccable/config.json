@@ -218,6 +218,222 @@
         ],
         "createdAt": "2026-11-25T13:19:00.667Z",
         "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/find.html"
+        ],
+        "createdAt": "2026-11-25T21:23:52.409Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/find.html"
+        ],
+        "createdAt": "2026-11-25T21:23:52.579Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/find.html"
+        ],
+        "createdAt": "2026-11-25T21:23:52.815Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/find.html"
+        ],
+        "createdAt": "2026-11-25T21:23:52.988Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/shelves.html"
+        ],
+        "createdAt": "2026-11-25T21:23:53.151Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/shelves.html"
+        ],
+        "createdAt": "2026-11-25T21:23:53.328Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/shelves.html"
+        ],
+        "createdAt": "2026-11-25T21:23:53.647Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/shelves.html"
+        ],
+        "createdAt": "2026-11-25T21:23:53.811Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/split.html"
+        ],
+        "createdAt": "2026-11-25T21:23:53.969Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/split.html"
+        ],
+        "createdAt": "2026-11-25T21:23:54.129Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/split.html"
+        ],
+        "createdAt": "2026-11-25T21:23:54.303Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/split.html"
+        ],
+        "createdAt": "2026-11-25T21:23:54.494Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixA.html"
+        ],
+        "createdAt": "2026-11-25T21:26:37.142Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixA.html"
+        ],
+        "createdAt": "2026-11-25T21:26:37.328Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixA.html"
+        ],
+        "createdAt": "2026-11-25T21:26:37.537Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixA.html"
+        ],
+        "createdAt": "2026-11-25T21:26:37.838Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixB.html"
+        ],
+        "createdAt": "2026-11-25T21:26:38.257Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixB.html"
+        ],
+        "createdAt": "2026-11-25T21:26:38.556Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixB.html"
+        ],
+        "createdAt": "2026-11-25T21:26:38.729Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixB.html"
+        ],
+        "createdAt": "2026-11-25T21:26:38.879Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixC.html"
+        ],
+        "createdAt": "2026-11-25T21:26:39.024Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixC.html"
+        ],
+        "createdAt": "2026-11-25T21:26:39.175Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixC.html"
+        ],
+        "createdAt": "2026-11-25T21:26:39.385Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/mixC.html"
+        ],
+        "createdAt": "2026-11-25T21:26:39.583Z",
+        "reason": "Claude: throwaway decision-page sketch, not shipped"
       }
     ]
   }

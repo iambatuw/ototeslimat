@@ -1,7 +1,7 @@
 <x-layouts.app title="Kayıtlar">
     <header class="head">
         <div>
-            <h1 class="words">Kayıtlar</h1>
+            <h1>Kayıtlar</h1>
             <p>Kim, ne zaman, hangi adresten ne yaptı. Müşteri “kod gelmedi” derse önce buraya bak.</p>
         </div>
     </header>
