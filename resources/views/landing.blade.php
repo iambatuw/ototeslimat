@@ -16,7 +16,7 @@
     @if ($favicon)<link rel="icon" href="{{ asset($favicon) }}">@endif
     <x-motion />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style nonce="{{ Vite::cspNonce() }}">{!! App\Support\Theme::css() !!}</style>
+    <style nonce="{{ Vite::cspNonce() }}">{!! App\Support\Theme::css() !!} .marquee { --marquee-count: {{ count($platforms) }}; }</style>
 </head>
 <body>
     <div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>

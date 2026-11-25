@@ -443,6 +443,8 @@ input[type="file"]::file-selector-button { margin-right: var(--space-sm); paddin
 .platforms span { color: var(--color-muted); }
 
 .faq { border-top: var(--rule-hair) solid var(--color-rule); }
+/* SSS: sorular sağ kenara yaslanır, başlıkla arada nefes payı kalır. */
+.split > .faq { justify-self: end; width: min(100%, 40rem); }
 .faq details { border-bottom: var(--rule-hair) solid var(--color-rule); }
 .faq summary { display: flex; justify-content: space-between; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; font-weight: 500; font-size: var(--text-lg); list-style: none; }
 .faq summary::-webkit-details-marker { display: none; }

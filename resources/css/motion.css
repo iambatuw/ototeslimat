@@ -65,7 +65,8 @@
 /* ---------- Ana sayfa ---------- */
 .progress { position: fixed; inset: 0 0 auto; z-index: var(--z-toast); height: 3px; background: linear-gradient(90deg, var(--color-accent), var(--aurora-2), var(--aurora-4)); transform: scaleX(0); transform-origin: 0 50%; animation: grow linear both; animation-timeline: scroll(root); }
 @supports not (animation-timeline: scroll()) { .progress { display: none; } }
-.marquee__row { animation: marquee 30s linear infinite; will-change: transform; }
+/* Süre platform sayısıyla büyür (--marquee-count sayfada yazılır); şerit kaç öğe olursa olsun aynı sakin hızda akar. */
+.marquee__row { animation: marquee calc(var(--marquee-count, 10) * 5s) linear infinite; will-change: transform; }
 .marquee:hover .marquee__row { animation-play-state: paused; }
 .marquee__row li { transition: transform var(--dur-short) var(--ease-spring), border-color var(--dur-short) var(--ease-out); }
 .marquee__row li:hover { transform: scale(1.06); border-color: var(--color-accent); }

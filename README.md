@@ -1,4 +1,4 @@
-# Kodvar
+# Geçit
 
 Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime Video, HBO Max, Disney+ gibi abonelikler ya da Steam, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net, Xbox, PlayStation, Nintendo gibi oyun hesapları satıyorsan, müşterin her girişte doğrulama kodu ister. Bu sistem kodu senin yerine teslim eder:
 
@@ -100,10 +100,21 @@ Bağımlılıklarda bilinen açık olup olmadığını görmek için: `composer 
 ```bash
 composer install && npm install
 cp .env.example .env && php artisan key:generate
-php artisan migrate --seed    # deneme verisi; giriş bilgileri database/seeders/DatabaseSeeder.php içinde
+php artisan migrate --seed    # boş mağaza ve tek yönetici hesabı
 npm run build && php artisan guard:serve
 php artisan test
 ```
+
+### Yönetici girişi (yerel / deneme)
+
+`php artisan migrate --seed` sonrası http://localhost:8000/login adresinden:
+
+| | |
+|---|---|
+| E-posta | `admin@demo.test` |
+| Şifre | `password` |
+
+Bu hesap yalnızca yerel geliştirme içindir; seed canlı ortamda (`APP_ENV=production`) çalışmaz. Canlı sitede ilk yöneticiyi `php artisan guard:admin senin@adresin.com` ile kendi şifrenle oluştur. Deneme hesabını canlıya taşıma, şifresini paylaşılmış say.
 
 ## Günlük özet e-postası
 
