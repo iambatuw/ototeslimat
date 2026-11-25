@@ -149,7 +149,7 @@
                 <label class="check"><input type="checkbox" name="use_totp" value="1" data-toggle="#totp-fields" @checked($useTotp)> Hesapta iki adımlı doğrulama açık</label>
 
                 <div id="totp-fields" @unless ($useTotp) data-off @endunless>
-                    <p class="card__lead" data-for-platform="!steam" @if ($isSteam) hidden @endif>2FA kurulurken çıkan "kodu elle gir" anahtarını yapıştır. Epic, EA, Ubisoft, Xbox/Microsoft ve ChatGPT'de de aynı anahtar kullanılır. Kod sunucuda üretilir, anahtar müşteriye gösterilmez.</p>
+                    <p class="card__lead" data-for-platform="!steam" @if ($isSteam) hidden @endif>2FA kurulurken çıkan "kodu elle gir" anahtarını yapıştır. Epic, EA, Ubisoft, PlayStation, Nintendo, Xbox/Microsoft ve ChatGPT'de de aynı anahtar kullanılır. Kod sunucuda üretilir, anahtar müşteriye gösterilmez.</p>
                     <p class="card__lead" data-for-platform="steam" @unless ($isSteam) hidden @endunless>Steam Guard mobil kodu için <span class="mono">.maFile</span> dosyasının içeriğini olduğu gibi ya da içindeki <span class="mono">shared_secret</span> değerini yapıştır. Müşteri 5 karakterlik Steam kodunu görür; dosya müşteriye gösterilmez.</p>
                     <div class="field section-gap">
                         <label for="totp_secret">

@@ -153,6 +153,21 @@ return [
             'anchors' => ['security code', 'single-use code', 'one-time code', 'verification code', 'güvenlik kodu', 'tek kullanımlık kod', 'doğrulama kodu'],
         ],
 
+        // PSN 2 adımlı doğrulaması SMS ya da Authenticator uygulamasıyla çalışır (playstation.com/support/account/2sv-login).
+        // Authenticator anahtarı girilirse 2FA kodu verilir; mail kodu yalnızca e-postayla gelen doğrulamalar için.
+        'playstation' => [
+            'label' => 'PlayStation', 'group' => 'game', 'format' => 'digits6',
+            'from' => ['playstation.com', 'sonyentertainmentnetwork.com', 'sony.com'],
+            'anchors' => ['verification code', 'sign-in code', 'security code', 'doğrulama kodu', 'giriş kodu'],
+        ],
+        // Nintendo hesabı kimlik doğrulama kodu: no-reply@accounts.nintendo.com. Uzunluk resmi olarak
+        // yazılmıyor (hesap açılışında 4 hane), bu yüzden 4-6 hane kabul edilir.
+        'nintendo' => [
+            'label' => 'Nintendo', 'group' => 'game', 'format' => 'digits4to6',
+            'from' => ['accounts.nintendo.com', 'nintendo.com', 'nintendo.net'],
+            'anchors' => ['verification code', 'identity verification', 'kimlik doğrulama', 'doğrulama kodu'],
+        ],
+
         'other' => ['label' => 'Diğer', 'group' => 'tool', 'format' => 'digits6', 'from' => [], 'anchors' => []],
     ],
 
@@ -187,6 +202,8 @@ return [
         '/\b(?:remov|detach)\w*\s+(?:the\s+|your\s+|an\s+)?(?:[\w.]+\s+){0,2}authenticator\b/iu',
         '/\bsecurity\s+info(?:rmation)?\b|\badd(?:ing)?\s+(?:a\s+|an\s+)?(?:new\s+)?(?:alias|security\s+info)/iu',
         '/doğrulayıcı(?:yı)?\s+kaldır|güvenlik\s+bilgi/iu',
+        // PlayStation: oturum açma kimliği (e-posta) ya da çevrimiçi kimlik değişikliği
+        '/\b(?:change|update)\w*\s+(?:your\s+)?(?:sign-in\s+id|online\s+id)\b|\b(?:sign-in\s+id|online\s+id)\s+(?:change|update)/iu',
         '/e-?posta(?:\s+adresi)?(?:ni|nızı|nizi)?\s+değiş|e-?posta\s+değişikli/iu',
         '/şifre(?:ni|nizi)?\s+sıfırla|parola(?:nızı|ni)?\s+sıfırla|şifre\s+değişikli|hesap\s+kurtarma/iu',
     ],
@@ -203,6 +220,7 @@ return [
         'digits6' => ['label' => '6 rakam (482913)', 'length' => 6, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{6}|[0-9]{3}[ -][0-9]{3})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'digits7' => ['label' => '7 rakam (4829137)', 'length' => 7, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{7})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'digits8' => ['label' => '8 rakam (48291375)', 'length' => 8, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{8})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
+        'digits4to6' => ['label' => '4-6 rakam (Nintendo)', 'length' => 6, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{4,6})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'digits6to8' => ['label' => '6-8 rakam (Microsoft)', 'length' => 6, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{6,8})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'steam5' => ['label' => 'Steam Guard, 5 harf ve rakam (F7K2Q)', 'length' => 5, 'pattern' => '/(?<![A-Za-z0-9])([23456789BCDFGHJKMNPQRTVWXY]{5})(?![A-Za-z0-9])/'],
         'alnum6' => ['label' => '6 harf ve rakam (K7Q2ZP)', 'length' => 6, 'pattern' => '/(?<![A-Za-z0-9])(?=[A-Z]*[0-9])([A-Z0-9]{6})(?![A-Za-z0-9])/'],

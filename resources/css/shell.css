@@ -93,6 +93,8 @@
 .plat[data-p="riot"] { background: var(--p-riot); }
 .plat[data-p="battlenet"] { background: var(--p-battlenet); }
 .plat[data-p="xbox"] { background: var(--p-xbox); }
+.plat[data-p="playstation"] { background: var(--p-playstation); }
+.plat[data-p="nintendo"] { background: var(--p-nintendo); }
 :is(.tile, .acct, .choice):hover .plat { transform: rotate(-6deg) scale(1.08); }
 
 /* İmleci izleyen hafif ışık; yalnızca üstüne gelinen kutuda. */

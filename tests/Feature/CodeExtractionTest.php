@@ -56,6 +56,11 @@ class CodeExtractionTest extends TestCase
                 'Please use the following security code for the Microsoft account ga*****@gmail.com. Security code: 907143 If you don\'t recognize the Microsoft account ga*****@gmail.com, you can click here to remove your email from that account. Thanks, The Microsoft account team', '907143'],
             'microsoft 7 haneli' => ['xbox', 'Your single-use code',
                 'Hi ga*****@gmail.com, We received your request for a single-use code to use with your Microsoft account. Your single-use code is: 2849173', '2849173'],
+            'playstation' => ['playstation', 'PlayStation sign-in verification',
+                'Enter this verification code to sign in to your account: 664201 The code is valid for 10 minutes. Sony Interactive Entertainment LLC, 2207 Bridgepointe Pkwy, San Mateo, CA 94404', '664201'],
+            'nintendo 4 hane, adres tuzağı' => ['nintendo', '[Nintendo Account] Identity verification',
+                'Nintendo Account identity verification. Enter the following verification code: 7302 Nintendo of America Inc. 4600 150th Avenue NE Redmond, WA', '7302'],
+            'nintendo 6 hane' => ['nintendo', 'Nintendo Account', 'Your verification code is 590214. © 2026 Nintendo', '590214'],
             'google G- kodu' => ['youtube', 'G-123457 is your Google verification code', 'Your Google verification code is 123457', '123457'],
             'boşluklu 6 rakam' => ['epic', 'Epic Games', 'Your security code: 739 104 Thanks', '739104'],
         ];
@@ -85,6 +90,8 @@ class CodeExtractionTest extends TestCase
                 'You requested to remove the Battle.net Authenticator from your account. Security code: 418302'],
             'microsoft güvenlik bilgisi' => ['xbox', 'Verify your security info',
                 'Please use the following security code to verify your security info. Security code: 907143'],
+            'playstation sign-in id değişikliği' => ['playstation', 'Verification code',
+                'You requested to change your sign-in ID. Verification code: 664201'],
             'chatgpt e-posta değiştirme' => ['chatgpt', 'Verify your new email', 'To change your email address enter this verification code: 482913'],
         ];
     }
