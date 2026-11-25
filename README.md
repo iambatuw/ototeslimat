@@ -1,6 +1,6 @@
 # Kodvar
 
-Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime Video, HBO Max, Disney+ gibi abonelikler ya da Steam, Epic Games, EA, Ubisoft, Rockstar, Riot gibi oyun hesapları satıyorsan, müşterin her girişte doğrulama kodu ister. Bu sistem kodu senin yerine teslim eder:
+Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime Video, HBO Max, Disney+ gibi abonelikler ya da Steam, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net, Xbox gibi oyun hesapları satıyorsan, müşterin her girişte doğrulama kodu ister. Bu sistem kodu senin yerine teslim eder:
 
 1. Sattığın hesabın e-posta kutusunu (IMAP) ve varsa Authenticator (2FA) anahtarını panele eklersin.
 2. O hesap için ürün anahtarları üretip müşterilerine verirsin.
@@ -93,7 +93,7 @@ Bağımlılıklarda bilinen açık olup olmadığını görmek için: `composer 
 - **Önbellek:** Aynı hesaba arka arkaya gelen istekler posta kutusunu yormasın diye bulunan kod 20 saniye (`GUARD_EMAIL_CACHE`), "kod yok" sonucu 5 saniye (`GUARD_EMAIL_MISS_CACHE`) önbellekte tutulur.
 - **Bekleme:** Müşteri ekranı `GUARD_POLL_INTERVAL` saniyede bir, en fazla `GUARD_POLL_ATTEMPTS` kez yeniden sorar (varsayılan 7 sn × 17).
 - **Spam klasörü:** Varsayılan olarak taranır; kapatmak için `GUARD_SCAN_SPAM=false`.
-- **Desteklenen platformlar ve kod biçimleri:** Netflix (4 rakam), ChatGPT, Prime Video, HBO Max, Disney+, Spotify, YouTube, Canva, CapCut, Epic Games, EA, Ubisoft, Rockstar, Riot (6 rakam), Steam (5 harf/rakam, Steam Guard alfabesi). Kaynak: platformların yardım sayfaları ve kod maillerinin bilinen kalıpları (2026-11). Hiçbiri gerçek bir hesapla denenmedi; yeni bir platform hesabı eklediğinde **Bağlantıyı dene** ile okunan kodu ve mail konusunu kontrol et.
+- **Desteklenen platformlar ve kod biçimleri:** Netflix (4 rakam), ChatGPT, Prime Video, HBO Max, Disney+, Spotify, YouTube, Canva, CapCut, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net (6 rakam), Xbox / Microsoft (6-8 rakam), Steam (5 harf/rakam, Steam Guard alfabesi). Battle.net Authenticator standart TOTP olmadığı için Battle.net hesaplarında yalnızca mail kodu çalışır; Xbox/Microsoft hesabında üçüncü taraf Authenticator uygulaması açıksa 2FA da çalışır. Kaynak: platformların yardım sayfaları ve kod maillerinin bilinen kalıpları (2026-11). Hiçbiri gerçek bir hesapla denenmedi; yeni bir platform hesabı eklediğinde **Bağlantıyı dene** ile okunan kodu ve mail konusunu kontrol et.
 
 ## Yerel geliştirme
 

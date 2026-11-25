@@ -91,6 +91,8 @@
 .plat[data-p="ubisoft"] { background: var(--p-ubisoft); }
 .plat[data-p="rockstar"] { background: var(--p-rockstar); color: var(--color-paper); }
 .plat[data-p="riot"] { background: var(--p-riot); }
+.plat[data-p="battlenet"] { background: var(--p-battlenet); }
+.plat[data-p="xbox"] { background: var(--p-xbox); }
 :is(.tile, .acct, .choice):hover .plat { transform: rotate(-6deg) scale(1.08); }
 
 /* İmleci izleyen hafif ışık; yalnızca üstüne gelinen kutuda. */

@@ -138,6 +138,20 @@ return [
             'from' => ['riotgames.com'],
             'anchors' => ['verification code', 'sign-in code', 'login code', 'doğrulama kodu', 'giriş kodu'],
         ],
+        // Blizzard; gönderen alan adları support.blizzard.com/article/378072 listesinden.
+        // Battle.net Authenticator standart TOTP değildir; yalnızca mail kodu desteklenir.
+        'battlenet' => [
+            'label' => 'Battle.net', 'group' => 'game', 'format' => 'digits6',
+            'from' => ['blizzard.com', 'battle.net'],
+            'anchors' => ['security code', 'verification code', 'one-time passcode', 'passcode', 'güvenlik kodu', 'doğrulama kodu', 'tek kullanımlık'],
+        ],
+        // Microsoft hesabı güvenlik kodu (Xbox, Game Pass, Minecraft). Kod çoğunlukla 6, bazen 7-8 hane.
+        // Microsoft hesabında üçüncü taraf Authenticator uygulaması açıksa 2FA da çalışır.
+        'xbox' => [
+            'label' => 'Xbox / Microsoft', 'group' => 'game', 'format' => 'digits6to8',
+            'from' => ['accountprotection.microsoft.com', 'microsoft.com', 'xbox.com'],
+            'anchors' => ['security code', 'single-use code', 'one-time code', 'verification code', 'güvenlik kodu', 'tek kullanımlık kod', 'doğrulama kodu'],
+        ],
 
         'other' => ['label' => 'Diğer', 'group' => 'tool', 'format' => 'digits6', 'from' => [], 'anchors' => []],
     ],
@@ -169,6 +183,10 @@ return [
         '/\bpassword\s+(?:reset|change)\b|\breset\s+(?:your\s+)?password\b|\bchange\s+(?:your\s+)?password\s+request/iu',
         '/\b(?:account\s+)?recovery\s+code\b|\brecover\s+your\s+account\b/iu',
         '/\baccount\s+change\s+request\b|\bremov(?:e|ing)\s+(?:the\s+)?steam\s+guard/iu',
+        // Doğrulayıcı kaldırma (Battle.net, Steam) ve Microsoft güvenlik bilgisi değişikliği
+        '/\b(?:remov|detach)\w*\s+(?:the\s+|your\s+|an\s+)?(?:[\w.]+\s+){0,2}authenticator\b/iu',
+        '/\bsecurity\s+info(?:rmation)?\b|\badd(?:ing)?\s+(?:a\s+|an\s+)?(?:new\s+)?(?:alias|security\s+info)/iu',
+        '/doğrulayıcı(?:yı)?\s+kaldır|güvenlik\s+bilgi/iu',
         '/e-?posta(?:\s+adresi)?(?:ni|nızı|nizi)?\s+değiş|e-?posta\s+değişikli/iu',
         '/şifre(?:ni|nizi)?\s+sıfırla|parola(?:nızı|ni)?\s+sıfırla|şifre\s+değişikli|hesap\s+kurtarma/iu',
     ],
@@ -185,6 +203,7 @@ return [
         'digits6' => ['label' => '6 rakam (482913)', 'length' => 6, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{6}|[0-9]{3}[ -][0-9]{3})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'digits7' => ['label' => '7 rakam (4829137)', 'length' => 7, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{7})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'digits8' => ['label' => '8 rakam (48291375)', 'length' => 8, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{8})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
+        'digits6to8' => ['label' => '6-8 rakam (Microsoft)', 'length' => 6, 'pattern' => '/(?<![0-9.,:\/#$€£+])([0-9]{6,8})(?![0-9]|[.,:-][0-9]|\s?(?:px|%|pt))/u'],
         'steam5' => ['label' => 'Steam Guard, 5 harf ve rakam (F7K2Q)', 'length' => 5, 'pattern' => '/(?<![A-Za-z0-9])([23456789BCDFGHJKMNPQRTVWXY]{5})(?![A-Za-z0-9])/'],
         'alnum6' => ['label' => '6 harf ve rakam (K7Q2ZP)', 'length' => 6, 'pattern' => '/(?<![A-Za-z0-9])(?=[A-Z]*[0-9])([A-Z0-9]{6})(?![A-Za-z0-9])/'],
         'netflix_link' => [

@@ -135,6 +135,6 @@ class GameFlowTest extends TestCase
     public function test_account_form_lists_game_platforms(): void
     {
         $this->actingAs($this->admin())->get('/yonetim/hesaplar/yeni')->assertOk()
-            ->assertSee('Oyun')->assertSee('Steam')->assertSee('Epic Games')->assertSee('Ubisoft')->assertSee('maFile');
+            ->assertSee('Oyun')->assertSee('Steam')->assertSee('Epic Games')->assertSee('Ubisoft')->assertSee('Battle.net')->assertSee('Xbox / Microsoft')->assertSee('maFile');
     }
 }

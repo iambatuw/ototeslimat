@@ -50,6 +50,12 @@ class CodeExtractionTest extends TestCase
                 'Your verification code is: 552901 Ubisoft Entertainment, 2 rue du Chêne Heleuc 56910', '552901'],
             'riot' => ['riot', 'Riot Account Sign-in Code',
                 'Your sign-in code: 600211 Riot Games, 12333 W Olympic Blvd', '600211'],
+            'battle.net' => ['battlenet', 'Battle.net Security Code',
+                'Greetings, Use the following security code to log in to your Battle.net account: 418302 This code expires in 10 minutes. Blizzard Entertainment, P.O. Box 18979, Irvine, CA 92623', '418302'],
+            'microsoft güvenlik kodu' => ['xbox', 'Microsoft account security code',
+                'Please use the following security code for the Microsoft account ga*****@gmail.com. Security code: 907143 If you don\'t recognize the Microsoft account ga*****@gmail.com, you can click here to remove your email from that account. Thanks, The Microsoft account team', '907143'],
+            'microsoft 7 haneli' => ['xbox', 'Your single-use code',
+                'Hi ga*****@gmail.com, We received your request for a single-use code to use with your Microsoft account. Your single-use code is: 2849173', '2849173'],
             'google G- kodu' => ['youtube', 'G-123457 is your Google verification code', 'Your Google verification code is 123457', '123457'],
             'boşluklu 6 rakam' => ['epic', 'Epic Games', 'Your security code: 739 104 Thanks', '739104'],
         ];
@@ -75,6 +81,10 @@ class CodeExtractionTest extends TestCase
             'steam guard kaldırma' => ['steam', 'Your Steam account',
                 'Here is the code you need for removing the Steam Guard Mobile Authenticator: Login Code F7K2Q'],
             'şifre sıfırlama' => ['netflix', 'Netflix: Şifreni sıfırla', 'Şifreni sıfırlamak için kod 4829'],
+            'battle.net doğrulayıcı kaldırma' => ['battlenet', 'Battle.net Account',
+                'You requested to remove the Battle.net Authenticator from your account. Security code: 418302'],
+            'microsoft güvenlik bilgisi' => ['xbox', 'Verify your security info',
+                'Please use the following security code to verify your security info. Security code: 907143'],
             'chatgpt e-posta değiştirme' => ['chatgpt', 'Verify your new email', 'To change your email address enter this verification code: 482913'],
         ];
     }
