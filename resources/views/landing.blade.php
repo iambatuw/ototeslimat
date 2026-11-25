@@ -4,7 +4,9 @@
     $logo = Setting::get('logo');
     $favicon = Setting::get('favicon');
     $canRegister = Setting::flag('registration_open');
-    $start = $canRegister ? route('register') : route('login');
+    $user = auth()->user();
+    $start = $user ? $user->homePath() : ($canRegister ? route('register') : route('login'));
+    $startLabel = $user ? ($user->isAdmin() ? 'Panele git' : 'Kodlarıma git') : null;
 @endphp
 <!DOCTYPE html>
 <html lang="tr">
@@ -33,8 +35,12 @@
             </nav>
             <div class="bar__end">
                 <x-motion-toggle />
-                <a href="{{ route('login') }}" class="btn btn--ghost btn--s">Giriş yap</a>
-                @if ($canRegister)<a href="{{ route('register') }}" class="btn btn--light btn--s">Kayıt ol</a>@endif
+                @if ($user)
+                    <a href="{{ $start }}" class="btn btn--light btn--s">{{ $startLabel }}</a>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn--ghost btn--s">Giriş yap</a>
+                    @if ($canRegister)<a href="{{ route('register') }}" class="btn btn--light btn--s">Kayıt ol</a>@endif
+                @endif
             </div>
         </div></div>
     </header>
@@ -48,7 +54,7 @@
                     <p class="notice hero__note">{{ Setting::get('announcement') }}</p>
                 @endif
                 <div class="hero__actions">
-                    <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Hemen başla' : 'Giriş yap' }}</a>
+                    <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $startLabel ?? ($canRegister ? 'Hemen başla' : 'Giriş yap') }}</a>
                     @if (Setting::flag('quick_code'))
                         <a href="{{ route('quick') }}" class="btn btn--ghost btn--l">Hesap açmadan kodunu al</a>
                     @else
@@ -66,7 +72,7 @@
             <div class="split__head reveal">
                 <h2 id="nasil-title">Üç adımda kodun elinde.</h2>
                 <p>Satıcıya mesaj atıp cevap beklemek yok.</p>
-                <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Kayıt ol' : 'Giriş yap' }}</a>
+                <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $startLabel ?? ($canRegister ? 'Kayıt ol' : 'Giriş yap') }}</a>
             </div>
             <ol class="steps">
                 <li class="step reveal">

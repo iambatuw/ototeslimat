@@ -11,7 +11,7 @@
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-short); animation-timing-function: var(--ease-out); }
 
-@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes cell-set { from { opacity: 0; transform: scale(1.4); } to { opacity: 1; transform: none; } }
 @keyframes mail-in { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
@@ -29,6 +29,8 @@
 .enter > *:nth-child(4) { animation-delay: 180ms; }
 .enter > *:nth-child(5) { animation-delay: 240ms; }
 .enter > *:nth-child(n+6) { animation-delay: 300ms; }
+/* Başlıklar yerinde durur (mağaza sahibi istedi); yalnızca altındaki içerik yükselir. */
+.enter > :is(h1, h2, header, .head, .page-head) { animation: none; }
 
 body { min-height: 100dvh; display: flex; flex-direction: column; }
 main { flex: 1; }

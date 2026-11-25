@@ -104,11 +104,3 @@ html[data-still] .btn:hover, html[data-still] .tile:hover, html[data-still] .cho
 /* Kodun gelişi süs değil, geri bildirim: hareket kapalıyken kaymadan, düz bir belirmeyle kalır. */
 html[data-still] .cell.is-in > span, html[data-still] .mail.is-new { animation: fade 0.3s linear both !important; animation-duration: 0.3s !important; }
 html[data-still] .ring__bar { transition: none; }
-
-/* ---------- Sayfa daha önce açıldıysa (data-seen) giriş animasyonları oynamaz ----------
-   F5 ya da aynı sayfaya geri dönüş: içerik beklemeden yerinde. Tepki animasyonları
-   (kodun gelişi, kart değiştirme, düğme ışığı, adım geçişi) bundan etkilenmez. */
-html[data-seen] .enter > *, html[data-seen] .stagger > *, html[data-seen] .auth__pitch, html[data-seen] .feed__dot,
-html[data-seen] .chart__plot svg, html[data-seen] .stock rect, html[data-seen] .step.is-in::before,
-html[data-seen] .step.is-in .mini__cells--on span { animation: none; opacity: 1; filter: none; transform: none; clip-path: none; }
-html[data-seen] .reveal { opacity: 1; transform: none; transition: none; }

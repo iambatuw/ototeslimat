@@ -200,8 +200,9 @@ class GuardFlowTest extends TestCase
     public function test_landing_is_public_and_sends_signed_in_users_home(): void
     {
         $this->get('/')->assertOk()->assertSee('Nasıl çalışır')->assertSee('Netflix');
-        $this->actingAs(User::factory()->create())->get('/')->assertRedirect('/kodlarim');
-        $this->actingAs($this->admin())->get('/')->assertRedirect('/yonetim');
+        // Girişli kullanıcı da ana sayfayı açabilir; üst çubukta kendi sayfasına dönüş düğmesi var.
+        $this->actingAs(User::factory()->create())->get('/')->assertOk()->assertSee('Kodlarıma git');
+        $this->actingAs($this->admin())->get('/')->assertOk()->assertSee('Panele git');
     }
 
     public function test_keys_page_generates_from_single_target_choice(): void

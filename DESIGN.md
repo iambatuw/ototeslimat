@@ -35,7 +35,7 @@ Müşteriler Netflix, HBO Max, Prime Video gibi koyu arayüzlü platformlardan g
 Mağaza sahibi sitenin hareketli olmasını istedi; hareket her yerde var ama her biri kısa ve tek işlidir.
 
 - Sayfa geçişi (View Transitions), liste ve kutucukların sırayla belirmesi, içeriğin hafifçe yükselmesi.
-- **Giriş animasyonları bir sayfada oturum başına yalnızca ilk açılışta oynar** (`html[data-seen]`, karar `<head>` içindeki betikte sessionStorage ile verilir). F5'te ya da sayfaya geri dönüşte içerik beklemeden yerinde gelir. Başlıklar animasyonla gelmez (mağaza sahibi istedi, 2026-11-26). Tepki animasyonları (kodun gelişi, kart değişimi, adım geçişi, düğme ışığı) bundan etkilenmez.
+- **Başlıklar animasyonla gelmez** (mağaza sahibi istedi, 2026-11-26): sayfa başlığı ve başlık bloğu yerinde durur, altındaki içerik her açılışta sırayla yükselir. Kodlarım'da kart, araçlar, raf satırları ve yan kutular sırayla gelir.
 - Kodun gelişi: posta satırı, ardından dönen ve sırayla oturan karakterler; oturan hücreler hafifçe parlar.
 - Düğmelerde ışık geçişi ve kalkma, kutucuklarda imleci izleyen ışık, rozetlerde küçük dönme.
 - Panelde sayan rakamlar, soldan açılan grafik, dolan stok çubuğu, atan durum noktası.

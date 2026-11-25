@@ -15,6 +15,8 @@
 .side__nav a:hover svg { transform: scale(1.15) rotate(-6deg); }
 .side__nav a[aria-current="page"] { background: var(--color-accent); color: var(--color-accent-ink); font-weight: 600; box-shadow: inset 0 1px 0 var(--glass-highlight), 0 8px 20px -8px var(--color-accent); view-transition-name: side-active; }
 .side__end { display: grid; gap: var(--space-xs); margin-top: auto; }
+.side__site { display: flex; align-items: center; min-height: 36px; padding: 0 var(--space-sm); border-radius: var(--radius-pill); color: var(--color-muted); font-size: var(--text-sm); text-decoration: none; }
+.side__site:hover { color: var(--color-ink); background: var(--color-fill); }
 
 .who { display: flex; align-items: center; gap: var(--space-xs); min-width: 0; padding: var(--space-2xs); border-radius: 14px; color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 500; text-decoration: none; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
 .who:hover, .who[aria-current="page"] { background: var(--color-fill); color: var(--color-ink); }

@@ -52,6 +52,7 @@
                 @endforeach
             </nav>
             <div class="side__end">
+                <a href="{{ route('landing') }}" class="side__site">Siteyi aç</a>
                 <div class="side__who">
                     <a href="{{ route('profile') }}" class="who" @if (request()->routeIs('profile')) aria-current="page" @endif>
                         <span class="avatar" aria-hidden="true">{{ $initial }}</span>
@@ -67,11 +68,16 @@
         </aside>
     @else
         <header class="bar">
-            <div class="container"><div class="bar__inner bar__inner--plain glass">
-                <a href="{{ $user->homePath() }}" class="brand" aria-label="{{ $brand }}">
+            <div class="container"><div class="bar__inner glass">
+                <a href="{{ route('landing') }}" class="brand" aria-label="{{ $brand }} ana sayfa">
                     @if ($logo)<img src="{{ asset($logo) }}" alt="" height="28">@endif
                     <span>{{ $brand }}</span>
                 </a>
+                <nav class="nav" aria-label="Sayfalar">
+                    <a href="{{ route('landing') }}">Ana sayfa</a>
+                    <a href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif>Kodlarım</a>
+                    <a href="{{ route('profile') }}" @if (request()->routeIs('profile')) aria-current="page" @endif>Hesabım</a>
+                </nav>
                 <div class="bar__end">
                     <x-motion-toggle />
                     <a href="{{ route('profile') }}" class="who who--bar">
