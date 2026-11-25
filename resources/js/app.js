@@ -316,6 +316,8 @@ class CodePanel {
 
         this.panel.replaceChildren(el('p', 'code__label', totp ? (data.steam ? 'Steam Guard kodu' : '2FA kodu') : 'Mail kodu'), cells, side, note);
         if (totp) this.countdown(data.expires_in, data.period, cells, note);
+        // Kod ekranın altında kalmasın: görünmüyorsa en yakın yere kaydır.
+        requestAnimationFrame(() => this.panel.scrollIntoView({ block: 'nearest', behavior: still() ? 'auto' : 'smooth' }));
     }
 
     countdown(left, period, cells, note) {
@@ -368,13 +370,9 @@ if (heroes) {
                 const active = row.dataset.row === id;
                 row.classList.toggle('is-active', active);
                 const last = row.querySelector('.arow__last');
-                if (active) {
-                    last.dataset.was = last.textContent.trim();
-                    last.innerHTML = '<span class="arow__here">Yukarıda açık</span>';
-                } else if (last.dataset.was) {
-                    last.textContent = last.dataset.was;
-                    delete last.dataset.was;
-                }
+                if (!last) return;
+                if (active) last.replaceChildren(el('span', 'arow__here', 'Yukarıda açık'));
+                else last.textContent = last.dataset.last;
             });
             history.replaceState(null, '', `?hesap=${encodeURIComponent(id)}`);
         }

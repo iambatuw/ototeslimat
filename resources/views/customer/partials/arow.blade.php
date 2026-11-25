@@ -2,6 +2,7 @@
 @php
     $account = $row['account'];
     $name = $row['label'] ?? $row['title'];
+    $lastText = $row['last'] ? 'Son kod '.$row['last']->diffForHumans() : 'Hiç kod alınmadı';
     $search = mb_strtolower(implode(' ', array_filter([$row['title'], $row['label'], $row['platformLabel'], $row['package']])));
 @endphp
 <li @class(['arow', 'is-active' => $active, 'is-off' => $row['blocked']]) data-p="{{ $row['platform'] }}" data-row="{{ $row['id'] }}" data-platform="{{ $row['platform'] }}" data-search="{{ $search }}">
@@ -10,11 +11,12 @@
         <p class="arow__name"><span data-label-text="{{ $account->id }}">{{ $name }}</span>@if ($row['label'])<span class="arow__sub"><span class="arow__dot" aria-hidden="true"> · </span>{{ $row['title'] }}</span>@endif</p>
         <p class="arow__meta">{{ $row['blocked'] ?? $row['status'] }}@if ($row['package']) · Paket: {{ $row['package'] }}@endif</p>
     </div>
-    <p class="arow__last">
+    {{-- data-last: kart başka hesaba geçince satır kendi son kod zamanına döner. --}}
+    <p class="arow__last" data-last="{{ $lastText }}">
         @if ($active)
             <span class="arow__here">Yukarıda açık</span>
         @else
-            {{ $row['last'] ? 'Son kod '.$row['last']->diffForHumans() : 'Hiç kod alınmadı' }}
+            {{ $lastText }}
         @endif
     </p>
     @if ($row['blocked'])
