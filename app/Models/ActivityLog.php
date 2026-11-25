@@ -32,6 +32,9 @@ class ActivityLog extends Model
         'expired' => 'süresi dolmuş',
         'used_up' => 'hakkı bitmiş',
         'cooldown' => 'bekleme süresinde',
+        'blocked_purpose' => 'e-posta/şifre değişikliği maili, kod gizlendi',
+        'quick' => 'hızlı onayda kullanılıyor',
+        'package' => 'paket anahtarı hızlı onayda kullanılamaz',
     ];
 
     /** Kayıt türlerinin ekranda görünen adları. */

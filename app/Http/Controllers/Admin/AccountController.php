@@ -89,14 +89,22 @@ class AccountController extends Controller
 
         try {
             if ($account->hasTotp()) {
-                $lines[] = 'Authenticator çalışıyor, şu anki kod '.$totp->code($account->totp_secret).'.';
+                $lines[] = ($account->isSteamGuard() ? 'Steam Guard mobil' : 'Authenticator').' çalışıyor, şu anki kod '.$totp->code($account->totp_secret).'.';
             }
 
             if ($account->hasMailbox()) {
                 $found = $email->fetch($account);
-                $lines[] = $found
-                    ? 'Posta kutusuna bağlanıldı, son kod '.$found['code'].' ('.$found['received_at']->diffForHumans().').'
-                    : 'Posta kutusuna bağlanıldı. Son '.config('guard.email_lookback_minutes').' dakikada '.$account->platformLabel().' kodu yok; bu normal.';
+
+                if (! $found) {
+                    $lines[] = 'Posta kutusuna bağlanıldı. Son '.config('guard.email_lookback_minutes').' dakikada '.$account->platformLabel().' kodu yok; bu normal.';
+                } else {
+                    $where = strcasecmp($found['folder'], 'INBOX') === 0 ? '' : ' ('.$found['folder'].' klasöründe)';
+                    $lines[] = 'Posta kutusuna bağlanıldı, son kod '.$found['code'].$where.', '.$found['received_at']->diffForHumans().' geldi. Konu: "'.str($found['subject'])->limit(80).'".';
+
+                    if ($found['blocked']) {
+                        $lines[] = 'Bu mail e-posta ya da şifre değişikliği için; müşteriye gösterilmez.';
+                    }
+                }
             }
         } catch (GuardException|InvalidArgumentException $e) {
             Activity::log('account.tested', ['account' => $account, 'meta' => ['ok' => false]]);
@@ -174,10 +182,10 @@ class AccountController extends Controller
             'mail_host' => [Rule::requiredIf($wantsMail), 'nullable', 'string', 'max:190', 'regex:/^[A-Za-z0-9.\-]+$/'],
             'mail_port' => [Rule::requiredIf($wantsMail), 'nullable', 'integer', 'between:1,65535'],
             'mail_encryption' => ['nullable', Rule::in(['ssl', 'tls', 'starttls', 'none'])],
-            'mail_from' => ['nullable', 'string', 'max:120'],
+            'mail_from' => ['nullable', 'string', 'max:190'],
             'code_format' => ['nullable', Rule::in(array_keys(config('guard.code_formats')))],
 
-            'totp_secret' => [Rule::requiredIf($wantsTotp && ($isNew || ! $account->totp_secret)), 'nullable', 'string', 'max:300'],
+            'totp_secret' => [Rule::requiredIf($wantsTotp && ($isNew || ! $account->totp_secret)), 'nullable', 'string', 'max:10000'],
         ], [], [
             'title' => 'hesap adı',
             'mail_username' => 'e-posta adresi',
@@ -219,7 +227,7 @@ class AccountController extends Controller
         if ($wantsTotp) {
             if (filled($data['totp_secret'] ?? null)) {
                 try {
-                    $account->totp_secret = Totp::cleanSecret($data['totp_secret']);
+                    $account->totp_secret = Totp::cleanSecret($data['totp_secret'], $data['platform'] === 'steam');
                 } catch (InvalidArgumentException $e) {
                     throw ValidationException::withMessages(['totp_secret' => $e->getMessage()]);
                 }

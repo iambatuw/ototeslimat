@@ -51,6 +51,7 @@ class SettingsController extends Controller
 
         return [
             'registration_open' => $request->boolean('registration_open') ? '1' : '0',
+            'quick_code' => $request->boolean('quick_code') ? '1' : '0',
             'respect_reduced_motion' => $request->boolean('respect_reduced_motion') ? '1' : '0',
             'daily_summary' => $request->boolean('daily_summary') ? '1' : '0',
             'low_stock_threshold' => (string) $data['low_stock_threshold'],

@@ -46,6 +46,10 @@ class HomeController extends Controller
             $fail($key ? 'unavailable' : 'not_found', 'Bu anahtar geçerli değil. Harfleri kontrol edip tekrar dene.');
         }
 
+        if (! $key->redeemed_by && $key->redeemed_at) {
+            $fail('quick', 'Bu anahtar hızlı onay sayfasında kullanılıyor. Kodunu '.route('quick').' adresinden al.');
+        }
+
         if ($key->redeemed_by === $user->id) {
             return redirect()->route('home')->with('status', $key->targetTitle().' zaten hesabında.')->with('opened', $key->id);
         }
@@ -125,13 +129,22 @@ class HomeController extends Controller
         try {
             $result = $codes->issue($key, $account, $type);
         } catch (GuardException $e) {
-            Activity::log('code.failed', ['key' => $key, 'account' => $account, 'meta' => ['type' => $type, 'reason' => $e->reason]]);
+            // Ekran kodu beklerken kendiliğinden tekrar sorar; her "henüz yok" kayda yazılmaz.
+            $repeat = $request->boolean('poll') && $e->reason === 'no_mail';
+
+            if (! $repeat) {
+                Activity::log('code.failed', ['key' => $key, 'account' => $account, 'meta' => ['type' => $type, 'reason' => $e->reason]]);
+            }
 
             if ($e->getPrevious()) {
                 Log::warning('Kod alınamadı', ['account' => $account->id, 'error' => $e->getPrevious()->getMessage()]);
             }
 
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'reason' => $e->reason,
+                'retry' => $e->reason === 'no_mail',
+            ], 422);
         }
 
         Activity::log('code.issued', ['key' => $key, 'account' => $account, 'meta' => ['type' => $type, 'code' => mb_substr($result['code'], 0, 300)]]);

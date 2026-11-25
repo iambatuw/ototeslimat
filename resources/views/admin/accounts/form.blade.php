@@ -3,6 +3,7 @@
     $platforms = config('guard.platforms');
     $useMail = (bool) old('use_mail', $editing ? $account->hasMailbox() : true);
     $useTotp = (bool) old('use_totp', $editing ? $account->hasTotp() : false);
+    $isSteam = old('platform', $account->platform) === 'steam';
 @endphp
 <x-layouts.app :title="$editing ? $account->title : 'Hesap ekle'">
     <div class="form-page enter">
@@ -38,9 +39,14 @@
                 <div class="grid-2 section-gap">
                     <div class="field">
                         <label for="platform">Platform</label>
-                        <select id="platform" name="platform" class="select" required>
-                            @foreach ($platforms as $key => $p)
-                                <option value="{{ $key }}" @selected(old('platform', $account->platform) === $key)>{{ $p['label'] }}</option>
+                        <select id="platform" name="platform" class="select" required data-platform>
+                            @foreach (config('guard.platform_groups') as $group => $groupLabel)
+                                <optgroup label="{{ $groupLabel }}">
+                                    @foreach ($platforms as $key => $p)
+                                        @continue(($p['group'] ?? 'tool') !== $group)
+                                        <option value="{{ $key }}" @selected(old('platform', $account->platform) === $key)>{{ $p['label'] }}</option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                         <p class="error">@error('platform'){{ $message }}@enderror</p>
@@ -72,7 +78,7 @@
                 <p class="error">@error('use_mail'){{ $message }}@enderror</p>
 
                 <div id="mail-fields" @unless ($useMail) data-off @endunless>
-                    <p class="card__lead">Sistem bu kutudan son {{ config('guard.email_lookback_minutes') }} dakikada gelen kodu okur. Gmail için normal şifre değil, <strong>uygulama şifresi</strong> gerekir. Outlook ve Hotmail desteklenmez.</p>
+                    <p class="card__lead">Sistem bu kutudan (Spam klasörü dahil) son {{ config('guard.email_lookback_minutes') }} dakikada gelen kodu okur. E-posta ya da şifre değiştirme maillerindeki kodlar müşteriye hiç gösterilmez. Gmail için normal şifre değil, <strong>uygulama şifresi</strong> gerekir. Outlook ve Hotmail desteklenmez.</p>
                     <div class="grid-2 section-gap">
                         <div class="field">
                             <label for="mail_username">E-posta adresi</label>
@@ -113,8 +119,8 @@
                             <div class="grid-2">
                                 <div class="field">
                                     <label for="mail_from">Gönderen süzgeci</label>
-                                    <input id="mail_from" name="mail_from" type="text" class="input" value="{{ old('mail_from', $account->mail_from) }}" maxlength="120" placeholder="Boşsa platformun adresi" autocomplete="off">
-                                    <p class="hint">Gönderen adresinde geçen parça, örneğin netflix.com</p>
+                                    <input id="mail_from" name="mail_from" type="text" class="input" value="{{ old('mail_from', $account->mail_from) }}" maxlength="190" placeholder="Boşsa platformun adresi" autocomplete="off">
+                                    <p class="hint">Gönderen adresinde geçen parça, örneğin netflix.com. Birden çoksa virgülle ayır.</p>
                                 </div>
                                 <div class="field">
                                     <label for="code_format">Kod biçimi</label>
@@ -143,11 +149,18 @@
                 <label class="check"><input type="checkbox" name="use_totp" value="1" data-toggle="#totp-fields" @checked($useTotp)> Hesapta iki adımlı doğrulama açık</label>
 
                 <div id="totp-fields" @unless ($useTotp) data-off @endunless>
-                    <p class="card__lead">2FA kurulurken çıkan "kodu elle gir" anahtarını yapıştır. Kod sunucuda üretilir, anahtar müşteriye gösterilmez.</p>
+                    <p class="card__lead" data-for-platform="!steam" @if ($isSteam) hidden @endif>2FA kurulurken çıkan "kodu elle gir" anahtarını yapıştır. Epic, EA, Ubisoft ve ChatGPT'de de aynı anahtar kullanılır. Kod sunucuda üretilir, anahtar müşteriye gösterilmez.</p>
+                    <p class="card__lead" data-for-platform="steam" @unless ($isSteam) hidden @endunless>Steam Guard mobil kodu için <span class="mono">.maFile</span> dosyasının içeriğini olduğu gibi ya da içindeki <span class="mono">shared_secret</span> değerini yapıştır. Müşteri 5 karakterlik Steam kodunu görür; dosya müşteriye gösterilmez.</p>
                     <div class="field section-gap">
-                        <label for="totp_secret">Authenticator anahtarı</label>
-                        <input id="totp_secret" name="totp_secret" type="password" class="input mono" autocomplete="off" spellcheck="false"
-                            placeholder="{{ $editing && $account->totp_secret ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : 'JBSW Y3DP EHPK 3PXP' }}" @error('totp_secret') aria-invalid="true" @enderror>
+                        <label for="totp_secret">
+                            <span data-for-platform="!steam" @if ($isSteam) hidden @endif>Authenticator anahtarı</span><span data-for-platform="steam" @unless ($isSteam) hidden @endunless>maFile ya da shared_secret</span>
+                            @if ($editing && $account->isSteamGuard())<span class="optional">(kayıtlı: Steam Guard)</span>@endif
+                        </label>
+                        <textarea id="totp_secret" name="totp_secret" rows="1" class="textarea mono secret" autocomplete="off" spellcheck="false"
+                            @php($saved = $editing && $account->totp_secret)
+                            data-ph="{{ $saved ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : 'JBSW Y3DP EHPK 3PXP' }}"
+                            data-ph-steam="{{ $saved ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : '{"shared_secret": "...", ...}' }}"
+                            placeholder="{{ $saved ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : ($isSteam ? '{"shared_secret": "...", ...}' : 'JBSW Y3DP EHPK 3PXP') }}" @error('totp_secret') aria-invalid="true" @enderror></textarea>
                         <p class="error">@error('totp_secret'){{ $message }}@enderror</p>
                     </div>
                 </div>
@@ -176,8 +189,13 @@
                         <div class="field">
                             <label for="bulk-platform">Platform</label>
                             <select id="bulk-platform" name="platform" class="select">
-                                @foreach ($platforms as $key => $p)
-                                    <option value="{{ $key }}">{{ $p['label'] }}</option>
+                                @foreach (config('guard.platform_groups') as $group => $groupLabel)
+                                    <optgroup label="{{ $groupLabel }}">
+                                        @foreach ($platforms as $key => $p)
+                                            @continue(($p['group'] ?? 'tool') !== $group)
+                                            <option value="{{ $key }}">{{ $p['label'] }}</option>
+                                        @endforeach
+                                    </optgroup>
                                 @endforeach
                             </select>
                             <p class="hint"></p>

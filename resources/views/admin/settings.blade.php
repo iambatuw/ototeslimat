@@ -100,6 +100,14 @@
                     </div>
                     <div class="switch-row">
                         <div>
+                            <p class="cell-title">Hızlı onay sayfası</p>
+                            <p class="muted small">Müşteri hesap açmadan <a href="{{ route('quick') }}" target="_blank" rel="noopener">{{ route('quick') }}</a> adresinde anahtarını yazıp kodunu alır. Hızlı onayda kullanılan anahtar bir hesaba eklenemez. Paket anahtarları burada çalışmaz.</p>
+                        </div>
+                        <input type="hidden" name="quick_code" value="0">
+                        <input type="checkbox" class="switch" name="quick_code" value="1" aria-label="Hızlı onay sayfası" @checked($settings['quick_code'])>
+                    </div>
+                    <div class="switch-row">
+                        <div>
                             <p class="cell-title">Sistemin “hareketi azalt” ayarına uy</p>
                             <p class="muted small">Açıkken, cihazında animasyonları kapatmış ziyaretçide site hareketsiz başlar. Kapalıyken animasyonlar herkeste oynar; ziyaretçi sayfanın altındaki düğmeyle durdurabilir.</p>
                         </div>

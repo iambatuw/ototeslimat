@@ -49,7 +49,11 @@
                 @endif
                 <div class="hero__actions">
                     <a href="{{ $start }}" class="btn btn--primary btn--l">{{ $canRegister ? 'Hemen başla' : 'Giriş yap' }}</a>
-                    <a href="#nasil" class="btn btn--ghost btn--l">Nasıl çalışır?</a>
+                    @if (Setting::flag('quick_code'))
+                        <a href="{{ route('quick') }}" class="btn btn--ghost btn--l">Hesap açmadan kodunu al</a>
+                    @else
+                        <a href="#nasil" class="btn btn--ghost btn--l">Nasıl çalışır?</a>
+                    @endif
                 </div>
             </div>
             <div class="hero__try enter">

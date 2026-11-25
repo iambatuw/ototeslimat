@@ -1,19 +1,26 @@
 <?php
 
 use App\Http\Controllers\Admin\AccountController;
-use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KeyController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\PackageController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuickCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('landing');
+
+// Hızlı onay: hesap açmadan anahtarla kod alma
+Route::get('/onay', [QuickCodeController::class, 'show'])->name('quick');
+Route::post('/onay', [QuickCodeController::class, 'open'])->middleware('throttle:redeem')->name('quick.open');
+Route::post('/onay/cik', [QuickCodeController::class, 'close'])->name('quick.close');
+Route::post('/onay/kod/{type}', [QuickCodeController::class, 'code'])->middleware('throttle:guard-code')->name('quick.code');
 
 Route::middleware('auth')->group(function () {
     Route::get('/hesabim', [ProfileController::class, 'show'])->name('profile');

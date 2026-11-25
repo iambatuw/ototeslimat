@@ -75,7 +75,7 @@ class CodeService
             throw new GuardException('Hesabın Authenticator anahtarı okunamadı. Satıcıya haber ver.', 'totp_secret', $e);
         }
 
-        return ['type' => self::TYPE_TOTP, 'kind' => 'code', 'code' => $code, 'expires_in' => $this->totp->secondsLeft($now), 'period' => Totp::PERIOD, 'received_at' => null];
+        return ['type' => self::TYPE_TOTP, 'kind' => 'code', 'code' => $code, 'expires_in' => $this->totp->secondsLeft($now), 'period' => Totp::PERIOD, 'received_at' => null, 'steam' => $account->isSteamGuard()];
     }
 
     private function fromMail(Account $account): array
@@ -84,16 +84,27 @@ class CodeService
             throw new GuardException('Bu hesapta mail kodu yok.', 'no_mailbox');
         }
 
-        $cacheKey = 'guard:mail-code:'.$account->id;
+        // Aynı hesabı bekleyen birkaç müşteri posta kutusunu aynı anda yormasın:
+        // bulunan kod biraz, "yok" sonucu çok kısa süre tutulur.
+        $cacheKey = 'guard:mail-code:'.$account->id.':'.md5($account->updated_at?->timestamp.'|'.$account->codeFormat());
         $found = Cache::get($cacheKey);
 
-        if (! $found) {
+        if ($found === null) {
             $found = $this->email->fetch($account);
 
             if ($found) {
                 $found['received_at'] = $found['received_at']->toIso8601String();
                 Cache::put($cacheKey, $found, config('guard.email_cache_seconds'));
+            } elseif (config('guard.email_miss_cache_seconds') > 0) {
+                Cache::put($cacheKey, false, config('guard.email_miss_cache_seconds'));
             }
+        }
+
+        if ($found && ($found['blocked'] ?? false)) {
+            throw new GuardException(
+                'Son gelen '.$account->platformLabel().' maili e-posta ya da şifre değişikliği için. Güvenlik gereği bu kod gösterilmez. Hesaba normal giriş yapıp yeni kod iste ya da satıcıyla iletişime geç.',
+                'blocked_purpose'
+            );
         }
 
         if (! $found) {

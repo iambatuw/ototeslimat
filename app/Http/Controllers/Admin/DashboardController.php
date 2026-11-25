@@ -44,7 +44,7 @@ class DashboardController extends Controller
             'setup' => [
                 'account' => Account::exists(),
                 'key' => ProductKey::exists(),
-                'sold' => ProductKey::whereNotNull('redeemed_by')->exists(),
+                'sold' => ProductKey::whereNotNull('redeemed_at')->exists(),
             ],
             'failing' => ActivityLog::where('event', 'code.failed')->where('created_at', '>=', now()->subDay())->count(),
             'recent' => ActivityLog::with(['user:id,email', 'account:id,title,platform,deleted_at'])

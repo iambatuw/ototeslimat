@@ -104,7 +104,7 @@ class ProductKey extends Model
             $this->revoked_at !== null => 'revoked',
             $this->isExpired() => 'expired',
             $this->max_uses !== null && $this->uses_count >= $this->max_uses => 'used_up',
-            $this->redeemed_by !== null => 'active',
+            $this->redeemed_at !== null => 'active', // hesaba eklendi ya da hızlı onayda kullanıldı
             default => 'unused',
         };
     }
@@ -139,8 +139,8 @@ class ProductKey extends Model
         $now = now();
 
         return match ($status) {
-            'unused' => $query->whereNull('redeemed_by')->whereNull('revoked_at'),
-            'active' => $query->whereNotNull('redeemed_by')->whereNull('revoked_at')
+            'unused' => $query->whereNull('redeemed_at')->whereNull('revoked_at'),
+            'active' => $query->whereNotNull('redeemed_at')->whereNull('revoked_at')
                 ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', $now))
                 ->where(fn ($q) => $q->whereNull('max_uses')->orWhereColumn('uses_count', '<', 'max_uses')),
             'expired' => $query->whereNull('revoked_at')->whereNotNull('expires_at')->where('expires_at', '<=', $now),

@@ -29,6 +29,7 @@ class Setting extends Model
         'announcement' => null,
         'contact_url' => null,
         'registration_open' => '1',
+        'quick_code' => '1',               // '1': müşteri hesap açmadan /onay sayfasında anahtarla kod alabilir
         'low_stock_threshold' => '3',      // satılmamış anahtar bu sayıya düşünce panelde uyarı
         'daily_summary' => '0',            // '1': her sabah yöneticilere özet e-postası
         'respect_reduced_motion' => '0',   // '1': ziyaretçinin sistemi hareketi azalt diyorsa animasyonlar kapalı başlar

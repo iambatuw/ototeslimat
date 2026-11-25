@@ -17,7 +17,7 @@ class SecurityHeaders
         $nonce = Vite::cspNonce();
 
         // Geliştirmede Vite sunucusuna izin verilir; canlıda yalnızca kendi alan adı.
-        $dev = app()->environment('local') ? ' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:* http://[::1]:* ws://[::1]:*' : '';
+        $dev = app()->environment('local') ? ' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*' : '';
 
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",

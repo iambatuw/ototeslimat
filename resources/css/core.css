@@ -106,6 +106,9 @@ a[href], button:not(:disabled), summary, select, label[for], label:has(input), [
   transition: border-color var(--dur-short) var(--ease-out);
 }
 .textarea { padding-block: var(--space-xs); min-height: 7rem; resize: vertical; line-height: 1.5; }
+/* Gizli anahtar alanı: maFile çok satırlı olabildiği için textarea, ama ekranda noktalı görünür. */
+.textarea.secret { min-height: 2.75rem; max-height: 8rem; -webkit-text-security: disc; text-security: disc; word-break: break-all; }
+[data-for-platform][hidden] { display: none; }
 .input::placeholder, .textarea::placeholder { color: var(--color-placeholder); }
 .input:hover, .select:hover, .textarea:hover { border-color: var(--color-rule-hover); }
 .input:focus-visible, .select:focus-visible, .textarea:focus-visible { outline: 3px solid var(--accent-ring); outline-offset: 0; border-color: var(--color-accent); }

@@ -27,7 +27,7 @@
                         <span @class(['state', 'state--on' => $status === 'active', 'state--new' => $status === 'unused', 'state--bad' => in_array($status, ['revoked', 'expired', 'used_up'], true)])>{{ $key->statusLabel() }}</span>
                         @if ($key->expires_at && $status === 'active')<span class="cell-sub">{{ $key->expires_at->format('d.m.Y') }} bitiş</span>@endif
                     </td>
-                    <td data-label="Müşteri">{{ $key->customer?->email ?? '' }}</td>
+                    <td data-label="Müşteri">{{ $key->customer?->email ?? ($key->redeemed_at ? 'Hızlı onay' : '') }}</td>
                     <td data-label="Verilen kod" class="num">{{ $key->uses_count }}{{ $key->max_uses ? ' / '.$key->max_uses : '' }}</td>
                     <td class="actions">
                         <button type="button" class="btn btn--secondary btn--s" data-copy="{{ $key->code }}">Kopyala</button>

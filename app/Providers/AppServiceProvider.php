@@ -43,19 +43,22 @@ class AppServiceProvider extends ServiceProvider
     private function rateLimits(): void
     {
         // Anahtar denemesi: kullanıcı ve IP ayrı ayrı sınırlanır, kaba kuvvet işe yaramaz.
-        RateLimiter::for('redeem', function (Request $request) {
+        // Giriş yapmamış ziyaretçi (hızlı onay sayfası) IP'siyle sayılır; hepsi tek kovada toplanmasın.
+        $who = fn (Request $request) => $request->user() ? 'u:'.$request->user()->id : 'g:'.$request->ip();
+
+        RateLimiter::for('redeem', function (Request $request) use ($who) {
             $limit = config('guard.limits.redeem_per_minute');
 
             return [
-                Limit::perMinute($limit)->by('u:'.$request->user()?->id),
+                Limit::perMinute($limit)->by($who($request)),
                 Limit::perMinute($limit * 3)->by('ip:'.$request->ip()),
-                Limit::perHour($limit * 6)->by('uh:'.$request->user()?->id),
+                Limit::perHour($limit * 6)->by('h:'.$who($request)),
             ];
         });
 
-        RateLimiter::for('guard-code', function (Request $request) {
+        RateLimiter::for('guard-code', function (Request $request) use ($who) {
             return Limit::perMinute(config('guard.limits.code_per_minute'))
-                ->by('u:'.$request->user()?->id)
+                ->by($who($request))
                 ->response(fn () => response()->json([
                     'message' => 'Çok sık istek gönderdin. Bir dakika bekleyip tekrar dene.',
                 ], 429));

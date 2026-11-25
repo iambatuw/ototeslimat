@@ -1,17 +1,21 @@
 # Kodvar
 
-Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime Video, HBO Max, Disney+ gibi hesaplar satıyorsan, müşterin her girişte doğrulama kodu ister. Bu sistem kodu senin yerine teslim eder:
+Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime Video, HBO Max, Disney+ gibi abonelikler ya da Steam, Epic Games, EA, Ubisoft, Rockstar, Riot gibi oyun hesapları satıyorsan, müşterin her girişte doğrulama kodu ister. Bu sistem kodu senin yerine teslim eder:
 
 1. Sattığın hesabın e-posta kutusunu (IMAP) ve varsa Authenticator (2FA) anahtarını panele eklersin.
 2. O hesap için ürün anahtarları üretip müşterilerine verirsin.
-3. Müşteri siteye kayıt olur, anahtarı ekler, kodu kendisi alır. Mail kutusuna ya da 2FA anahtarına hiçbir şekilde erişemez.
+3. Müşteri siteye kayıt olup anahtarı ekler ya da hesap açmadan `/onay` sayfasında anahtarı yazar, kodu kendisi alır. Mail kutusuna ya da 2FA anahtarına hiçbir şekilde erişemez.
 
 Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 
 ## Özellikler
 
-- **Mail kodu:** Hesabın posta kutusundan son gelen giriş kodu IMAP ile okunur. Netflix'in hane doğrulama bağlantısı da okunabilir.
-- **Authenticator (2FA):** 6 haneli kod sunucuda üretilir, 30 saniyelik geri sayımla gösterilir.
+- **Mail kodu:** Hesabın posta kutusundan (Spam/Gereksiz klasörü dahil) son gelen giriş kodu IMAP ile okunur. Kod, platformun maildeki kalıbına göre ("login code", "doğrulama kodu" ...) aranır; alt bilgideki posta kodu, yıl, telefon gibi sayılar kod sanılmaz. Netflix'in hane doğrulama bağlantısı da okunabilir.
+- **Hesap ele geçirmeye karşı koruma:** E-posta değiştirme, şifre sıfırlama, Steam Guard kaldırma gibi maillerdeki kodlar müşteriye hiç gösterilmez; kayıtlara "kod gizlendi" diye düşer.
+- **Kod gelene kadar bekleme:** Mail henüz gelmediyse müşteri ekranı yaklaşık 2 dakika boyunca kendiliğinden tekrar sorar; kod düşünce hücrelere yazılır.
+- **Authenticator (2FA):** 6 haneli kod sunucuda üretilir, 30 saniyelik geri sayımla gösterilir. Epic, EA, Ubisoft, ChatGPT gibi standart 2FA anahtarlarıyla çalışır.
+- **Steam Guard mobil:** `.maFile` içeriği ya da `shared_secret` yapıştırılır; müşteri 5 karakterlik Steam Guard kodunu görür.
+- **Hızlı onay (`/onay`):** Müşteri hesap açmadan yalnızca anahtarıyla kodunu alır. Ayarlar > Özellikler'den kapatılabilir. Hızlı onayda kullanılan anahtar bir hesaba eklenemez (ve tersi); paket anahtarları burada çalışmaz.
 - **Anahtar kuralları:** kod hakkı, süre (müşteri anahtarı eklediği an başlar), kodlar arası bekleme. Boş bırakılırsa sınırsız ve süresiz olur. Aynı kodu tekrar görmek hak düşürmez.
 - **Paketler:** Tek anahtarla müşteri listeden belirlediğin sayıda hesap seçer, örneğin "4 platformdan 2'sini seç". Seçim kalıcıdır. Kod hakkı, süre ve bekleme anahtarın tamamına uygulanır.
 - **Yönetim:** panel grafiği, sol listeden hesap seçip sağda anahtar üretme, toplu hesap ekleme, CSV dışa aktarma, eski anahtarları tek tıkla temizleme, müşteri engelleme.
@@ -86,7 +90,10 @@ Bağımlılıklarda bilinen açık olup olmadığını görmek için: `composer 
 - **Gmail:** Normal şifre çalışmaz. Hesapta 2 adımlı doğrulamayı açıp **uygulama şifresi** oluştur.
 - **Outlook / Hotmail:** IMAP'ta şifreyle girişi kapattığı için desteklenmez.
 - **Platform şablonları değişebilir.** Gönderen adresleri ve varsayılan kod biçimleri `config/guard.php` içinde. Kod yanlış okunursa hesabın **Kod biçimi** ayarını değiştir. Netflix giriş kodu 4 haneli; hane doğrulaması için "Netflix hane bağlantısı" biçimini seç.
-- **Önbellek:** Aynı hesaba arka arkaya gelen istekler posta kutusunu yormasın diye bulunan kod 20 saniye önbellekte tutulur (`GUARD_EMAIL_CACHE`).
+- **Önbellek:** Aynı hesaba arka arkaya gelen istekler posta kutusunu yormasın diye bulunan kod 20 saniye (`GUARD_EMAIL_CACHE`), "kod yok" sonucu 5 saniye (`GUARD_EMAIL_MISS_CACHE`) önbellekte tutulur.
+- **Bekleme:** Müşteri ekranı `GUARD_POLL_INTERVAL` saniyede bir, en fazla `GUARD_POLL_ATTEMPTS` kez yeniden sorar (varsayılan 7 sn × 17).
+- **Spam klasörü:** Varsayılan olarak taranır; kapatmak için `GUARD_SCAN_SPAM=false`.
+- **Desteklenen platformlar ve kod biçimleri:** Netflix (4 rakam), ChatGPT, Prime Video, HBO Max, Disney+, Spotify, YouTube, Canva, CapCut, Epic Games, EA, Ubisoft, Rockstar, Riot (6 rakam), Steam (5 harf/rakam, Steam Guard alfabesi). Kaynak: platformların yardım sayfaları ve kod maillerinin bilinen kalıpları (2026-11). Hiçbiri gerçek bir hesapla denenmedi; yeni bir platform hesabı eklediğinde **Bağlantıyı dene** ile okunan kodu ve mail konusunu kontrol et.
 
 ## Yerel geliştirme
 

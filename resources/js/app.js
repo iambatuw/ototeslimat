@@ -92,6 +92,20 @@ if (accountForm) {
             enc.value = preset.encryption;
         }
     });
+
+    // Steam seçilince 2FA alanı maFile/shared_secret anlatımına geçer.
+    const platform = accountForm.querySelector('[data-platform]');
+    const secret = accountForm.querySelector('[data-ph-steam]');
+    const syncPlatform = () => {
+        accountForm.querySelectorAll('[data-for-platform]').forEach((node) => {
+            const rule = node.dataset.forPlatform;
+            const match = rule.startsWith('!') ? platform.value !== rule.slice(1) : platform.value === rule;
+            node.hidden = !match;
+        });
+        if (secret) secret.placeholder = platform.value === 'steam' ? secret.dataset.phSteam : secret.dataset.ph;
+    };
+    platform?.addEventListener('change', syncPlatform);
+    if (platform) syncPlatform();
 }
 
 /* ---------- Renk seçici ile metin alanını eşle ---------- */
@@ -178,28 +192,77 @@ class CodePanel {
         this.panel = root.querySelector('.code');
         this.buttons = [...root.querySelectorAll('[data-get-code]')];
         this.timer = null;
+        this.run = 0;
+        const [interval, attempts] = (root.dataset.poll ?? '7,17').split(',').map(Number);
+        this.pollEvery = (interval || 7) * 1000;
+        this.pollMax = attempts || 17;
         this.buttons.forEach((button) => button.addEventListener('click', () => this.load(button)));
     }
 
+    async request(url, poll) {
+        const response = await fetch(poll ? `${url}?poll=1` : url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
+            credentials: 'same-origin',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+            return { ok: false, data: { message: 'Çok sık istek gönderildi, birkaç saniye bekle.', retry: true } };
+        }
+        return { ok: response.ok, data };
+    }
+
+    /**
+     * Mail kodu henüz gelmediyse vazgeçmez: belirli aralıkla yeniden sorar,
+     * kod düşünce hücrelere yazar. Müşteri "Beklemeyi bırak" ile durdurabilir.
+     */
     async load(button) {
+        const run = ++this.run;
+        const length = Number(button.dataset.length) || 6;
         this.busy(button, true);
-        this.waiting(button.dataset.url.endsWith('/2fa') ? 6 : 4);
+        this.waiting(length);
         try {
-            const response = await fetch(button.dataset.url, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
-                credentials: 'same-origin',
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.message ?? 'Kod alınamadı. Biraz sonra tekrar dene.');
-            this.show(data);
-            button.dataset.idleNow = 'Yeni kod al';
+            for (let attempt = 0; attempt <= this.pollMax; attempt++) {
+                const { ok, data } = await this.request(button.dataset.url, attempt > 0);
+                if (run !== this.run) return; // müşteri durdurdu ya da başka kod istedi
+                if (ok) {
+                    this.show(data);
+                    button.dataset.idleNow = 'Yeni kod al';
+                    return;
+                }
+                if (!data.retry || attempt === this.pollMax) {
+                    throw new Error(data.message ?? 'Kod alınamadı. Biraz sonra tekrar dene.');
+                }
+                this.pending(length, attempt + 1, button);
+                await sleep(this.pollEvery);
+                if (run !== this.run) return;
+            }
         } catch (error) {
+            if (run !== this.run) return;
             this.fail(error.message);
             button.dataset.idleNow = 'Tekrar dene';
         } finally {
-            this.busy(button, false);
+            if (run === this.run) this.busy(button, false);
         }
+    }
+
+    pending(length, attempt, button) {
+        const cells = el('div', 'cells');
+        waitCells(cells, length);
+        const left = Math.max(0, Math.round(((this.pollMax - attempt + 1) * this.pollEvery) / 1000));
+        const stop = el('button', 'btn btn--ghost btn--s', 'Beklemeyi bırak');
+        stop.type = 'button';
+        stop.addEventListener('click', () => {
+            this.run++;
+            this.busy(button, false);
+            this.fail('Bekleme durduruldu. Kodu platformda istedikten sonra yeniden dene.');
+            button.dataset.idleNow = 'Tekrar dene';
+            button.textContent = 'Tekrar dene';
+        });
+        const note = el('p', 'code__note', `Henüz kod maili yok. Platformda giriş yapıp kodu iste; gelince burada kendiliğinden görünür. En fazla ${left} saniye daha bakılacak.`);
+        note.setAttribute('aria-live', 'polite');
+        this.panel.replaceChildren(el('p', 'code__label', 'Kod bekleniyor'), cells, stop, note);
+        this.panel.hidden = false;
     }
 
     busy(button, on) {
@@ -251,7 +314,7 @@ class CodePanel {
             ? `Kod 30 saniyede bir yenilenir; süre dolunca yeni kod al.${usesNote(data.uses_left)}`
             : `Kod ${ago(data.received_at)} gelen mailden alındı.${usesNote(data.uses_left)}`);
 
-        this.panel.replaceChildren(el('p', 'code__label', totp ? '2FA kodu' : 'Mail kodu'), cells, side, note);
+        this.panel.replaceChildren(el('p', 'code__label', totp ? (data.steam ? 'Steam Guard kodu' : '2FA kodu') : 'Mail kodu'), cells, side, note);
         if (totp) this.countdown(data.expires_in, data.period, cells, note);
     }
 

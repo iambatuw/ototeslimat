@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Guard\Totp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -68,9 +69,34 @@ class Account extends Model
         return $this->hasMailbox() || $this->hasTotp();
     }
 
-    public function senderFilter(): ?string
+    /**
+     * Gönderen adresinde aranacak parçalar. Satıcının yazdığı süzgeç (virgülle
+     * birden çok olabilir) platformun varsayılanının yerine geçer.
+     *
+     * @return list<string>
+     */
+    public function senders(): array
     {
-        return $this->mail_from ?: ($this->platformConfig()['from'] ?? null);
+        $custom = array_values(array_filter(array_map('trim', explode(',', (string) $this->mail_from))));
+
+        return $custom ?: array_values((array) ($this->platformConfig()['from'] ?? []));
+    }
+
+    /** @return list<string> */
+    public function codeAnchors(): array
+    {
+        return array_values((array) ($this->platformConfig()['anchors'] ?? []));
+    }
+
+    public function isSteamGuard(): bool
+    {
+        return Totp::isSteam($this->totp_secret);
+    }
+
+    /** Bekleme ekranındaki kutu sayısı. */
+    public function codeLength(string $type): int
+    {
+        return $type === '2fa' ? Totp::length($this->totp_secret) : (int) ($this->codeFormatConfig()['length'] ?? 6);
     }
 
     public function codeFormat(): string
