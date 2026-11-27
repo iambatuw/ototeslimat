@@ -293,6 +293,7 @@ input[type="file"]::file-selector-button { margin-right: var(--space-sm); paddin
 .code[hidden] { display: none; }
 .code__label { grid-column: 1 / -1; color: var(--color-muted); font-size: var(--text-sm); font-weight: 500; }
 .code__side { display: flex; align-items: center; gap: var(--space-md); }
+.code__when { margin-right: auto; color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
 .code__link { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 .code__note { grid-column: 1 / -1; color: var(--color-muted); font-size: var(--text-sm); }
 .code__error { grid-column: 1 / -1; color: var(--color-ink-2); }

@@ -315,18 +315,20 @@ class CodePanel {
         const cells = el('div', 'cells');
         fillCells(cells, data.code);
         const side = el('div', 'code__side');
-        if (totp) side.append(ringEl());
+        // Sayaç kodun değişmesine kalan süreyi gösterir; kodlar her dakikanın 00. ve 30. saniyesinde değişir.
+        const when = el('span', 'code__when');
+        if (totp) side.append(ringEl(), when);
         const copy = el('button', 'btn btn--secondary btn--s', 'Kopyala');
         copy.type = 'button';
         copy.dataset.copy = data.code;
         side.append(copy);
 
         const note = el('p', 'code__note', totp
-            ? `Süre dolunca yeni kod kendiliğinden gelir; yeniden basman gerekmez.${usesNote(data.uses_left)}`
+            ? `Kodlar her dakikanın 00. ve 30. saniyesinde değişir. Süre dolunca yenisi kendiliğinden gelir, yeniden basman gerekmez.${usesNote(data.uses_left)}`
             : `Kod ${ago(data.received_at)} gelen mailden alındı.${usesNote(data.uses_left)}`);
 
         this.panel.replaceChildren(el('p', 'code__label', totp ? (data.steam ? 'Steam Guard kodu' : '2FA kodu') : 'Mail kodu'), cells, side, note);
-        if (totp) this.countdown(data.expires_in, data.period, cells, note, data.next_code, copy);
+        if (totp) this.countdown(data.expires_in, data.period, cells, note, data.next_code, copy, when);
         // Kod ekranın altında kalmasın: görünmüyorsa en yakın yere kaydır.
         requestAnimationFrame(() => this.panel.scrollIntoView({ block: 'nearest', behavior: still() ? 'auto' : 'smooth' }));
     }
@@ -335,7 +337,7 @@ class CodePanel {
      * 30 saniyelik sayaç. Sunucu bir sonraki dönemin kodunu da gönderir: süre bitince o kod
      * hücrelere kendiliğinden yazılır ve sayaç baştan başlar (yeni istek, yeni hak yok).
      */
-    countdown(left, period, cells, note, nextCode, copy) {
+    countdown(left, period, cells, note, nextCode, copy, when) {
         const ring = this.panel.querySelector('.ring');
         const bar = ring.querySelector('.ring__bar');
         const num = ring.querySelector('.ring__num');
@@ -345,6 +347,7 @@ class CodePanel {
         const tick = () => {
             const remaining = Math.max(0, Math.ceil((end - Date.now()) / 1000));
             num.textContent = remaining;
+            if (when) when.textContent = next ? `Yeni kod ${remaining} sn sonra` : (remaining > 0 ? `${remaining} sn geçerli` : 'Süresi doldu');
             bar.style.strokeDashoffset = String(RING * (1 - remaining / period));
             ring.classList.toggle('is-low', remaining <= 5);
             if (remaining <= 0 && next) {
