@@ -145,6 +145,49 @@ html[data-still] .gcard .code, html[data-still] .gcard__info { animation: none; 
 .lib[data-view="list"] .gcard__in:has(> .code:not([hidden]), > .gcard__info:not([hidden])) { min-height: 17rem; }
 .lib[data-view="list"] .gcard__infobtn { top: 8px; right: auto; left: calc(16rem - 42px); }
 
+/* ---------- Boş kütüphane: logo duvarı ----------
+   Platform logolarından eğik, yavaşça kayan satırlar (her satır iki kopya, %50 kayınca başa döner);
+   ortası koyulaşır, anahtar alanı orada. */
+.logowall { position: relative; isolation: isolate; display: grid; place-items: center; min-height: clamp(24rem, 52vh, 30rem); overflow: hidden; border-radius: 26px; background: #0a0a10; border: var(--rule-hair) solid var(--color-rule); }
+.logowall__rows { position: absolute; inset: -18% -10%; z-index: -2; display: grid; align-content: center; gap: 14px; transform: rotate(-8deg); }
+.logowall__row { display: flex; gap: 14px; width: max-content; animation: wall-slide 70s linear infinite; }
+.logowall__row:nth-child(2n) { animation-direction: reverse; animation-duration: 85s; }
+.logowall__row:nth-child(3) { margin-left: -3rem; }
+@keyframes wall-slide { to { transform: translateX(-50%); } }
+html[data-still] .logowall__row { animation: none; }
+.logowall__tile { display: grid; place-items: center; flex: none; width: clamp(4.5rem, 7vw, 6rem); aspect-ratio: 1; border-radius: 20px; background: radial-gradient(120% 80% at 0% 0%, rgb(255 255 255 / 0.18), transparent 55%), linear-gradient(150deg, color-mix(in srgb, var(--p) 92%, #fff 8%), color-mix(in srgb, var(--p) 55%, #000)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 14px 26px -16px rgb(0 0 0 / 0.9); }
+.logowall__tile img { width: 44%; height: 44%; object-fit: contain; }
+.logowall__tile[data-p="spotify"] img, .logowall__tile[data-p="canva"] img, .logowall__tile[data-p="rockstar"] img { filter: brightness(0) opacity(0.8); }
+/* Ortayı koyulaştıran perde: logolar kenarlarda canlı, form okunaklı */
+.logowall::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(52% 62% at 50% 50%, rgb(10 10 16 / 0.96) 35%, rgb(10 10 16 / 0.72) 68%, rgb(10 10 16 / 0.25) 100%); }
+
+.logowall__form { display: grid; gap: var(--space-xs); width: min(36rem, calc(100% - 2rem)); padding: var(--space-xl) 0; text-align: center; }
+.logowall__form h2 { max-width: none; font-size: clamp(1.75rem, 3.4vw, 2.5rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.1; }
+.logowall__lead { color: var(--color-ink-2); text-wrap: balance; }
+.logowall__lead .mono { color: var(--color-ink); font-weight: 600; }
+.keycard__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-xs); margin-top: var(--space-md); padding: 6px; border-radius: 14px; background: rgb(0 0 0 / 0.55); border: var(--rule-hair) solid var(--color-rule-strong); text-align: left; }
+.keycard__row:focus-within { border-color: var(--color-accent); }
+.keycard__row:has([aria-invalid="true"]) { border-color: var(--color-error); }
+.keycard__input { min-width: 0; min-height: 50px; padding: 0 var(--space-sm); border: 0; background: none; outline: none; color: var(--color-ink); caret-color: var(--color-accent); font-family: var(--font-outlier); font-size: var(--text-md); font-weight: 600; letter-spacing: 0.02em; text-overflow: ellipsis; }
+.keycard__input::placeholder { color: var(--color-placeholder); }
+.keycard__go { min-height: 50px; padding: 0 var(--space-xl); border: 0; border-radius: 10px; background: var(--color-accent); color: var(--color-accent-ink); font: inherit; font-weight: 700; cursor: pointer; transition: filter var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out); }
+.keycard__go:hover:not(:disabled) { filter: brightness(1.12); }
+.keycard__go:focus-visible { outline: 2px solid var(--color-white); outline-offset: 2px; }
+.keycard__go:disabled { opacity: 0.6; cursor: progress; }
+.keycard__error { color: var(--color-error); font-size: var(--text-sm); font-weight: 600; }
+.keycard__error:empty { display: none; }
+.keycard__help { margin-top: var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+.keycard__help a { color: var(--color-accent); font-weight: 600; text-underline-offset: 3px; }
+
+.libpage--empty .logowall { animation: rise var(--dur-long) var(--ease-out) both; }
+html[data-still] .libpage--empty .logowall { animation: none; opacity: 1; transform: none; }
+
+@media (max-width: 40rem) {
+  .logowall { min-height: 30rem; border-radius: 22px; }
+  .logowall::after { background: radial-gradient(75% 55% at 50% 50%, rgb(10 10 16 / 0.96) 45%, rgb(10 10 16 / 0.7) 80%, rgb(10 10 16 / 0.3) 100%); }
+  .keycard__row { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- Giriş: başlık yerinde; kartlar sırayla ---------- */
 .enter > .libpage { animation: none; }
 .libpage > .pick, .libbar { animation: rise var(--dur-long) var(--ease-out) both; }

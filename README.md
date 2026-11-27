@@ -132,6 +132,7 @@ php artisan test
 |---|---|---|---|
 | Yönetici | `admin@demo.test` | `password` | Panel, hesaplar, anahtarlar, müşteriler |
 | Müşteri | `musteri@demo.test` | `password` | Kodlarım: 2 Steam (CS2 hesabı 24 saatte 1 kod), Netflix, Disney+, ChatGPT, Spotify |
+| Yeni müşteri | `bos@demo.test` | `password` | Anahtarı yok: boş Kodlarım ekranı |
 
 Müşteri hesabında Steam ve ChatGPT kodları gerçekten üretilir (rastgele deneme anahtarı). Netflix, Disney+ ve Spotify'ın posta kutusu sahtedir; mail kodu istenince bağlantı hatası verir. Yalnızca deneme verisini yeniden kurmak için: `php artisan db:seed --class=DemoSeeder`.
 

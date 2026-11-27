@@ -14,56 +14,49 @@
     @endif
 
     @if ($empty)
-        {{-- Boş cüzdan: ilk hesabın yeri anahtar formunun kendisi. Yanda sonra ne olacağı, gerçek arayüz parçalarıyla. --}}
-        <div class="wallet wallet--empty">
-            <section class="wallet__main" aria-labelledby="wallet-title">
-                <header class="wallet__head">
-                    <h1 id="wallet-title">Cüzdanın boş</h1>
-                    <p>Sana teslim edilen anahtarı ekle; hesabın burada belirir ve kodunu tek dokunuşla alırsın.</p>
-                </header>
+        {{--
+            Boş kütüphane: kod alınabilen platformların logolarından eğik, yavaşça kayan bir duvar;
+            ortada anahtar alanı. Duraklat düğmesi ve "hareketi azalt" kaymayı durdurur.
+        --}}
+        @php
+            $wallLogos = collect(['steam', 'netflix', 'chatgpt', 'playstation', 'spotify', 'xbox', 'epic', 'youtube', 'ubisoft', 'prime', 'riot', 'ea', 'nintendo', 'battlenet', 'canva', 'rockstar', 'hbomax'])
+                ->filter(fn ($p) => is_file(public_path("img/platforms/{$p}.svg")))->values();
+        @endphp
+        <div class="libpage libpage--empty">
+            <header class="libpage__head">
+                <div><h1>Kodlarım</h1></div>
+            </header>
 
-                <form method="POST" action="{{ route('redeem') }}" class="firstcard" data-busy novalidate>
+            <section class="logowall" aria-labelledby="empty-title">
+                <div class="logowall__rows" aria-hidden="true">
+                    @foreach (range(0, 3) as $r)
+                        @php($wallRow = $wallLogos->slice($r * 4)->concat($wallLogos->take($r * 4)))
+                        <div class="logowall__row">
+                            @foreach ([0, 1] as $copy)
+                                @foreach ($wallRow as $logo)
+                                    <span class="logowall__tile" data-p="{{ $logo }}"><img src="{{ asset("img/platforms/{$logo}.svg") }}" alt=""></span>
+                                @endforeach
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+
+                <form method="POST" action="{{ route('redeem') }}" class="logowall__form" data-busy novalidate>
                     @csrf
-                    <div class="firstcard__top">
-                        <span class="firstcard__mark" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                        </span>
-                        <label for="key" class="firstcard__title">İlk anahtarını ekle</label>
-                    </div>
-                    <p class="firstcard__lead">Sipariş mesajında <span class="mono">{{ config('guard.key_prefix') }}-</span> ile başlayan anahtar. Tire ve boşluk yazmasan da olur.</p>
-                    <div class="firstcard__row">
-                        <input id="key" name="key" type="text" class="firstcard__input" value="{{ old('key') }}"
+                    <h2 id="empty-title">Kütüphanen boş</h2>
+                    <p class="logowall__lead">Siparişle gelen <span class="mono">{{ config('guard.key_prefix') }}-</span> ile başlayan anahtarı ekle; hesabın kapağıyla burada belirsin. Tire ve boşluk yazmasan da olur.</p>
+                    <label for="key" class="visually-hidden">Anahtar</label>
+                    <div class="keycard__row">
+                        <input id="key" name="key" type="text" class="keycard__input" value="{{ old('key') }}"
                             placeholder="{{ config('guard.key_prefix') }}-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters"
                             spellcheck="false" maxlength="64" required autofocus data-key-input aria-describedby="key-error"
                             @error('key') aria-invalid="true" @enderror>
-                        <button type="submit" class="btn hero-card__btn firstcard__go" data-busy-text="Ekleniyor">Cüzdanıma ekle</button>
+                        <button type="submit" class="keycard__go" data-busy-text="Ekleniyor">Ekle</button>
                     </div>
-                    <p id="key-error" class="firstcard__error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
+                    <p id="key-error" class="keycard__error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
+                    <p class="keycard__help">Anahtarın yoksa satın aldığın yerden iste.@if ($contact) <a href="{{ $contact }}" rel="noopener" target="_blank">Destek</a>@endif</p>
                 </form>
             </section>
-
-            <aside class="wallet__side" aria-labelledby="next-title">
-                <section class="after">
-                    <h2 id="next-title">Ekleyince ne olur?</h2>
-                    <ol class="after__steps" role="list">
-                        <li>
-                            <div class="after__art" aria-hidden="true"><span class="after__key">{{ config('guard.key_prefix') }}-7H2K9QXD</span></div>
-                            <div><h3>Anahtar hesabına bağlanır</h3><p>Bir kez eklersin; başka biri aynı anahtarı kullanamaz.</p></div>
-                        </li>
-                        <li>
-                            <div class="after__art" aria-hidden="true">
-                                <span class="after__strips"><i data-p="steam"></i><i data-p="steam"></i><i data-p="netflix"></i></span>
-                            </div>
-                            <div><h3>Hesapların kütüphanende dizilir</h3><p>Her hesap kendi kapağıyla bir kart olur; birkaç hesabın varsa platforma göre süzebilirsin.</p></div>
-                        </li>
-                        <li>
-                            <div class="after__art" aria-hidden="true"><span class="after__cells"><i>5</i><i>8</i><i>2</i><i>1</i></span></div>
-                            <div><h3>En son kullandığın en üstte</h3><p>Platform kod sorduğunda düğmeye bas; kod birkaç saniyede ekranında.</p></div>
-                        </li>
-                    </ol>
-                    <p class="after__note">Anahtarın yoksa satın aldığın yerden iste.@if ($contact) <a href="{{ $contact }}" rel="noopener" target="_blank">Destek</a>@endif</p>
-                </section>
-            </aside>
         </div>
     @else
         {{--

@@ -26,6 +26,9 @@ class DemoSeeder extends Seeder
             throw new RuntimeException('Deneme verisi canlı ortamda oluşturulmaz.');
         }
 
+        // Hiç anahtarı olmayan müşteri: boş Kodlarım ekranını görmek için.
+        User::firstOrCreate(['email' => 'bos@demo.test'], ['name' => 'Boş Müşteri', 'password' => 'password']);
+
         $customer = User::firstOrCreate(['email' => 'musteri@demo.test'], ['name' => 'Deneme Müşteri', 'password' => 'password']);
 
         if ($customer->keys()->exists()) {
