@@ -98,3 +98,7 @@ html[data-still] .gcard:hover .gcard__go { transform: none; }
 
 /* Ana sayfa üst çubuğu: Oyunlar telefonda da görünür */
 .bar__games { white-space: nowrap; }
+
+/* Açıklama başlığında "otomatik yaz" seçeneği */
+.note-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2xs) var(--space-md); }
+.check--s { font-size: var(--text-sm); color: var(--color-ink-2); }

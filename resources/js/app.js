@@ -766,11 +766,13 @@ document.querySelectorAll('[data-demo]').forEach((demo) => {
         time.textContent = '';
         await sleep(1200);
         mail.className = 'mail is-new';
-        title.textContent = 'Netflix';
-        note.textContent = 'Giriş kodun geldi';
+        title.textContent = 'Steam';
+        note.textContent = 'Steam Guard kodun geldi';
         time.textContent = 'şimdi';
         await sleep(650);
-        const code = Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+        // Steam Guard kodu: 5 karakter, Steam'in karışmayan harf ve rakamları
+        const alphabet = '23456789BCDFGHJKMNPQRTVWXY';
+        const code = Array.from({ length }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
         await fillCells(cells, code);
         button.setAttribute('aria-busy', 'false');
         button.disabled = false;
@@ -855,6 +857,9 @@ if (gameForm) {
     const name = gameForm.querySelector('[data-game-name]');
     const list = gameForm.querySelector('[data-suggest-list]');
     const cover = document.querySelector('[data-game-cover]');
+    const note = document.querySelector('[data-game-note]');
+    const autoNote = document.querySelector('[data-auto-note]');
+    let picked = null; // son seçilen öneri: "otomatik yaz" sonradan açılırsa açıklaması yazılır
     const seen = new Map(); // aynı kelimeyi ikinci kez sunucuya sormaz
     const fold = (text) => text.toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
     const current = () => name.value.trim().toLocaleLowerCase('tr');
@@ -881,7 +886,14 @@ if (gameForm) {
         open();
     };
 
+    const writeNote = () => {
+        if (note && autoNote?.checked && picked?.about) note.value = picked.about;
+    };
+    autoNote?.addEventListener('change', writeNote);
+
     const choose = (item, img) => {
+        picked = item;
+        writeNote();
         name.value = item.name;
         if (cover) {
             cover.value = img?.src || item.cover || item.wide || '';

@@ -65,7 +65,6 @@
             </div>
             <div class="hero__try enter">
                 <x-demo-card :autoplay="true" />
-                <span class="demo-tag">Canlı örnek. Düğmeye basıp kendin dene.</span>
             </div>
         </section>
 

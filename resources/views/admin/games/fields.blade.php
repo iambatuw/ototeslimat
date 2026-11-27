@@ -28,9 +28,12 @@
     </div>
 </div>
 <div class="field">
-    <label for="note">Açıklama <span class="optional">(oyuna tıklayınca görünür)</span></label>
-    <input id="note" name="note" type="text" class="input" value="{{ old('note', $game->note) }}" maxlength="300" placeholder="Deluxe sürüm, çevrim dışı oynanır">
-    <p class="error">@error('note'){{ $message }}@enderror</p>
+    <div class="note-head">
+        <label for="note">Açıklama <span class="optional">(oyuna tıklayınca görünür)</span></label>
+        <label class="check check--s"><input type="checkbox" data-auto-note @checked(! $game->exists)> Steam'den otomatik yaz</label>
+    </div>
+    <textarea id="note" name="note" class="textarea" rows="3" maxlength="300" placeholder="Deluxe sürüm, çevrim dışı oynanır" data-game-note>{{ old('note', $game->note) }}</textarea>
+    <p class="{{ $errors->has('note') ? 'error' : 'hint' }}">{{ $errors->first('note') ?: 'Otomatik yaz açıkken öneriden oyun seçince Steam\'in Türkçe kısa açıklaması gelir; istersen değiştir.' }}</p>
 </div>
 <div class="row">
     <input type="hidden" name="featured" value="0">

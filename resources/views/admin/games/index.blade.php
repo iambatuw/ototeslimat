@@ -32,9 +32,15 @@
                 <div class="field">
                     <label for="names">Oyunlar <span class="optional">(her satıra bir oyun)</span></label>
                     <textarea id="names" name="names" class="textarea" rows="6" placeholder="Cyberpunk 2077&#10;Elden Ring&#10;Red Dead Redemption 2"></textarea>
-                    <p class="{{ $errors->bulk->has('names') ? 'error' : 'hint' }}">{{ $errors->bulk->first('names') ?: 'Aynı platformda zaten olan oyunlar atlanır. Kapakları sonra tek tek eklersin.' }}</p>
+                    <p class="{{ $errors->bulk->has('names') ? 'error' : 'hint' }}">{{ $errors->bulk->first('names') ?: 'Aynı platformda zaten olan oyunlar atlanır. En fazla 300 satır; kapak ve açıklama her oyun için Steam\'de en iyi eşleşmeden alınır.' }}</p>
                 </div>
-                <div><button type="submit" class="btn btn--secondary" data-busy-text="Ekleniyor">Listeyi ekle</button></div>
+                <div class="row">
+                    <input type="hidden" name="auto_cover" value="0">
+                    <label class="check"><input type="checkbox" name="auto_cover" value="1" checked> Kapakları Steam'den bul</label>
+                    <input type="hidden" name="auto_note" value="0">
+                    <label class="check"><input type="checkbox" name="auto_note" value="1" checked> Açıklamaları otomatik yaz</label>
+                </div>
+                <div><button type="submit" class="btn btn--secondary" data-busy-text="Kapaklar aranıyor, biraz sürebilir">Listeyi ekle</button></div>
             </form>
         </details>
     </div>
@@ -50,7 +56,15 @@
             </select>
             <button type="submit" class="btn btn--secondary btn--s">Ara</button>
         </form>
-        <span class="muted small">{{ $total }} oyun</span>
+        <div class="row">
+            @if ($missing)
+                <form method="POST" action="{{ route('admin.games.fill') }}" data-busy>
+                    @csrf
+                    <button type="submit" class="btn btn--secondary btn--s" data-busy-text="Aranıyor">Eksik {{ $missing }} kapağı bul</button>
+                </form>
+            @endif
+            <span class="muted small">{{ $total }} oyun</span>
+        </div>
     </div>
 
     @if ($games->isEmpty())
@@ -76,6 +90,12 @@
                         <p class="gcard__name">{{ $game->name }}</p>
                         <p class="gcard__meta">{{ $game->platformLabel() }} · {{ $game->accounts_count }} hesap</p>
                         <div class="gcard__do">
+                            @unless ($game->cover)
+                                <form method="POST" action="{{ route('admin.games.cover', $game) }}" data-busy>
+                                    @csrf
+                                    <button type="submit" class="btn btn--primary btn--s" data-busy-text="Aranıyor">Kapak bul</button>
+                                </form>
+                            @endunless
                             <a href="{{ route('admin.games.edit', $game) }}" class="btn btn--secondary btn--s">Düzenle</a>
                             <form method="POST" action="{{ route('admin.games.toggle', $game) }}">
                                 @csrf @method('PATCH')

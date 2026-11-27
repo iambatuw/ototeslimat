@@ -2,11 +2,8 @@
 {{-- Denenebilen örnek: müşterinin gördüğü kartın aynısı. Gerçek sunucuya istek atmaz. --}}
 <div class="demo glass" data-demo @if ($autoplay) data-demo-autoplay @endif>
     <div class="demo__row">
-        <div>
-            <p class="demo__title">Netflix Premium</p>
-            <p class="demo__meta">Netflix, mail kodu</p>
-        </div>
-        <button type="button" class="btn btn--primary btn--s" data-demo-run>Mail kodunu al</button>
+        <p class="demo__title">Steam</p>
+        <button type="button" class="btn btn--primary btn--s" data-demo-run>Steam Guard kodunu al</button>
     </div>
     <div class="demo__body">
         <div class="mail" data-demo-mail aria-live="polite">
@@ -19,8 +16,8 @@
             </div>
             <span class="mail__time" data-demo-time></span>
         </div>
-        <div class="cells" data-demo-cells data-length="4" role="img" aria-label="Kod bekleniyor">
-            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <div class="cells" data-demo-cells data-length="5" role="img" aria-label="Kod bekleniyor">
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
         </div>
     </div>
 </div>

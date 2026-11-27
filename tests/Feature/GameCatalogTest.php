@@ -123,4 +123,78 @@ class GameCatalogTest extends TestCase
         $game->delete();
         $this->assertNull($account->fresh()->game_id); // hesap kalır
     }
+
+    private function fakeSteam(): void
+    {
+        \Illuminate\Support\Facades\Http::preventStrayRequests();
+        \Illuminate\Support\Facades\Http::fake(function ($request) {
+            $term = json_decode($request['input_json'], true)['search_term'];
+            $games = [
+                'elden ring' => ['ELDEN RING', 'steam/apps/1245620/${FILENAME}', 'YENİ FANTASTİK AKSİYON ROL YAPMA OYUNU. Tarnished, yüksel.'],
+                'hades' => ['Hades', 'steam/apps/1145360/${FILENAME}', 'Yeraltı dünyasından kaç.'],
+            ];
+            $hit = $games[mb_strtolower($term)] ?? null;
+
+            return \Illuminate\Support\Facades\Http::response(['response' => ['store_items' => $hit ? [[
+                'success' => 1, 'name' => $hit[0],
+                'assets' => ['asset_url_format' => $hit[1], 'library_capsule' => 'abc/library_capsule.jpg', 'header' => 'header.jpg'],
+                'basic_info' => ['short_description' => $hit[2]],
+            ]] : []]]);
+        });
+    }
+
+    public function test_bulk_list_finds_covers_and_descriptions(): void
+    {
+        $this->fakeSteam();
+        $this->actingAs($this->admin())->post(route('admin.games.bulk'), [
+            'platform' => 'steam', 'names' => "Elden Ring\nHades\nBilinmeyen Oyun", 'auto_cover' => '1', 'auto_note' => '1',
+        ])->assertRedirect()->assertSessionHas('status', fn ($s) => str_contains($s, '3 oyun eklendi. 2 tanesinin kapağı bulundu.'));
+
+        $elden = Game::firstWhere('name', 'Elden Ring');
+        $this->assertSame('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/abc/library_capsule.jpg', $elden->cover);
+        $this->assertSame('Yeni fantastik aksiyon rol yapma oyunu. Tarnished, yüksel.', $elden->note);
+        $this->assertNull(Game::firstWhere('name', 'Bilinmeyen Oyun')->cover);
+    }
+
+    public function test_bulk_without_auto_options_does_not_call_steam(): void
+    {
+        \Illuminate\Support\Facades\Http::preventStrayRequests();
+        \Illuminate\Support\Facades\Http::fake();
+        $this->actingAs($this->admin())->post(route('admin.games.bulk'), ['platform' => 'steam', 'names' => "Elden Ring", 'auto_cover' => '0', 'auto_note' => '0'])->assertRedirect();
+        \Illuminate\Support\Facades\Http::assertNothingSent();
+        $this->assertNull(Game::first()->cover);
+    }
+
+    public function test_fill_missing_covers_keeps_own_notes(): void
+    {
+        $this->fakeSteam();
+        Game::create(['name' => 'Hades', 'platform' => 'epic', 'note' => 'Kendi notum']);
+        Game::create(['name' => 'Elden Ring', 'platform' => 'steam']);
+        Game::create(['name' => 'Kapaklı', 'platform' => 'steam', 'cover' => 'uploads/games/x.jpg']);
+
+        $this->actingAs($this->admin())->post(route('admin.games.fill'))->assertSessionHas('status');
+
+        $this->assertNotNull(Game::firstWhere('name', 'Hades')->cover);
+        $this->assertSame('Kendi notum', Game::firstWhere('name', 'Hades')->note);
+        $this->assertStringStartsWith('Yeni fantastik', Game::firstWhere('name', 'Elden Ring')->note);
+        $this->assertSame('uploads/games/x.jpg', Game::firstWhere('name', 'Kapaklı')->cover);
+    }
+
+    public function test_game_added_without_cover_gets_one_and_single_find_works(): void
+    {
+        $this->fakeSteam();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post(route('admin.games.store'), ['name' => 'Hades', 'platform' => 'epic', 'is_visible' => '1'])->assertRedirect();
+        $hades = Game::firstWhere('name', 'Hades');
+        $this->assertStringContainsString('1145360', $hades->cover);
+        $this->assertSame('Yeraltı dünyasından kaç.', $hades->note);
+
+        $missing = Game::create(['name' => 'Elden Ring', 'platform' => 'steam']);
+        $this->actingAs($admin)->post(route('admin.games.cover', $missing))->assertSessionHas('status');
+        $this->assertNotNull($missing->fresh()->cover);
+
+        $unknown = Game::create(['name' => 'Bilinmeyen', 'platform' => 'steam']);
+        $this->actingAs($admin)->post(route('admin.games.cover', $unknown))->assertSessionHas('error');
+    }
 }

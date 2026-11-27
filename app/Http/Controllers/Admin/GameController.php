@@ -6,14 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\Setting;
 use App\Support\Activity;
+use App\Support\SteamCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Throwable;
 
 /** Oyun kataloğu yönetimi: ekle (tek tek ya da liste hâlinde), kapak, öne çıkar, gizle. */
 class GameController extends Controller
@@ -36,6 +34,7 @@ class GameController extends Controller
             'filters' => $request->only('q', 'platform'),
             'enabled' => Setting::flag('games_catalog'),
             'total' => Game::count(),
+            'missing' => Game::whereNull('cover')->orWhere('cover', '')->count(),
         ]);
     }
 
@@ -44,6 +43,7 @@ class GameController extends Controller
         $data = $this->validated($request);
         $game = new Game($data);
         $game->cover = $this->cover($request, null);
+        $this->complete($game);
         $game->save();
 
         Activity::log('game.saved', ['meta' => ['name' => $game->name]]);
@@ -51,7 +51,10 @@ class GameController extends Controller
         return redirect()->route('admin.games.index')->with('status', $game->name.' kataloğa eklendi.');
     }
 
-    /** Liste hâlinde ekleme: her satır bir oyun adı. Aynı platformda aynı adlı oyun atlanır. */
+    /**
+     * Liste hâlinde ekleme: her satır bir oyun adı. Aynı platformda aynı adlı oyun atlanır.
+     * İstenirse her oyunun kapağı ve Türkçe kısa açıklaması Steam'den kendiliğinden bulunur.
+     */
     public function bulk(Request $request)
     {
         $data = $request->validateWithBag('bulk', [
@@ -61,85 +64,97 @@ class GameController extends Controller
 
         $names = collect(preg_split('/\R/u', $data['names']))
             ->map(fn ($line) => Str::limit(trim(preg_replace('/\s+/u', ' ', $line)), 120, ''))
-            ->filter()->unique(fn ($name) => mb_strtolower($name));
+            ->filter()->unique(fn ($name) => mb_strtolower($name))->take(300);
 
         $existing = Game::where('platform', $data['platform'])->pluck('name')->map(fn ($n) => mb_strtolower($n))->all();
-        $created = 0;
+        $new = $names->reject(fn ($name) => in_array(mb_strtolower($name), $existing, true))->values();
 
-        foreach ($names as $name) {
-            if (in_array(mb_strtolower($name), $existing, true)) {
-                continue;
-            }
-            Game::create(['name' => $name, 'platform' => $data['platform']]);
-            $created++;
+        $autoCover = $request->boolean('auto_cover');
+        $autoNote = $request->boolean('auto_note');
+        set_time_limit(180);
+        $matches = ($autoCover || $autoNote) ? SteamCatalog::bestMatches($new->all()) : [];
+        $withCover = 0;
+
+        foreach ($new as $name) {
+            $match = $matches[$name] ?? null;
+            $cover = $autoCover ? ($match['cover'] ?? $match['wide'] ?? null) : null;
+            Game::create([
+                'name' => $name,
+                'platform' => $data['platform'],
+                'cover' => $cover,
+                'note' => $autoNote && filled($match['about'] ?? null) ? $match['about'] : null,
+            ]);
+            $withCover += $cover ? 1 : 0;
         }
 
-        Activity::log('game.saved', ['meta' => ['name' => $created.' oyun, liste']]);
-        $skipped = $names->count() - $created;
+        Activity::log('game.saved', ['meta' => ['name' => $new->count().' oyun, liste']]);
+        $skipped = $names->count() - $new->count();
 
-        return redirect()->route('admin.games.index')->with('status', $created.' oyun eklendi.'.($skipped ? ' '.$skipped.' tanesi zaten vardı.' : '').' Kapakları oyunun "Düzenle" ekranından ekleyebilirsin.');
+        $message = $new->count().' oyun eklendi.'
+            .($autoCover ? ' '.$withCover.' tanesinin kapağı bulundu.' : '')
+            .($skipped ? ' '.$skipped.' tanesi zaten vardı.' : '')
+            .($autoCover && $withCover < $new->count() ? ' Kapağı bulunamayanlara "Düzenle"den görsel ekleyebilirsin.' : '');
+
+        return redirect()->route('admin.games.index')->with('status', $message);
+    }
+
+    /** Tek oyun için kapak arar (kapaksız kartın üstündeki "Kapak bul"). */
+    public function findCover(Game $game)
+    {
+        $this->complete($game);
+
+        if (! $game->isDirty('cover')) {
+            return back()->with('error', $game->name.' için Steam\'de kapak bulunamadı. "Düzenle"den kendi görselini ekleyebilirsin.');
+        }
+
+        $game->save();
+
+        return back()->with('status', $game->name.' için kapak bulundu.');
+    }
+
+    /** Katalogda kapağı (ve istenirse açıklaması) olmayan oyunları Steam'den tamamlar. */
+    public function fill(Request $request)
+    {
+        $autoNote = $request->boolean('auto_note', true);
+        $games = Game::whereNull('cover')->orWhere('cover', '')->orderBy('id')->limit(300)->get();
+
+        if ($games->isEmpty()) {
+            return back()->with('status', 'Kapağı eksik oyun yok.');
+        }
+
+        set_time_limit(180);
+        $matches = SteamCatalog::bestMatches($games->pluck('name')->all());
+        $filled = 0;
+
+        foreach ($games as $game) {
+            $match = $matches[$game->name] ?? null;
+
+            if (! $match) {
+                continue;
+            }
+
+            $game->cover = $match['cover'] ?? $match['wide'];
+            if ($autoNote && blank($game->note) && filled($match['about'])) {
+                $game->note = $match['about'];
+            }
+            $game->save();
+            $filled++;
+        }
+
+        Activity::log('game.saved', ['meta' => ['name' => $filled.' oyunun kapağı tamamlandı']]);
+
+        return back()->with($filled ? 'status' : 'error', $filled
+            ? $filled.' oyunun kapağı bulundu.'.($games->count() > $filled ? ' '.($games->count() - $filled).' tanesi Steam\'de bulunamadı; onlara kendi görselini ekle.' : '')
+            : 'Steam\'de eşleşen oyun bulunamadı ya da Steam\'e ulaşılamadı.');
     }
 
     /**
-     * Oyun adı yazılırken kapak önerisi: Steam mağaza aramasından ad ve dikey kapak.
-     * Sonuç bir gün saklanır; Steam'e ulaşılamazsa boş liste döner, satıcı kendi görselini ekler.
+     * Oyun adı yazılırken öneri: Steam'den ad, kapak ve Türkçe kısa açıklama. 25 sonuç döner;
+     * satıcı yazmaya devam ederken tarayıcı bunları süzer. Steam'e ulaşılamazsa boş liste.
      */
     public function suggest(Request $request)
     {
-        $term = trim((string) $request->query('q'));
-
-        if (mb_strlen($term) < 2 || mb_strlen($term) > 80) {
-            return response()->json(['items' => []]);
-        }
-
-        $items = Cache::remember('game-suggest:v3:'.md5(mb_strtolower($term)), now()->addDay(), function () use ($term) {
-            // Steam mağazasının kendi arama kutusunun kullandığı servis: tek istekte yalnızca oyunlar
-            // ve görsellerin gerçek adresleri gelir (yeni oyunlarda dosya adı karma kodla saklanır).
-            $query = [
-                'search_term' => $term,
-                'max_results' => 25, // geniş liste: satıcı yazmaya devam ederken tarayıcıda süzülür
-                'context' => ['language' => 'turkish', 'country_code' => 'TR'],
-                'data_request' => ['include_assets' => true],
-                'filters' => ['type_filters' => ['include_games' => true]],
-            ];
-
-            try {
-                $response = Http::timeout(5)->acceptJson()->get('https://api.steampowered.com/IStoreQueryService/SearchSuggestions/v1/', [
-                    'input_json' => json_encode($query, JSON_UNESCAPED_UNICODE),
-                ]);
-            } catch (Throwable) {
-                return null;
-            }
-
-            if (! $response->successful()) {
-                return null;
-            }
-
-            // Demo, film müziği gibi eklentiler öneriyi kalabalıklaştırmasın.
-            $extra = '/\b(dlc|soundtrack|ost|season pass|bundle|pack|paket|kit|kiti|expansion pass|upgrade|artbook|demo)\b/iu';
-
-            return collect($response->json('response.store_items') ?? [])
-                ->filter(fn ($item) => ($item['success'] ?? 1) === 1 && filled($item['name'] ?? null))
-                ->reject(fn ($item) => preg_match($extra, (string) $item['name']))
-                ->take(25)
-                ->map(function ($item) {
-                    $assets = $item['assets'] ?? [];
-                    $url = fn (?string $file) => $file && isset($assets['asset_url_format'])
-                        ? 'https://shared.akamai.steamstatic.com/store_item_assets/'.str_replace('${FILENAME}', $file, $assets['asset_url_format'])
-                        : null;
-                    $wide = $url($assets['header'] ?? null) ?? $url($assets['main_capsule'] ?? null) ?? $url($assets['small_capsule'] ?? null);
-
-                    return [
-                        'name' => trim(preg_replace('/\s+/u', ' ', str_replace(['™', '®', '©'], '', (string) $item['name']))),
-                        'cover' => $url($assets['library_capsule'] ?? null),  // dikey 600×900, yoksa null
-                        'wide' => $wide,                                    // yatay yedek
-                    ];
-                })
-                ->filter(fn ($item) => $item['cover'] || $item['wide'])
-                ->values()->all();
-        });
-
-        return response()->json(['items' => $items ?? []]);
+        return response()->json(['items' => SteamCatalog::search((string) $request->query('q'))]);
     }
 
     public function edit(Game $game)
@@ -151,6 +166,9 @@ class GameController extends Controller
     {
         $game->fill($this->validated($request));
         $game->cover = $request->boolean('remove_cover') ? null : $this->cover($request, $game->cover);
+        if (! $request->boolean('remove_cover')) {
+            $this->complete($game);
+        }
         $game->save();
 
         Activity::log('game.saved', ['meta' => ['name' => $game->name]]);
@@ -178,6 +196,21 @@ class GameController extends Controller
         Activity::log('game.deleted', ['meta' => ['name' => $name]]);
 
         return redirect()->route('admin.games.index')->with('status', $name.' katalogdan silindi.');
+    }
+
+    /** Kapağı boş kalan oyuna Steam'de aynı adlı oyunun kapağını (ve boşsa açıklamasını) koyar. */
+    private function complete(Game $game): void
+    {
+        if (filled($game->cover)) {
+            return;
+        }
+
+        $match = SteamCatalog::bestMatches([$game->name])[$game->name] ?? null;
+
+        if ($match) {
+            $game->cover = $match['cover'] ?? $match['wide'];
+            $game->note = filled($game->note) ? $game->note : ($match['about'] ?: null);
+        }
     }
 
     private function validated(Request $request): array

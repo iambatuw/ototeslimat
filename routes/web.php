@@ -56,7 +56,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/oyunlar', [App\Http\Controllers\Admin\GameController::class, 'index'])->name('games.index');
         Route::post('/oyunlar', [App\Http\Controllers\Admin\GameController::class, 'store'])->name('games.store');
         Route::post('/oyunlar/liste', [App\Http\Controllers\Admin\GameController::class, 'bulk'])->name('games.bulk');
-        Route::get('/oyunlar/oneri', [App\Http\Controllers\Admin\GameController::class, 'suggest'])->middleware('throttle:40,1')->name('games.suggest');
+        Route::get('/oyunlar/oneri', [App\Http\Controllers\Admin\GameController::class, 'suggest'])->middleware('throttle:90,1')->name('games.suggest');
+        Route::post('/oyunlar/tamamla', [App\Http\Controllers\Admin\GameController::class, 'fill'])->middleware('throttle:6,1')->name('games.fill');
+        Route::post('/oyunlar/{game}/kapak', [App\Http\Controllers\Admin\GameController::class, 'findCover'])->middleware('throttle:30,1')->name('games.cover');
         Route::get('/oyunlar/{game}/duzenle', [App\Http\Controllers\Admin\GameController::class, 'edit'])->name('games.edit');
         Route::put('/oyunlar/{game}', [App\Http\Controllers\Admin\GameController::class, 'update'])->name('games.update');
         Route::patch('/oyunlar/{game}/degistir', [App\Http\Controllers\Admin\GameController::class, 'toggle'])->name('games.toggle');
