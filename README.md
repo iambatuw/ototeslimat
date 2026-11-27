@@ -25,7 +25,7 @@ Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 - **Steam Guard mobil:** `.maFile` içeriği ya da `shared_secret` yapıştırılır; müşteri 5 karakterlik Steam Guard kodunu görür.
 - **Hızlı onay (`/onay`):** Müşteri hesap açmadan yalnızca anahtarıyla kodunu alır. Ayarlar > Özellikler'den kapatılabilir. Hızlı onayda kullanılan anahtar bir hesaba eklenemez (ve tersi); paket anahtarları burada çalışmaz.
 - **Anahtar kuralları:** kod hakkı, süre (müşteri anahtarı eklediği an başlar), kodlar arası bekleme ve dönemlik hak ("24 saatte 1 kod", "7 günde 3 kod"; dönem o dönemin ilk koduyla başlar). Boş bırakılırsa sınırsız ve süresiz olur. Aynı kodu tekrar görmek hak düşürmez.
-- **Ek hak:** Hakkı ya da dönem hakkı dolan müşteriye Anahtarlar tablosundaki "+1 hak" düğmesiyle hak verilir (her basış bir hak); müşteri beklemeden yeniden kod alır. Verilen ek haklar kayıtlarda görünür.
+- **Ek hak:** Hakkı ya da dönem hakkı dolan müşteriye Anahtarlar tablosundaki "+1 hak ver" düğmesiyle hak verilir (her basış bir hak); müşteri beklemeden yeniden kod alır. Verilen ek haklar kayıtlarda görünür.
 - **Paketler:** Tek anahtarla müşteri listeden belirlediğin sayıda hesap seçer, örneğin "4 platformdan 2'sini seç". Seçim kalıcıdır. Kod hakkı, süre ve bekleme anahtarın tamamına uygulanır.
 - **Yönetim:** panel grafiği, sol listeden hesap seçip sağda anahtar üretme, toplu hesap ekleme, CSV dışa aktarma, eski anahtarları tek tıkla temizleme, müşteri engelleme.
 - **Kayıtlar:** Hangi müşteri, hangi anahtarla, ne zaman, hangi IP'den, hangi kodu aldı; başarısız denemeler nedeniyle birlikte.

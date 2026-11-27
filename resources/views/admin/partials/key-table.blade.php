@@ -42,7 +42,7 @@
                             <form method="POST" action="{{ route('admin.keys.bonus', $key) }}" class="bonus">
                                 @csrf @method('PATCH')
                                 <input type="hidden" name="amount" value="1">
-                                <button type="submit" class="btn btn--secondary btn--s" title="Müşteriye hemen kullanabileceği 1 ek kod hakkı ver" aria-label="{{ $key->customer?->email ?? 'Müşteriye' }} 1 ek kod hakkı ver">+1 hak</button>
+                                <button type="submit" class="btn btn--secondary btn--s" title="Müşteriye hemen kullanabileceği 1 ek kod hakkı ver" aria-label="{{ $key->customer?->email ?? 'Müşteriye' }} 1 ek kod hakkı ver">+1 hak ver</button>
                             </form>
                         @endif
                         @if ($status === 'revoked')
