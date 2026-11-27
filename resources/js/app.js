@@ -846,62 +846,119 @@ if (gameGrid) {
 }
 
 /* ---------- Yönetim > Oyunlar: ad yazılırken kapaklı öneri ----------
- * Sunucu Steam mağaza aramasını sorar; öneriye tıklayınca ad ve kapak bağlantısı dolar.
- * Dikey kapağı olmayan oyunda yatay görsel kullanılır. */
+ * İlk iki harften itibaren yazdıkça arar ("grand" yazınca GTA çıkar). Eski istek iptal edilir,
+ * arama sürerken önceki sonuçlar yerinde kalır ve "Aranıyor" görünür. Ok tuşları ve Enter ile
+ * seçilir; seçince ad ve kapak bağlantısı dolar. Dikey kapağı olmayan oyunda yatay görsel kullanılır. */
 const gameForm = document.querySelector('[data-game-form]');
 if (gameForm) {
     const name = gameForm.querySelector('[data-game-name]');
     const list = gameForm.querySelector('[data-suggest-list]');
     const cover = document.querySelector('[data-game-cover]');
+    const seen = new Map(); // aynı kelimeyi ikinci kez sunucuya sormaz
     let timer;
+    let pending;
+    let active = -1;
 
-    const close = () => { list.hidden = true; name.setAttribute('aria-expanded', 'false'); };
+    name.setAttribute('role', 'combobox');
+    name.setAttribute('aria-autocomplete', 'list');
+    name.setAttribute('aria-expanded', 'false');
 
-    const render = (items) => {
+    const options = () => [...list.querySelectorAll('.suggest__item')];
+    const close = () => { list.hidden = true; active = -1; name.setAttribute('aria-expanded', 'false'); };
+    const open = () => { list.hidden = false; name.setAttribute('aria-expanded', 'true'); };
+
+    const status = (text) => {
+        list.querySelector('.suggest__status')?.remove();
+        if (!text) return;
+        const row = el('li', 'suggest__status', text);
+        row.setAttribute('role', 'status');
+        list.prepend(row);
+        open();
+    };
+
+    const choose = (item, img) => {
+        name.value = item.name;
+        if (cover) {
+            cover.value = img?.classList.contains('is-wide') ? item.wide : item.cover;
+            cover.dispatchEvent(new Event('input'));
+        }
+        close();
+        name.focus();
+    };
+
+    const render = (items, term) => {
         list.replaceChildren();
+        active = -1;
+        if (!items.length) {
+            status(`"${term}" için öneri yok. Kendi kapağını yükleyebilirsin.`);
+            return;
+        }
         items.forEach((item) => {
             const li = el('li');
             const pick = el('button', 'suggest__item');
             pick.type = 'button';
+            pick.tabIndex = -1;
             pick.setAttribute('role', 'option');
             const img = el('img');
             img.alt = '';
-            img.loading = 'lazy';
             img.referrerPolicy = 'no-referrer';
             img.src = item.cover;
             img.addEventListener('error', () => {
-                if (img.src !== item.wide) { img.src = item.wide; img.classList.add('is-wide'); }
-            }, { once: false });
-            pick.append(img, el('span', 'suggest__name', item.name));
-            pick.addEventListener('click', () => {
-                name.value = item.name;
-                if (cover) cover.value = img.classList.contains('is-wide') ? item.wide : item.cover;
-                cover?.dispatchEvent(new Event('input'));
-                close();
-                name.focus();
+                if (!img.classList.contains('is-wide')) { img.classList.add('is-wide'); img.src = item.wide; }
             });
+            pick.append(img, el('span', 'suggest__name', item.name));
+            pick.addEventListener('mousedown', (event) => event.preventDefault()); // alan odağını kaybetmesin
+            pick.addEventListener('click', () => choose(item, img));
             li.append(pick);
             list.append(li);
         });
-        list.hidden = items.length === 0;
-        name.setAttribute('aria-expanded', String(items.length > 0));
+        open();
+    };
+
+    const search = async (term) => {
+        if (seen.has(term)) { render(seen.get(term), term); return; }
+        pending?.abort();
+        pending = new AbortController();
+        status('Aranıyor');
+        try {
+            const response = await fetch(`${gameForm.dataset.suggest}?q=${encodeURIComponent(term)}`, {
+                headers: { Accept: 'application/json' }, credentials: 'same-origin', signal: pending.signal,
+            });
+            const data = await response.json();
+            const items = data.items ?? [];
+            seen.set(term, items);
+            if (name.value.trim().toLocaleLowerCase('tr') === term) render(items, name.value.trim());
+        } catch (error) {
+            if (error.name !== 'AbortError') status('Öneriler şu an alınamadı. Kendi kapağını yükleyebilirsin.');
+        }
     };
 
     name.addEventListener('input', () => {
         clearTimeout(timer);
-        const term = name.value.trim();
-        if (term.length < 2) { close(); return; }
-        timer = setTimeout(async () => {
-            try {
-                const response = await fetch(`${gameForm.dataset.suggest}?q=${encodeURIComponent(term)}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-                const data = await response.json();
-                if (name.value.trim() === term) render(data.items ?? []);
-            } catch {
-                close();
-            }
-        }, 350);
+        const term = name.value.trim().toLocaleLowerCase('tr');
+        if (term.length < 2) { pending?.abort(); close(); return; }
+        timer = setTimeout(() => search(term), 160);
     });
-    name.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
+
+    name.addEventListener('focus', () => {
+        const term = name.value.trim().toLocaleLowerCase('tr');
+        if (term.length >= 2 && seen.has(term)) render(seen.get(term), name.value.trim());
+    });
+
+    name.addEventListener('keydown', (event) => {
+        const items = options();
+        if (event.key === 'Escape') { close(); return; }
+        if (list.hidden || !items.length) return;
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            active = (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+            items.forEach((item, i) => item.classList.toggle('is-active', i === active));
+            items[active].scrollIntoView({ block: 'nearest' });
+        } else if (event.key === 'Enter' && active >= 0) {
+            event.preventDefault(); // formu göndermez, öneriyi seçer
+            items[active].click();
+        }
+    });
     document.addEventListener('click', (event) => { if (!gameForm.contains(event.target)) close(); });
 
     // Kapak bağlantısının önizlemesi

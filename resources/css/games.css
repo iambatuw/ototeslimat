@@ -88,7 +88,8 @@ html[data-still] .gcard:hover .gcard__go { transform: none; }
 .suggest__list { position: absolute; top: calc(100% - var(--space-md)); left: 0; right: 0; z-index: 20; display: grid; gap: 2px; max-height: 22rem; overflow-y: auto; margin: 0; padding: var(--space-2xs); list-style: none; border-radius: 16px; border: var(--rule-hair) solid var(--color-rule-strong); background: #17171c; box-shadow: 0 24px 48px -20px rgb(0 0 0 / 0.9); }
 .suggest__list[hidden] { display: none; }
 .suggest__item { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: var(--space-2xs); border: 0; border-radius: 10px; background: none; color: var(--color-ink); font: inherit; text-align: left; cursor: pointer; }
-.suggest__item:hover, .suggest__item:focus-visible { background: var(--color-row-hover); outline: none; }
+.suggest__item:hover, .suggest__item:focus-visible, .suggest__item.is-active { background: var(--color-row-hover); outline: none; }
+.suggest__status { padding: var(--space-xs) var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
 .suggest__item img { width: 36px; height: 54px; flex: none; border-radius: 6px; object-fit: cover; background: var(--color-fill-strong); }
 .suggest__item img.is-wide { width: 72px; height: 34px; }
 .suggest__name { font-weight: 600; }
