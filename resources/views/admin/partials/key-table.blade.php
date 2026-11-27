@@ -28,9 +28,23 @@
                         @if ($key->expires_at && $status === 'active')<span class="cell-sub">{{ $key->expires_at->format('d.m.Y') }} bitiş</span>@endif
                     </td>
                     <td data-label="Müşteri">{{ $key->customer?->email ?? ($key->redeemed_at ? 'Hızlı onay' : '') }}</td>
-                    <td data-label="Verilen kod" class="num">{{ $key->uses_count }}{{ $key->max_uses ? ' / '.$key->max_uses : '' }}</td>
+                    <td data-label="Verilen kod" class="num">
+                        {{ $key->uses_count }}{{ $key->max_uses ? ' / '.$key->max_uses : '' }}
+                        @if ($key->period_limit && $key->redeemed_at)
+                            @php($resets = $key->periodResetsAt())
+                            <span class="cell-sub">{{ $resets ? 'Yeni hak '.$resets->format('d.m H:i') : 'Bu dönem '.$key->periodLeft().'/'.$key->period_limit }}</span>
+                        @endif
+                        @if ($key->bonus_uses)<span class="cell-sub">+{{ $key->bonus_uses }} ek hak</span>@endif
+                    </td>
                     <td class="actions">
                         <button type="button" class="btn btn--secondary btn--s" data-copy="{{ $key->code }}">Kopyala</button>
+                        @if ($key->redeemed_at && ! in_array($status, ['revoked', 'expired'], true) && ($key->max_uses || $key->period_limit || $key->cooldown_minutes))
+                            <form method="POST" action="{{ route('admin.keys.bonus', $key) }}" class="bonus">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="amount" value="1">
+                                <button type="submit" class="btn btn--secondary btn--s" title="Müşteriye hemen kullanabileceği 1 ek kod hakkı ver" aria-label="{{ $key->customer?->email ?? 'Müşteriye' }} 1 ek kod hakkı ver">+1 hak</button>
+                            </form>
+                        @endif
                         @if ($status === 'revoked')
                             <form method="POST" action="{{ route('admin.keys.restore', $key) }}">
                                 @csrf @method('PATCH')

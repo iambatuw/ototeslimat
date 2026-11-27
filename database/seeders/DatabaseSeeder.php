@@ -7,8 +7,8 @@ use Illuminate\Database\Seeder;
 use RuntimeException;
 
 /**
- * Yalnızca yerel geliştirme için: boş bir mağaza ve tek yönetici hesabı.
- * Giriş: admin@demo.test, şifre: password
+ * Yalnızca yerel geliştirme için: yönetici hesabı ve altı ürün almış bir deneme müşterisi.
+ * Yönetici: admin@demo.test / password, müşteri: musteri@demo.test / password
  * Canlı ortamda çalışmaz; orada ilk yönetici için: php artisan guard:admin
  */
 class DatabaseSeeder extends Seeder
@@ -21,5 +21,7 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::create(['name' => 'Mağaza Sahibi', 'email' => 'admin@demo.test', 'password' => 'password']);
         $admin->forceFill(['role' => User::ROLE_ADMIN])->save();
+
+        $this->call(DemoSeeder::class);
     }
 }

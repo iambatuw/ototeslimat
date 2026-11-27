@@ -8,6 +8,14 @@ Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime V
 
 Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 
+### Ürün tanımı
+
+**Geçit**, dijital hesap satan mağazalar için kendi sunucuna kurduğun bir **otomatik doğrulama kodu teslim paneli**dir. Müşterin Netflix'e, Steam'e ya da ChatGPT'ye girerken kod istendiğinde sana yazıp beklemez; Geçit'e girer, tek düğmeyle kodunu alır. Sen uyurken de çalışır.
+
+- **Satıcı için:** hesapları ve posta kutularını bir kez eklersin, anahtar üretip satarsın. Her anahtara kural koyarsın: toplam kod hakkı, geçerlilik süresi, **24 saatte 1 kod** gibi dönemlik hak, kodlar arası bekleme. Hakkı dolan müşteriye tek tıkla **ek hak** verirsin. Kim, ne zaman, hangi kodu aldı; panelde kaç kişinin kod aldığı görünür.
+- **Müşteri için:** aldığı bütün hesaplar tek sayfada. En son kullandığı hesap üstte hazır bekler; aynı platformdan birkaç hesabı varsa (örneğin 3 Steam) her birine kendi adını verir.
+- **Güvenlik:** müşteri şifreyi, posta kutusunu ya da 2FA anahtarını hiç görmez. E-posta/şifre değiştirme maillerindeki kodlar gösterilmez.
+
 ## Özellikler
 
 - **Mail kodu:** Hesabın posta kutusundan (Spam/Gereksiz klasörü dahil) son gelen giriş kodu IMAP ile okunur. Kod, platformun maildeki kalıbına göre ("login code", "doğrulama kodu" ...) aranır; alt bilgideki posta kodu, yıl, telefon gibi sayılar kod sanılmaz. Netflix'in hane doğrulama bağlantısı da okunabilir.
@@ -16,7 +24,8 @@ Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 - **Authenticator (2FA):** 6 haneli kod sunucuda üretilir, 30 saniyelik geri sayımla gösterilir. Epic, EA, Ubisoft, ChatGPT gibi standart 2FA anahtarlarıyla çalışır.
 - **Steam Guard mobil:** `.maFile` içeriği ya da `shared_secret` yapıştırılır; müşteri 5 karakterlik Steam Guard kodunu görür.
 - **Hızlı onay (`/onay`):** Müşteri hesap açmadan yalnızca anahtarıyla kodunu alır. Ayarlar > Özellikler'den kapatılabilir. Hızlı onayda kullanılan anahtar bir hesaba eklenemez (ve tersi); paket anahtarları burada çalışmaz.
-- **Anahtar kuralları:** kod hakkı, süre (müşteri anahtarı eklediği an başlar), kodlar arası bekleme. Boş bırakılırsa sınırsız ve süresiz olur. Aynı kodu tekrar görmek hak düşürmez.
+- **Anahtar kuralları:** kod hakkı, süre (müşteri anahtarı eklediği an başlar), kodlar arası bekleme ve dönemlik hak ("24 saatte 1 kod", "7 günde 3 kod"; dönem o dönemin ilk koduyla başlar). Boş bırakılırsa sınırsız ve süresiz olur. Aynı kodu tekrar görmek hak düşürmez.
+- **Ek hak:** Hakkı ya da dönem hakkı dolan müşteriye Anahtarlar tablosundaki "+1 hak" düğmesiyle hak verilir (her basış bir hak); müşteri beklemeden yeniden kod alır. Verilen ek haklar kayıtlarda görünür.
 - **Paketler:** Tek anahtarla müşteri listeden belirlediğin sayıda hesap seçer, örneğin "4 platformdan 2'sini seç". Seçim kalıcıdır. Kod hakkı, süre ve bekleme anahtarın tamamına uygulanır.
 - **Yönetim:** panel grafiği, sol listeden hesap seçip sağda anahtar üretme, toplu hesap ekleme, CSV dışa aktarma, eski anahtarları tek tıkla temizleme, müşteri engelleme.
 - **Kayıtlar:** Hangi müşteri, hangi anahtarla, ne zaman, hangi IP'den, hangi kodu aldı; başarısız denemeler nedeniyle birlikte.
@@ -100,21 +109,23 @@ Bağımlılıklarda bilinen açık olup olmadığını görmek için: `composer 
 ```bash
 composer install && npm install
 cp .env.example .env && php artisan key:generate
-php artisan migrate --seed    # boş mağaza ve tek yönetici hesabı
+php artisan migrate --seed    # yönetici + 6 ürünlü deneme müşterisi
 npm run build && php artisan guard:serve
 php artisan test
 ```
 
-### Yönetici girişi (yerel / deneme)
+### Deneme hesapları (yerel)
 
 `php artisan migrate --seed` sonrası http://localhost:8000/login adresinden:
 
-| | |
-|---|---|
-| E-posta | `admin@demo.test` |
-| Şifre | `password` |
+| Hesap | E-posta | Şifre | Ne görürsün |
+|---|---|---|---|
+| Yönetici | `admin@demo.test` | `password` | Panel, hesaplar, anahtarlar, müşteriler |
+| Müşteri | `musteri@demo.test` | `password` | Kodlarım: 2 Steam ("Ana hesap" 24 saatte 1 kod), Netflix, Disney+, ChatGPT, Spotify |
 
-Bu hesap yalnızca yerel geliştirme içindir; seed canlı ortamda (`APP_ENV=production`) çalışmaz. Canlı sitede ilk yöneticiyi `php artisan guard:admin senin@adresin.com` ile kendi şifrenle oluştur. Deneme hesabını canlıya taşıma, şifresini paylaşılmış say.
+Müşteri hesabında Steam ve ChatGPT kodları gerçekten üretilir (rastgele deneme anahtarı). Netflix, Disney+ ve Spotify'ın posta kutusu sahtedir; mail kodu istenince bağlantı hatası verir. Yalnızca deneme verisini yeniden kurmak için: `php artisan db:seed --class=DemoSeeder`.
+
+Bu hesaplar yalnızca yerel geliştirme içindir; seed canlı ortamda (`APP_ENV=production`) çalışmaz. Canlı sitede ilk yöneticiyi `php artisan guard:admin senin@adresin.com` ile kendi şifrenle oluştur. Deneme hesaplarını canlıya taşıma, şifrelerini paylaşılmış say.
 
 ## Günlük özet e-postası
 

@@ -115,15 +115,22 @@ class Wallet
     {
         $daysLeft = $key->expires_at ? (int) ceil(now()->diffInDays($key->expires_at, false)) : null;
 
+        $periodLeft = $key->periodLeft();
+        $resets = $key->periodResetsAt();
+
         return [
             'status' => match (true) {
+                $resets !== null && $key->bonus_uses === 0 => 'Yeni hak '.$resets->diffForHumans(['parts' => 1, 'syntax' => 1]),
                 $daysLeft !== null && $daysLeft <= 7 => $daysLeft <= 0 ? 'Bugün bitiyor' : $daysLeft.' gün kaldı',
+                $periodLeft !== null => $periodLeft.' kod hakkın var',
                 $key->max_uses !== null => $key->usesLeft().' kod hakkı',
                 $daysLeft !== null => $daysLeft.' gün kaldı',
                 default => 'Sınırsız',
             },
             'meta' => array_values(array_filter([
-                $key->max_uses ? $key->usesLeft().' kod hakkı' : 'Sınırsız kod',
+                $key->max_uses ? $key->usesLeft().' kod hakkı' : ($key->period_limit ? null : 'Sınırsız kod'),
+                $key->periodLabel() ? $key->periodLabel().($resets ? ' · yeni hak '.$resets->format('d.m H:i') : ' · bu dönem '.$periodLeft.' hakkın var') : null,
+                $key->bonus_uses ? 'satıcıdan '.$key->bonus_uses.' ek hak' : null,
                 $key->expires_at ? $key->expires_at->format('d.m.Y').' tarihine kadar' : null,
                 $key->cooldown_minutes ? 'kodlar arası '.$key->cooldown_minutes.' dk' : null,
             ])),

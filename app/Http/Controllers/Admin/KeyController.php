@@ -45,6 +45,8 @@ class KeyController extends Controller
             'max_uses' => ['nullable', 'integer', 'between:1,100000'],
             'valid_days' => ['nullable', 'integer', 'between:1,3650'],
             'cooldown_minutes' => ['nullable', 'integer', 'between:0,10080'],
+            'period_limit' => ['nullable', 'integer', 'between:1,1000'],
+            'period_hours' => ['nullable', 'integer', Rule::in([1, 6, 12, 24, 48, 72, 168, 720])],
             'label' => ['nullable', 'string', 'max:120'],
         ], [
             'account_id.required_without' => 'Anahtarın hangi hesap ya da paket için olduğunu seç.',
@@ -52,6 +54,7 @@ class KeyController extends Controller
         ], [
             'account_id' => 'hesap', 'package_id' => 'paket', 'count' => 'adet', 'max_uses' => 'kullanım hakkı',
             'valid_days' => 'süre', 'cooldown_minutes' => 'bekleme süresi', 'label' => 'not',
+            'period_limit' => 'dönem başına kod', 'period_hours' => 'dönem',
         ]);
 
         $codes = DB::transaction(function () use ($data) {
@@ -72,6 +75,8 @@ class KeyController extends Controller
                     'max_uses' => $data['max_uses'] ?? null,
                     'valid_days' => $data['valid_days'] ?? null,
                     'cooldown_minutes' => $data['cooldown_minutes'] ?? 0,
+                    'period_limit' => $data['period_limit'] ?? null,
+                    'period_hours' => $data['period_hours'] ?? 24,
                 ]);
                 $codes[] = $key->code;
             }
@@ -97,6 +102,22 @@ class KeyController extends Controller
         Activity::log('key.revoked', ['key' => $key]);
 
         return back()->with('status', 'Anahtar iptal edildi. Müşteri artık bu anahtarla kod alamaz.');
+    }
+
+    /**
+     * Müşteriye ek kod hakkı verir. Ek hak, toplam hak ya da dönem hakkı ("24 saatte 1 kod")
+     * dolmuş olsa da hemen kullanılır; müşteri yeniden kod alabilir.
+     */
+    public function bonus(Request $request, ProductKey $key)
+    {
+        $data = $request->validate(['amount' => ['required', 'integer', 'between:1,100']], [], ['amount' => 'ek hak']);
+
+        ProductKey::whereKey($key->id)->increment('bonus_uses', $data['amount']);
+        Activity::log('key.bonus', ['key' => $key, 'user_id' => $key->redeemed_by, 'meta' => ['amount' => $data['amount']]]);
+
+        $who = $key->customer?->email ?? 'Müşteri';
+
+        return back()->with('status', $who.' için '.$data['amount'].' ek kod hakkı verildi. Hemen kod alabilir.');
     }
 
     public function restore(ProductKey $key)

@@ -37,7 +37,7 @@ Mağaza sahibi sitenin hareketli olmasını istedi; hareket her yerde var ama he
 - Sayfa geçişi (View Transitions), liste ve kutucukların sırayla belirmesi, içeriğin hafifçe yükselmesi.
 - **Başlıklar animasyonla gelmez** (mağaza sahibi istedi, 2026-11-26): sayfa başlığı ve başlık bloğu yerinde durur, altındaki içerik her açılışta sırayla yükselir. Kodlarım'da kart, araçlar, raf satırları ve yan kutular sırayla gelir.
 - Kodun gelişi: posta satırı, ardından dönen ve sırayla oturan karakterler; oturan hücreler hafifçe parlar.
-- Düğmelerde ışık geçişi ve kalkma, kutucuklarda imleci izleyen ışık, rozetlerde küçük dönme.
+- Düğmelerde ışık geçişi ve kalkma, kutucuklarda imleci izleyen ışık. Satır ve kutucuk üstüne gelince simgeler, avatarlar ve rozetler yerinde durur; yalnızca zemin aydınlanır (mağaza sahibi istedi, 2026-11-27).
 - Panelde sayan rakamlar, soldan açılan grafik, dolan stok çubuğu, atan durum noktası.
 - Ana sayfada süzülen örnek kart, akan platform şeridi, kaydırma ilerleme çizgisi, yumuşak açılan sorular.
 

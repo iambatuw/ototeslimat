@@ -66,6 +66,7 @@
     <section class="card" aria-labelledby="chart-title">
         <h2 id="chart-title" class="card__title">Verilen kodlar</h2>
         <p class="total"><strong data-count="{{ $total }}">{{ $fmt($total) }}</strong> <span>son 14 günde, bu ay {{ $fmt($stats['codes_month']) }}</span></p>
+        <p class="people"><strong>{{ $fmt($people['period']) }} kişi</strong> son 14 günde kod aldı · bugün {{ $fmt($people['today']) }} kişi</p>
         <figure class="chart__plot">
             <svg viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="none" role="img" aria-label="Son 14 günde günlük verilen kod sayısı">
                 @foreach ([0.25, 0.5, 0.75] as $g)

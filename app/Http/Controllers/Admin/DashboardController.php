@@ -27,7 +27,14 @@ class DashboardController extends Controller
             return ['label' => $day->format('d.m'), 'value' => $issued->get($day->format('Y-m-d'), 0)];
         });
 
+        // Kaç kişi kod aldı: kayıtlı müşteriler kişi başına, hızlı onaydakiler anahtar başına sayılır.
+        $people = fn ($since) => ActivityLog::where('event', 'code.issued')->where('created_at', '>=', $since)
+            ->get(['user_id', 'product_key_id'])
+            ->map(fn ($log) => $log->user_id ? 'u'.$log->user_id : 'k'.$log->product_key_id)
+            ->unique()->count();
+
         return view('admin.dashboard', [
+            'people' => ['period' => (int) $people($start), 'today' => (int) $people(now()->startOfDay())],
             'stats' => [
                 'unused' => ProductKey::inStatus('unused')->count(),
                 'active' => ProductKey::inStatus('active')->count(),

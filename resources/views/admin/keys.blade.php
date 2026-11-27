@@ -60,7 +60,7 @@
                 <button type="submit" class="btn btn--primary btn--l">Anahtar üret</button>
             </div>
 
-            <details class="more" @if ($errors->hasAny(['max_uses', 'valid_days', 'cooldown_minutes', 'label'])) open @endif>
+            <details class="more" @if ($errors->hasAny(['max_uses', 'valid_days', 'cooldown_minutes', 'period_limit', 'period_hours', 'label'])) open @endif>
                 <summary>Sınır ve süre ekle <span class="optional">(boş bırakırsan sınırsız ve süresiz)</span></summary>
                 <div class="more__body">
                     <div class="grid-3">
@@ -78,6 +78,22 @@
                             <label for="cooldown_minutes">Kodlar arası bekleme (dk)</label>
                             <input id="cooldown_minutes" name="cooldown_minutes" type="number" class="input" min="0" value="{{ old('cooldown_minutes', 0) }}" inputmode="numeric" @error('cooldown_minutes') aria-invalid="true" @enderror>
                             <p class="{{ $errors->has('cooldown_minutes') ? 'error' : 'hint' }}">{{ $errors->first('cooldown_minutes') ?: '0 ise bekleme yok.' }}</p>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="period_limit">Dönem başına kod</label>
+                            <input id="period_limit" name="period_limit" type="number" class="input" min="1" value="{{ old('period_limit') }}" inputmode="numeric" placeholder="Sınır yok" @error('period_limit') aria-invalid="true" @enderror>
+                            <p class="{{ $errors->has('period_limit') ? 'error' : 'hint' }}">{{ $errors->first('period_limit') ?: 'Örn. 1 yazıp 24 saat seçersen müşteri günde bir kod alır. Hakkı dolunca anahtar tablosundan ek hak verebilirsin.' }}</p>
+                        </div>
+                        <div class="field">
+                            <label for="period_hours">Dönem</label>
+                            <select id="period_hours" name="period_hours" class="input">
+                                @foreach ([1 => '1 saat', 6 => '6 saat', 12 => '12 saat', 24 => '24 saat', 48 => '2 gün', 72 => '3 gün', 168 => '1 hafta', 720 => '30 gün'] as $hours => $text)
+                                    <option value="{{ $hours }}" @selected((int) old('period_hours', 24) === $hours)>{{ $text }}</option>
+                                @endforeach
+                            </select>
+                            <p class="{{ $errors->has('period_hours') ? 'error' : 'hint' }}">{{ $errors->first('period_hours') ?: 'Dönem, müşterinin o dönemdeki ilk kodunu aldığı an başlar.' }}</p>
                         </div>
                     </div>
                     <div class="field">

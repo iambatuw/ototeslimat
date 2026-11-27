@@ -82,7 +82,7 @@ class GuardFlowTest extends TestCase
 
         // Yeni bir kod penceresinde hak bitti
         $key->forceFill(['last_code_hash' => 'eski'])->save();
-        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertStatus(422)->assertJsonFragment(['message' => 'Bu anahtarın kullanım hakkı doldu (1 kod).']);
+        $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertStatus(422)->assertJsonPath('reason', 'used_up');
     }
 
     public function test_cooldown_blocks_new_code(): void

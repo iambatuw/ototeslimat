@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/anahtarlar/temizle', [KeyController::class, 'purge'])->name('keys.purge');
         Route::patch('/anahtarlar/{key}/iptal', [KeyController::class, 'revoke'])->name('keys.revoke');
         Route::patch('/anahtarlar/{key}/ac', [KeyController::class, 'restore'])->name('keys.restore');
+        Route::patch('/anahtarlar/{key}/ek-hak', [KeyController::class, 'bonus'])->name('keys.bonus');
 
         Route::get('/musteriler', [CustomerController::class, 'index'])->name('customers.index');
         Route::patch('/musteriler/{user}/durum', [CustomerController::class, 'toggle'])->name('customers.toggle');

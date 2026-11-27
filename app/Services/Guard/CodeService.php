@@ -136,23 +136,45 @@ class CodeService
                 return; // aynı kod tekrar gösteriliyor
             }
 
-            if ($fresh->max_uses !== null && $fresh->uses_count >= $fresh->max_uses) {
-                throw new GuardException('Bu anahtarın kullanım hakkı doldu ('.$fresh->max_uses.' kod).', 'used_up');
-            }
+            // Önce hangi kuralın engellediğine bakılır. Satıcının verdiği ek hak varsa engel ne
+            // olursa olsun kod o haktan düşer; toplam ve dönem sayacı değişmez.
+            $block = null;
+            $running = $fresh->periodRunning();
 
-            if ($fresh->cooldown_minutes > 0 && $fresh->last_used_at) {
+            if ($fresh->max_uses !== null && $fresh->uses_count >= $fresh->max_uses) {
+                $block = new GuardException('Bu anahtarın kullanım hakkı doldu ('.$fresh->max_uses.' kod). Satıcından ek hak isteyebilirsin.', 'used_up');
+            } elseif ($fresh->period_limit !== null && $running && $fresh->period_count >= $fresh->period_limit) {
+                $next = $fresh->period_started_at->copy()->addHours($fresh->period_hours);
+                $block = new GuardException(
+                    'Bu anahtarla '.$fresh->periodLabel().' alabilirsin ve bu dönemin hakkı doldu. Yeni hakkın '.$next->diffForHumans(['parts' => 2, 'syntax' => 1]).' ('.$next->format('d.m H:i').') gelir.',
+                    'period'
+                );
+            } elseif ($fresh->cooldown_minutes > 0 && $fresh->last_used_at) {
                 $next = $fresh->last_used_at->copy()->addMinutes($fresh->cooldown_minutes);
 
                 if ($next->isFuture()) {
-                    throw new GuardException('Yeni kod için '.$next->diffForHumans(['parts' => 2, 'syntax' => 1]).' beklemen gerekiyor.', 'cooldown');
+                    $block = new GuardException('Yeni kod için '.$next->diffForHumans(['parts' => 2, 'syntax' => 1]).' beklemen gerekiyor.', 'cooldown');
                 }
             }
 
-            $fresh->forceFill([
-                'uses_count' => $fresh->uses_count + 1,
-                'last_used_at' => now(),
-                'last_code_hash' => $hash,
-            ])->save();
+            if ($block && $fresh->bonus_uses < 1) {
+                throw $block;
+            }
+
+            $changes = ['last_used_at' => now(), 'last_code_hash' => $hash];
+
+            if ($block) {
+                $changes['bonus_uses'] = $fresh->bonus_uses - 1;
+            } else {
+                $changes['uses_count'] = $fresh->uses_count + 1;
+
+                if ($fresh->period_limit !== null) {
+                    $changes['period_started_at'] = $running ? $fresh->period_started_at : now();
+                    $changes['period_count'] = $running ? $fresh->period_count + 1 : 1;
+                }
+            }
+
+            $fresh->forceFill($changes)->save();
         });
     }
 }
