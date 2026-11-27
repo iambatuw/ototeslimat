@@ -104,7 +104,9 @@ html[data-still] .gcard:hover .gcard__go { transform: none; }
 .cover-preview[hidden] { display: none; }
 
 /* Ana sayfa üst çubuğu: Oyunlar telefonda da görünür */
-.bar__games { white-space: nowrap; }
+/* Ana sayfadaki Oyunlar düğmesi: geniş ekranda menüde "Sorular"ın yanında; menü gizlenen dar ekranda sağda. */
+.bar__games { display: none; white-space: nowrap; }
+@media (max-width: 56rem) { .bar__games { display: inline-flex; } }
 
 /* Açıklama başlığında "otomatik yaz" seçeneği */
 .note-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2xs) var(--space-md); }

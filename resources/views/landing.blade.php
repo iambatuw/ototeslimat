@@ -32,9 +32,10 @@
             <nav class="nav nav--optional" aria-label="Sayfa içi">
                 <a href="#nasil">Nasıl çalışır</a>
                 <a href="#sss">Sorular</a>
+                @if (Setting::flag('games_catalog'))<a href="{{ route('games') }}">Oyunlar</a>@endif
             </nav>
             <div class="bar__end">
-                @if (Setting::flag('games_catalog'))<a href="{{ route('games') }}" class="btn btn--ghost btn--s bar__games">Oyunlar</a>@endif
+                @if (Setting::flag('games_catalog'))<a href="{{ route('games') }}" class="btn btn--ghost btn--s bar__games">Oyunlar</a>@endif {{-- yalnız telefonda; geniş ekranda menüde --}}
                 <x-motion-toggle />
                 @if ($user)
                     <a href="{{ $start }}" class="btn btn--light btn--s">{{ $startLabel }}</a>
