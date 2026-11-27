@@ -2,7 +2,7 @@
     Kütüphanedeki hesap kartı: üstte görsel (oyunun yatay kapağı, dikey kapak sığdırılmış ya da
     platform renginde platform logosu), altında ad, ne zaman eklendiği, kalan hak ve kod düğmesi
     (iki kod türü varsa yan yana). Kod kartın içinde açılır. Not, bilgiler, son kodlar ve mail yardımı
-    kapalı "Ayrıntılar" kutusunda. Ad satıcınındır (oyuna bağlıysa oyunun adı); müşteri değiştiremez.
+    kartın üstünde açılan "Ayrıntılar" katmanında; kod da kartın üstünde açılır. Ad satıcınındır (oyuna bağlıysa oyunun adı); müşteri değiştiremez.
     $row (App\Support\Wallet satırı), $picked (adresle ya da yeni eklenerek seçildi mi), $history, $asked, $contact
 --}}
 @php
@@ -45,6 +45,10 @@
             @endif
             <span @class(['gcard__status', 'gcard__status--off' => $row['blocked']])>{{ $row['blocked'] ?? $row['status'] }}</span>
         </div>
+        <button type="button" @class(['gcard__infobtn', 'has-note' => $account->customer_note]) data-info-open aria-controls="info-{{ $row['id'] }}" aria-expanded="false">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25"/><path d="M10 9v4.5M10 6.4v.1"/></svg>
+            <span>Ayrıntılar</span>
+        </button>
 
         <div class="gcard__body">
             <h2 class="gcard__name" id="gc-title-{{ $row['id'] }}">{{ $name }}</h2>
@@ -67,45 +71,55 @@
                             data-idle="{{ $two ? $totpName.' kodu' : $totpName.' kodunu göster' }}" data-again="Yeni {{ $totpName }} kodu" data-retry="Tekrar dene">{{ $two ? $totpName.' kodu' : $totpName.' kodunu göster' }}</button>
                     @endif
                 </div>
-                <div class="code" hidden></div>
             @endif
-
-            <details class="gcard__more">
-                <summary>Ayrıntılar</summary>
-                <div class="gcard__drawer">
-                    @if ($account->customer_note)
-                        <p class="gcard__note"><strong>Satıcının notu</strong>{{ $account->customer_note }}</p>
-                    @endif
-                    <dl class="gcard__facts">
-                        @foreach ($row['facts'] as [$title, $value, $extra])
-                            <div><dt>{{ $title }}</dt><dd>{{ $value }}@if ($extra) <small>{{ $extra }}</small>@endif</dd></div>
-                        @endforeach
-                    </dl>
-                    @if ($history->isNotEmpty())
-                        <section aria-label="Son kodların">
-                            <h3>Son kodların</h3>
-                            <ol class="gcard__list" role="list">
-                                @foreach ($history as $log)
-                                    <li>
-                                        <span>{{ ($log->meta['type'] ?? '') === 'mail' ? 'Mail kodu' : $totpName.' kodu' }}</span>
-                                        <time datetime="{{ $log->created_at->toIso8601String() }}" title="{{ $log->created_at->format('d.m.Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
-                                    </li>
-                                @endforeach
-                            </ol>
-                        </section>
-                    @endif
-                    @if ($account->hasMailbox() && ! $row['blocked'])
-                        <section aria-label="Mail kodu gelmedi mi?">
-                            <h3>Mail kodu gelmedi mi?</h3>
-                            <ol class="gcard__steps" role="list">
-                                <li>Platformda "kodu tekrar gönder"e bas.</li>
-                                <li>Sayfa 2 dakika kendiliğinden bekler; kapatma.</li>
-                                <li>Yine gelmezse @if ($contact)<a href="{{ $contact }}" rel="noopener" target="_blank">destekle iletişime geç</a>.@else satıcınla iletişime geç.@endif</li>
-                            </ol>
-                        </section>
-                    @endif
-                </div>
-            </details>
         </div>
+
+        {{-- Kod ve ayrıntılar kartın üstünde açılan katmanlarda: kart büyümez, ızgara bozulmaz. --}}
+        @if ($sources)
+            <div class="code" hidden></div>
+            <button type="button" class="gcard__close" data-code-close aria-label="Kodu kapat">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+            </button>
+        @endif
+
+        <section class="gcard__info" id="info-{{ $row['id'] }}" data-info hidden aria-label="{{ $name }} ayrıntıları">
+            <div class="gcard__info-head">
+                <h3>Ayrıntılar</h3>
+                <button type="button" class="gcard__x" data-info-close aria-label="Ayrıntıları kapat">
+                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+                </button>
+            </div>
+            @if ($account->customer_note)
+                <p class="gcard__note"><strong>Satıcının notu</strong>{{ $account->customer_note }}</p>
+            @endif
+            <dl class="gcard__facts">
+                @foreach ($row['facts'] as [$title, $value, $extra])
+                    <div><dt>{{ $title }}</dt><dd>{{ $value }}@if ($extra) <small>{{ $extra }}</small>@endif</dd></div>
+                @endforeach
+            </dl>
+            @if ($history->isNotEmpty())
+                <div>
+                    <h4>Son kodların</h4>
+                    <ol class="gcard__list" role="list">
+                        @foreach ($history as $log)
+                            <li>
+                                <span>{{ ($log->meta['type'] ?? '') === 'mail' ? 'Mail kodu' : $totpName.' kodu' }}</span>
+                                <time datetime="{{ $log->created_at->toIso8601String() }}" title="{{ $log->created_at->format('d.m.Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
+                            </li>
+                        @endforeach
+                    </ol>
+                </div>
+            @endif
+            @if ($account->hasMailbox() && ! $row['blocked'])
+                <div>
+                    <h4>Mail kodu gelmedi mi?</h4>
+                    <ol class="gcard__steps" role="list">
+                        <li>Platformda "kodu tekrar gönder"e bas.</li>
+                        <li>Sayfa 2 dakika kendiliğinden bekler; kapatma.</li>
+                        <li>Yine gelmezse @if ($contact)<a href="{{ $contact }}" rel="noopener" target="_blank">destekle iletişime geç</a>.@else satıcınla iletişime geç.@endif</li>
+                    </ol>
+                </div>
+            @endif
+        </section>
     </article>
 </li>

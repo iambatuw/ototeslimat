@@ -71,11 +71,14 @@ class CodeService
         try {
             $now = time();
             $code = $this->totp->code($account->totp_secret, $now);
+            // Bir sonraki 30 saniyenin kodu da verilir: süre bitince ekran yeni kodu kendiliğinden
+            // gösterir, müşteri dönemin son saniyelerinde bastıysa ikinci bir hak harcamaz.
+            $next = $this->totp->code($account->totp_secret, $now + Totp::PERIOD);
         } catch (Throwable $e) {
             throw new GuardException('Hesabın Authenticator anahtarı okunamadı. Satıcıya haber ver.', 'totp_secret', $e);
         }
 
-        return ['type' => self::TYPE_TOTP, 'kind' => 'code', 'code' => $code, 'expires_in' => $this->totp->secondsLeft($now), 'period' => Totp::PERIOD, 'received_at' => null, 'steam' => $account->isSteamGuard()];
+        return ['type' => self::TYPE_TOTP, 'kind' => 'code', 'code' => $code, 'next_code' => $next, 'expires_in' => $this->totp->secondsLeft($now), 'period' => Totp::PERIOD, 'received_at' => null, 'steam' => $account->isSteamGuard()];
     }
 
     private function fromMail(Account $account): array

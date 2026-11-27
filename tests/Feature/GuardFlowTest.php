@@ -68,6 +68,8 @@ class GuardFlowTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertOk();
         $this->assertMatchesRegularExpression('/^\d{6}$/', $response->json('code'));
+        // Sonraki 30 saniyenin kodu da gelir; ekran süre bitince ona geçer, hak tek kez düşer.
+        $this->assertMatchesRegularExpression('/^\d{6}$/', $response->json('next_code'));
         $this->assertSame(1, $key->fresh()->uses_count);
         $this->assertTrue(ActivityLog::where('event', 'code.issued')->exists());
     }

@@ -197,6 +197,15 @@ class CodePanel {
         this.pollEvery = (interval || 7) * 1000;
         this.pollMax = attempts || 17;
         this.buttons.forEach((button) => button.addEventListener('click', () => this.load(button)));
+        root.querySelector('[data-code-close]')?.addEventListener('click', () => this.close());
+    }
+
+    /** Kod katmanını kapatır; mail beklemesi ve sayaç durur. */
+    close() {
+        this.run++;
+        clearInterval(this.timer);
+        this.panel.hidden = true;
+        this.buttons.forEach((b) => this.busy(b, false));
     }
 
     async request(url, poll) {
@@ -313,26 +322,39 @@ class CodePanel {
         side.append(copy);
 
         const note = el('p', 'code__note', totp
-            ? `Kod 30 saniyede bir yenilenir; süre dolunca yeni kod al.${usesNote(data.uses_left)}`
+            ? `Süre dolunca yeni kod kendiliğinden gelir; yeniden basman gerekmez.${usesNote(data.uses_left)}`
             : `Kod ${ago(data.received_at)} gelen mailden alındı.${usesNote(data.uses_left)}`);
 
         this.panel.replaceChildren(el('p', 'code__label', totp ? (data.steam ? 'Steam Guard kodu' : '2FA kodu') : 'Mail kodu'), cells, side, note);
-        if (totp) this.countdown(data.expires_in, data.period, cells, note);
+        if (totp) this.countdown(data.expires_in, data.period, cells, note, data.next_code, copy);
         // Kod ekranın altında kalmasın: görünmüyorsa en yakın yere kaydır.
         requestAnimationFrame(() => this.panel.scrollIntoView({ block: 'nearest', behavior: still() ? 'auto' : 'smooth' }));
     }
 
-    countdown(left, period, cells, note) {
+    /**
+     * 30 saniyelik sayaç. Sunucu bir sonraki dönemin kodunu da gönderir: süre bitince o kod
+     * hücrelere kendiliğinden yazılır ve sayaç baştan başlar (yeni istek, yeni hak yok).
+     */
+    countdown(left, period, cells, note, nextCode, copy) {
         const ring = this.panel.querySelector('.ring');
         const bar = ring.querySelector('.ring__bar');
         const num = ring.querySelector('.ring__num');
-        const end = Date.now() + left * 1000;
+        let end = Date.now() + left * 1000;
+        let next = nextCode;
 
         const tick = () => {
             const remaining = Math.max(0, Math.ceil((end - Date.now()) / 1000));
             num.textContent = remaining;
             bar.style.strokeDashoffset = String(RING * (1 - remaining / period));
             ring.classList.toggle('is-low', remaining <= 5);
+            if (remaining <= 0 && next) {
+                fillCells(cells, next);
+                if (copy) copy.dataset.copy = next;
+                next = null;
+                end += period * 1000;
+                note.textContent = 'Yeni kod geldi. Bu kodun süresi bitince yeniden basman gerekir.';
+                return tick();
+            }
             if (remaining <= 0) {
                 clearInterval(this.timer);
                 cells.classList.add('cells--expired');
@@ -401,6 +423,32 @@ if (lib && viewButtons.length) {
     setView(saved === 'list' ? 'list' : 'grid', false);
     viewButtons.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view, true)));
 }
+
+/* Kartın "Ayrıntılar" katmanı: kartın üstünde açılır, kapatınca odak düğmeye döner. Esc kapatır. */
+document.addEventListener('click', (event) => {
+    const open = event.target.closest('[data-info-open]');
+    if (open) {
+        const info = document.getElementById(open.getAttribute('aria-controls'));
+        if (!info) return;
+        info.hidden = !info.hidden;
+        open.setAttribute('aria-expanded', String(!info.hidden));
+        if (!info.hidden) info.querySelector('[data-info-close]')?.focus();
+        return;
+    }
+    const close = event.target.closest('[data-info-close]');
+    if (close) {
+        const info = close.closest('[data-info]');
+        info.hidden = true;
+        const button = document.querySelector(`[aria-controls="${info.id}"]`);
+        button?.setAttribute('aria-expanded', 'false');
+        button?.focus();
+    }
+});
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const info = document.querySelector('[data-info]:not([hidden])');
+    info?.querySelector('[data-info-close]')?.click();
+});
 
 /* Arama ve platform hapları: rafları süzer; boşalan raf gizlenir. */
 const shelves = document.querySelector('[data-shelves]');
