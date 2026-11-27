@@ -24,23 +24,38 @@ class GameCatalogTest extends TestCase
         return $admin;
     }
 
-    public function test_catalog_is_off_by_default(): void
+    public function test_catalog_is_on_by_default_and_can_be_turned_off(): void
     {
-        $this->assertFalse(Setting::flag('games_catalog'));
-        $this->get('/oyunlar')->assertNotFound();
-        $this->get('/')->assertOk()->assertDontSee(route('games'));
-        $this->actingAs($this->admin())->get('/yonetim')->assertOk()->assertDontSee(route('admin.games.index'));
-    }
-
-    public function test_enabled_catalog_lists_only_visible_games(): void
-    {
-        Setting::put(['games_catalog' => '1']);
+        $this->assertTrue(Setting::flag('games_catalog'));
         Game::create(['name' => 'Elden Ring', 'platform' => 'steam', 'featured' => true, 'note' => 'Deluxe sürüm']);
         Game::create(['name' => 'Gizli Oyun', 'platform' => 'epic', 'is_visible' => false]);
 
         $this->get('/oyunlar')->assertOk()->assertSee('Elden Ring')->assertSee('Öne çıkan')->assertSee('Deluxe sürüm')->assertDontSee('Gizli Oyun');
-        $this->get('/')->assertOk()->assertSee(route('games'))->assertSee('Elden Ring');
+        // Ana sayfada yalnızca üst çubukta bağlantı; oyunlar ayrı sayfada.
+        $this->get('/')->assertOk()->assertSee(route('games'))->assertDontSee('Elden Ring');
         $this->actingAs($this->admin())->get('/yonetim')->assertSee(route('admin.games.index'));
+
+        Setting::put(['games_catalog' => '0']);
+        auth()->logout();
+        $this->get('/oyunlar')->assertNotFound();
+        $this->get('/')->assertOk()->assertDontSee(route('games'));
+    }
+
+    public function test_suggestions_come_from_steam_search(): void
+    {
+        \Illuminate\Support\Facades\Http::fake(['store.steampowered.com/*' => \Illuminate\Support\Facades\Http::response(['items' => [
+            ['type' => 'app', 'name' => 'Battlefield™ 1', 'id' => 1238840],
+            ['type' => 'sub', 'name' => 'Paket', 'id' => 5],
+        ]])]);
+
+        $this->actingAs($this->admin())->getJson(route('admin.games.suggest', ['q' => 'battlefield 1']))
+            ->assertOk()
+            ->assertJsonCount(1, 'items')
+            ->assertJsonPath('items.0.name', 'Battlefield 1')
+            ->assertJsonPath('items.0.cover', 'https://cdn.cloudflare.steamstatic.com/steam/apps/1238840/library_600x900.jpg');
+
+        $this->actingAs($this->admin())->getJson(route('admin.games.suggest', ['q' => 'b']))->assertJsonCount(0, 'items');
+        $this->actingAs(User::factory()->create())->getJson(route('admin.games.suggest', ['q' => 'battlefield']))->assertForbidden();
     }
 
     public function test_admin_adds_game_with_cover_link_and_bulk_list(): void

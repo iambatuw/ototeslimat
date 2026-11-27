@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Oyun kataloğu: satıcının sattığı oyunlar (kapak, platform, öne çıkan). Herkese açık
- * /oyunlar sayfasında listelenir; Ayarlar > Özellikler'den açılır, varsayılan kapalı.
+ * /oyunlar sayfasında listelenir; varsayılan açık, Ayarlar > Özellikler'den kapatılır.
  * Bir hesap bir oyuna bağlanabilir; müşterinin kartında oyunun kapağı görünür.
  */
 return new class extends Migration

@@ -844,3 +844,75 @@ if (gameGrid) {
         if (event.target === dialog) dialog.close();
     });
 }
+
+/* ---------- Yönetim > Oyunlar: ad yazılırken kapaklı öneri ----------
+ * Sunucu Steam mağaza aramasını sorar; öneriye tıklayınca ad ve kapak bağlantısı dolar.
+ * Dikey kapağı olmayan oyunda yatay görsel kullanılır. */
+const gameForm = document.querySelector('[data-game-form]');
+if (gameForm) {
+    const name = gameForm.querySelector('[data-game-name]');
+    const list = gameForm.querySelector('[data-suggest-list]');
+    const cover = document.querySelector('[data-game-cover]');
+    let timer;
+
+    const close = () => { list.hidden = true; name.setAttribute('aria-expanded', 'false'); };
+
+    const render = (items) => {
+        list.replaceChildren();
+        items.forEach((item) => {
+            const li = el('li');
+            const pick = el('button', 'suggest__item');
+            pick.type = 'button';
+            pick.setAttribute('role', 'option');
+            const img = el('img');
+            img.alt = '';
+            img.loading = 'lazy';
+            img.referrerPolicy = 'no-referrer';
+            img.src = item.cover;
+            img.addEventListener('error', () => {
+                if (img.src !== item.wide) { img.src = item.wide; img.classList.add('is-wide'); }
+            }, { once: false });
+            pick.append(img, el('span', 'suggest__name', item.name));
+            pick.addEventListener('click', () => {
+                name.value = item.name;
+                if (cover) cover.value = img.classList.contains('is-wide') ? item.wide : item.cover;
+                cover?.dispatchEvent(new Event('input'));
+                close();
+                name.focus();
+            });
+            li.append(pick);
+            list.append(li);
+        });
+        list.hidden = items.length === 0;
+        name.setAttribute('aria-expanded', String(items.length > 0));
+    };
+
+    name.addEventListener('input', () => {
+        clearTimeout(timer);
+        const term = name.value.trim();
+        if (term.length < 2) { close(); return; }
+        timer = setTimeout(async () => {
+            try {
+                const response = await fetch(`${gameForm.dataset.suggest}?q=${encodeURIComponent(term)}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                const data = await response.json();
+                if (name.value.trim() === term) render(data.items ?? []);
+            } catch {
+                close();
+            }
+        }, 350);
+    });
+    name.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
+    document.addEventListener('click', (event) => { if (!gameForm.contains(event.target)) close(); });
+
+    // Kapak bağlantısının önizlemesi
+    const preview = document.querySelector('[data-cover-preview]');
+    if (cover && preview) {
+        const show = () => {
+            const url = cover.value.trim();
+            preview.hidden = !/^https:\/\//i.test(url);
+            if (!preview.hidden) preview.src = url;
+        };
+        cover.addEventListener('input', show);
+        show();
+    }
+}

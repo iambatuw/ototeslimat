@@ -98,7 +98,11 @@
                             </span>
                             <span class="gcard__body">
                                 <span class="gcard__name">{{ $game->name }}</span>
-                                <span class="gcard__meta">{{ $game->platformLabel() }}</span>
+                                <span class="gcard__meta">
+                                    <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="8" rx="1.5"/><path d="M6 13.5h4M8 11v2.5"/></svg>
+                                    {{ $game->platformLabel() }}
+                                    <svg class="gcard__go" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+                                </span>
                             </span>
                         </button>
                     </li>

@@ -172,7 +172,7 @@
                     <div class="switch-row">
                         <div>
                             <p class="cell-title">Oyun kataloğu</p>
-                            <p class="muted small">Oyun satıyorsan aç: yönetimde <strong>Oyunlar</strong> menüsü ve herkese açık <a href="{{ url('/oyunlar') }}" target="_blank" rel="noopener">{{ url('/oyunlar') }}</a> sayfası gelir. Ziyaretçi oyunları kapaklarıyla görür, platforma göre süzer. Ana sayfanın üst çubuğunda da "Oyunlar" görünür.</p>
+                            <p class="muted small">Açıkken yönetimde <strong>Oyunlar</strong> menüsü ve herkese açık <a href="{{ url('/oyunlar') }}" target="_blank" rel="noopener">{{ url('/oyunlar') }}</a> sayfası var; ana sayfanın üst çubuğunda "Oyunlar" görünür. Oyun satmıyorsan kapat.</p>
                         </div>
                         <input type="hidden" name="games_catalog" value="0">
                         <input type="checkbox" class="switch" name="games_catalog" value="1" aria-label="Oyun kataloğu" @checked($settings['games_catalog'])>

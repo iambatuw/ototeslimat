@@ -8,9 +8,12 @@ use App\Models\Setting;
 use App\Support\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 /** Oyun kataloğu yönetimi: ekle (tek tek ya da liste hâlinde), kapak, öne çıkar, gizle. */
 class GameController extends Controller
@@ -75,6 +78,47 @@ class GameController extends Controller
         $skipped = $names->count() - $created;
 
         return redirect()->route('admin.games.index')->with('status', $created.' oyun eklendi.'.($skipped ? ' '.$skipped.' tanesi zaten vardı.' : '').' Kapakları oyunun "Düzenle" ekranından ekleyebilirsin.');
+    }
+
+    /**
+     * Oyun adı yazılırken kapak önerisi: Steam mağaza aramasından ad ve dikey kapak.
+     * Sonuç bir gün saklanır; Steam'e ulaşılamazsa boş liste döner, satıcı kendi görselini ekler.
+     */
+    public function suggest(Request $request)
+    {
+        $term = trim((string) $request->query('q'));
+
+        if (mb_strlen($term) < 2 || mb_strlen($term) > 80) {
+            return response()->json(['items' => []]);
+        }
+
+        $items = Cache::remember('game-suggest:'.md5(mb_strtolower($term)), now()->addDay(), function () use ($term) {
+            try {
+                $response = Http::timeout(6)->acceptJson()->get('https://store.steampowered.com/api/storesearch/', ['term' => $term, 'l' => 'turkish', 'cc' => 'TR']);
+            } catch (Throwable) {
+                return null;
+            }
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            // DLC, paket, film müziği gibi eklentiler öneriyi kalabalıklaştırmasın.
+            $extra = '/\b(dlc|soundtrack|ost|season pass|bundle|pack|paket|kit|kiti|expansion pass|upgrade|artbook|demo)\b/iu';
+
+            return collect($response->json('items') ?? [])
+                ->where('type', 'app')
+                ->reject(fn ($item) => preg_match($extra, (string) $item['name']))
+                ->take(8)
+                ->map(fn ($item) => [
+                    'name' => trim(preg_replace('/\s+/u', ' ', str_replace(['™', '®', '©'], '', (string) $item['name']))),
+                    'cover' => 'https://cdn.cloudflare.steamstatic.com/steam/apps/'.(int) $item['id'].'/library_600x900.jpg',
+                    'wide' => 'https://cdn.cloudflare.steamstatic.com/steam/apps/'.(int) $item['id'].'/header.jpg',
+                ])
+                ->values()->all();
+        });
+
+        return response()->json(['items' => $items ?? []]);
     }
 
     public function edit(Game $game)

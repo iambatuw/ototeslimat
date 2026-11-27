@@ -65,13 +65,6 @@
 .gdialog[open] { animation: rise var(--dur-long) var(--ease-out) both; }
 html[data-still] .gdialog[open] { animation: none; }
 
-/* ---------- Ana sayfadaki oyun şeridi ---------- */
-.gstrip { list-style: none; margin: 0; padding: 0 0 var(--space-xs); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(9.5rem, 1fr); gap: var(--space-md); overflow-x: auto; scrollbar-width: thin; }
-.gstrip .gcard { text-decoration: none; }
-.gstrip__head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-sm); margin-bottom: var(--space-lg); }
-.gstrip__head h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); font-weight: 800; letter-spacing: -0.03em; }
-.gstrip__head p { color: var(--color-ink-2); }
-
 @media (max-width: 48rem) {
   .gbanner { grid-template-columns: minmax(0, 1fr); padding: var(--space-lg); min-height: 0; }
   .gbanner__art { display: none; }
@@ -82,3 +75,25 @@ html[data-still] .gdialog[open] { animation: none; }
   .gdialog__body { padding: var(--space-lg) var(--space-md); }
 }
 html[data-still] .gcard:hover, html[data-still] .gcard:hover .gcard__cover img { transform: none; }
+
+/* ---------- Kart altı: platform simgesi ve ok ---------- */
+.gcard__meta { display: flex; align-items: center; gap: var(--space-2xs); }
+.gcard__meta svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.gcard__meta .gcard__go { margin-left: auto; width: 15px; height: 15px; transition: transform var(--dur-short) var(--ease-out); }
+.gcard:hover .gcard__go { transform: translate(2px, -2px); color: var(--color-ink); }
+html[data-still] .gcard:hover .gcard__go { transform: none; }
+
+/* ---------- Yönetim: oyun adı önerileri ---------- */
+.suggest { position: relative; }
+.suggest__list { position: absolute; top: calc(100% - var(--space-md)); left: 0; right: 0; z-index: 20; display: grid; gap: 2px; max-height: 22rem; overflow-y: auto; margin: 0; padding: var(--space-2xs); list-style: none; border-radius: 16px; border: var(--rule-hair) solid var(--color-rule-strong); background: #17171c; box-shadow: 0 24px 48px -20px rgb(0 0 0 / 0.9); }
+.suggest__list[hidden] { display: none; }
+.suggest__item { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: var(--space-2xs); border: 0; border-radius: 10px; background: none; color: var(--color-ink); font: inherit; text-align: left; cursor: pointer; }
+.suggest__item:hover, .suggest__item:focus-visible { background: var(--color-row-hover); outline: none; }
+.suggest__item img { width: 36px; height: 54px; flex: none; border-radius: 6px; object-fit: cover; background: var(--color-fill-strong); }
+.suggest__item img.is-wide { width: 72px; height: 34px; }
+.suggest__name { font-weight: 600; }
+.cover-preview { width: 9rem; aspect-ratio: 2 / 3; border-radius: 12px; object-fit: cover; border: var(--rule-hair) solid var(--color-rule); }
+.cover-preview[hidden] { display: none; }
+
+/* Ana sayfa üst çubuğu: Oyunlar telefonda da görünür */
+.bar__games { white-space: nowrap; }

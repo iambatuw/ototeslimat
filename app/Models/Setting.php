@@ -33,7 +33,7 @@ class Setting extends Model
         'low_stock_threshold' => '3',      // satılmamış anahtar bu sayıya düşünce panelde uyarı
         'daily_summary' => '0',            // '1': her sabah yöneticilere özet e-postası
         'respect_reduced_motion' => '0',   // '1': ziyaretçinin sistemi hareketi azalt diyorsa animasyonlar kapalı başlar
-        'games_catalog' => '0',            // '1': herkese açık /oyunlar sayfası ve yönetimde Oyunlar menüsü
+        'games_catalog' => '1',            // '1': herkese açık /oyunlar sayfası ve yönetimde Oyunlar menüsü (Ayarlar'dan kapatılır)
         'right_requests' => '1',           // '1': hakkı dolan müşteri satıcıdan ek hak isteyebilir
         'shared_ip_threshold' => '3',      // bir anahtar 24 saatte bu kadar farklı IP'den kullanılırsa uyarı
         // Bildirimler (Ayarlar > Bildirimler). Telegram anahtarı şifreli saklanır.
