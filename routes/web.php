@@ -33,7 +33,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/anahtar', [HomeController::class, 'redeem'])->middleware('throttle:redeem')->name('redeem');
         Route::post('/kod/{key}/{account}/{type}', [HomeController::class, 'code'])->withTrashed()->middleware('throttle:guard-code')->name('code');
         Route::post('/paket/{key}/sec', [HomeController::class, 'pick'])->middleware('throttle:guard-code')->name('pick');
-        Route::post('/kart/{account}/ad', [HomeController::class, 'label'])->withTrashed()->middleware('throttle:30,1')->name('label');
         Route::post('/hak-iste/{key}/{account}', [HomeController::class, 'requestRight'])->middleware('throttle:6,1')->name('rights.request');
     });
 

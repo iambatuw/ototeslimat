@@ -1,26 +1,30 @@
 {{--
     Kütüphanedeki hesap kartı: üstte görsel (oyunun yatay kapağı, dikey kapak sığdırılmış ya da
-    platform renginde platform logosu), altında ad, ne zaman
-    eklendiği, kalan hak ve tek büyük kod düğmesi. Kod kartın içinde açılır. Not, bilgiler, son kodlar,
-    mail yardımı ve "Ad ver" kapalı "Ayrıntılar" kutusunda.
+    platform renginde platform logosu), altında ad, ne zaman eklendiği, kalan hak ve kod düğmesi
+    (iki kod türü varsa yan yana). Kod kartın içinde açılır. Not, bilgiler, son kodlar ve mail yardımı
+    kapalı "Ayrıntılar" kutusunda. Ad satıcınındır (oyuna bağlıysa oyunun adı); müşteri değiştiremez.
     $row (App\Support\Wallet satırı), $picked (adresle ya da yeni eklenerek seçildi mi), $history, $asked, $contact
 --}}
 @php
     $account = $row['account'];
-    $label = $row['label'];
-    $cover = $account->game?->coverUrl();
-    $wide = $account->game?->wideUrl();
+    $game = $account->game;
+    $cover = $game?->coverUrl();
+    $wide = $game?->wideUrl();
     $logo = $cover ? null : $account->platformLogo();
     $steam = $account->isSteamGuard() || $account->platform === 'steam';
     $totpName = $steam ? 'Steam Guard' : '2FA';
     $sources = $row['blocked'] ? [] : array_values(array_filter([$account->hasMailbox() ? 'mail' : null, $account->hasTotp() ? '2fa' : null]));
-    $search = mb_strtolower(implode(' ', array_filter([$row['title'], $label, $row['platformLabel'], $row['package']])));
-    // Hesap adı platformu zaten söylüyorsa ("Steam · CS2 Prime") platform tekrar yazılmaz.
+    $two = count($sources) > 1;
+    // Kartın adı satıcının verdiği addır; hesap bir oyuna bağlıysa oyunun adı.
+    $name = $game?->name ?? $row['title'];
+    // Alt satır: platform ve (ad oyunun adıysa) satıcının hesap adı; hesap adı platformla başlıyorsa platform tekrar yazılmaz.
+    $titleHasPlatform = str_starts_with(mb_strtolower($row['title']), mb_strtolower($row['platformLabel']));
     $sub = implode(' · ', array_filter([
-        $label && str_starts_with(mb_strtolower($row['title']), mb_strtolower($row['platformLabel'])) ? null : $row['platformLabel'],
-        $label ? $row['title'] : null,
+        $name !== $row['title'] && $titleHasPlatform ? null : $row['platformLabel'],
+        $name !== $row['title'] ? $row['title'] : null,
         $row['package'] ? 'Paket: '.$row['package'] : null,
     ]));
+    $search = mb_strtolower(implode(' ', array_filter([$name, $row['title'], $row['platformLabel'], $row['package']])));
 @endphp
 <li @class(['gcard', 'is-picked' => $picked, 'is-off' => $row['blocked']]) data-row="{{ $row['id'] }}" data-platform="{{ $row['platform'] }}" data-search="{{ $search }}">
     <article class="gcard__in" id="hesap-{{ $row['id'] }}" data-hero="{{ $row['id'] }}" data-p="{{ $row['platform'] }}"
@@ -43,7 +47,7 @@
         </div>
 
         <div class="gcard__body">
-            <h2 class="gcard__name" id="gc-title-{{ $row['id'] }}"><span data-label-text="{{ $account->id }}">{{ $label ?? $row['title'] }}</span></h2>
+            <h2 class="gcard__name" id="gc-title-{{ $row['id'] }}">{{ $name }}</h2>
             <p class="gcard__sub">{{ $sub }}</p>
             <p class="gcard__date">Eklendi: {{ $row['key']->redeemed_at?->format('d.m.Y') }}@if ($row['last']) · Son kod {{ $row['last']->diffForHumans() }}@endif</p>
 
@@ -52,14 +56,15 @@
             @endif
 
             @if ($sources)
-                <div class="gcard__actions">
+                {{-- İki kod türü varsa düğmeler yan yana ve kısa adlı: kartların boyu eşit kalır. --}}
+                <div @class(['gcard__actions', 'gcard__actions--two' => $two])>
                     @if (in_array('mail', $sources, true))
                         <button type="button" class="gcard__btn" data-get-code data-url="{{ route('code', [$row['key'], $account, 'mail']) }}" data-length="{{ $account->codeLength('mail') }}"
-                            data-idle="Mail kodunu getir" data-again="Yeni mail kodu" data-retry="Mail kodunu tekrar dene">Mail kodunu getir</button>
+                            data-idle="{{ $two ? 'Mail kodu' : 'Mail kodunu getir' }}" data-again="Yeni mail kodu" data-retry="Tekrar dene">{{ $two ? 'Mail kodu' : 'Mail kodunu getir' }}</button>
                     @endif
                     @if (in_array('2fa', $sources, true))
-                        <button type="button" @class(['gcard__btn', 'gcard__btn--alt' => count($sources) > 1]) data-get-code data-url="{{ route('code', [$row['key'], $account, '2fa']) }}" data-length="{{ $account->codeLength('2fa') }}"
-                            data-idle="{{ $totpName }} kodunu göster" data-again="Yeni {{ $totpName }} kodu" data-retry="{{ $totpName }} kodunu tekrar dene">{{ $totpName }} kodunu göster</button>
+                        <button type="button" @class(['gcard__btn', 'gcard__btn--alt' => $two]) data-get-code data-url="{{ route('code', [$row['key'], $account, '2fa']) }}" data-length="{{ $account->codeLength('2fa') }}"
+                            data-idle="{{ $two ? $totpName.' kodu' : $totpName.' kodunu göster' }}" data-again="Yeni {{ $totpName }} kodu" data-retry="Tekrar dene">{{ $two ? $totpName.' kodu' : $totpName.' kodunu göster' }}</button>
                     @endif
                 </div>
                 <div class="code" hidden></div>
@@ -99,14 +104,6 @@
                             </ol>
                         </section>
                     @endif
-                    <form method="POST" action="{{ route('label', $account) }}" class="gcard__rename" data-label-form>
-                        @csrf
-                        <label for="label-{{ $row['id'] }}">Bu hesap için kendi adın</label>
-                        <div class="gcard__rename-row">
-                            <input id="label-{{ $row['id'] }}" name="label" type="text" class="input" value="{{ $label }}" maxlength="40" placeholder="Örn. Ana hesap, Kardeşimin" autocomplete="off">
-                            <button type="submit" class="btn btn--secondary btn--s">Kaydet</button>
-                        </div>
-                    </form>
                 </div>
             </details>
         </div>

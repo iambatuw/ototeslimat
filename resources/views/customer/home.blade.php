@@ -54,7 +54,7 @@
                             <div class="after__art" aria-hidden="true">
                                 <span class="after__strips"><i data-p="steam"></i><i data-p="steam"></i><i data-p="netflix"></i></span>
                             </div>
-                            <div><h3>Hesapların platforma göre dizilir</h3><p>Aynı platformdan birkaç hesabın varsa (örneğin 3 Steam) bir rafta toplanır; her birine kendi adını verebilirsin.</p></div>
+                            <div><h3>Hesapların kütüphanende dizilir</h3><p>Her hesap kendi kapağıyla bir kart olur; birkaç hesabın varsa platforma göre süzebilirsin.</p></div>
                         </li>
                         <li>
                             <div class="after__art" aria-hidden="true"><span class="after__cells"><i>5</i><i>8</i><i>2</i><i>1</i></span></div>

@@ -8,6 +8,7 @@ use App\Models\ProductKey;
 use App\Models\User;
 use App\Support\KeyCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /** Kodlarım: aynı platformdan birkaç hesap, müşterinin verdiği ad, son kullanılan önde. */
@@ -53,23 +54,13 @@ class WalletTest extends TestCase
         $this->assertSame($first->id, (int) $m[1][1]);
     }
 
-    public function test_customer_names_an_account_and_sees_it(): void
+    public function test_card_shows_seller_title_not_customer_label(): void
     {
         $account = $this->give('steam', 'CS2 Prime 1');
+        DB::table('account_labels')->insert(['user_id' => $this->customer->id, 'account_id' => $account->id, 'label' => 'Benim adım', 'created_at' => now(), 'updated_at' => now()]);
 
-        $this->actingAs($this->customer)->postJson("/kart/{$account->id}/ad", ['label' => '  Ana   hesap '])->assertOk()->assertJson(['label' => 'Ana hesap']);
-        $this->actingAs($this->customer)->get('/kodlarim')->assertSee('Ana hesap');
-
-        $this->actingAs($this->customer)->postJson("/kart/{$account->id}/ad", ['label' => ''])->assertOk();
-        $this->assertDatabaseMissing('account_labels', ['account_id' => $account->id]);
-    }
-
-    public function test_customer_cannot_name_someone_elses_account(): void
-    {
-        $other = Account::create(['platform' => 'steam', 'title' => 'Başkasının', 'totp_secret' => 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ']);
-
-        $this->actingAs($this->customer)->postJson("/kart/{$other->id}/ad", ['label' => 'Benim'])->assertNotFound();
-        $this->actingAs($this->customer)->postJson("/kart/{$this->give('steam', 'X')->id}/ad", ['label' => str_repeat('a', 41)])->assertStatus(422);
+        $this->actingAs($this->customer)->get('/kodlarim')->assertSee('CS2 Prime 1')->assertDontSee('Benim adım')->assertDontSee('Bu hesap için kendi adın');
+        $this->actingAs($this->customer)->postJson("/kart/{$account->id}/ad", ['label' => 'X'])->assertNotFound();
     }
 
     public function test_selected_account_opens_without_javascript(): void

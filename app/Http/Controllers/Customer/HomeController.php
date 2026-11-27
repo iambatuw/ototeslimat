@@ -51,7 +51,7 @@ class HomeController extends Controller
 
         $pending = \App\Models\RightRequest::where('user_id', $user->id)->where('status', 'pending')->pluck('product_key_id')->all();
 
-        return view('customer.home', Wallet::build($keys, $user->accountLabels(), $lastCodes, session('opened'), $selected) + ['history' => $history, 'pendingRequests' => $pending]);
+        return view('customer.home', Wallet::build($keys, [], $lastCodes, session('opened'), $selected) + ['history' => $history, 'pendingRequests' => $pending]);
     }
 
     public function redeem(Request $request)
@@ -99,34 +99,6 @@ class HomeController extends Controller
             : $key->account->title.' hesabına eklendi. Kodunu aşağıdan alabilirsin.';
 
         return redirect()->route('home')->with('status', $message)->with('opened', $key->id);
-    }
-
-    /**
-     * Müşteri bir hesaba kendi adını verir ya da adı siler. Aynı platformdan birkaç
-     * hesabı olan müşteri (örneğin üç Steam) kartlarını bu adla ayırır.
-     */
-    public function label(Request $request, Account $account)
-    {
-        $user = $request->user();
-        abort_unless($user->canUseAccount($account), 404);
-
-        $data = $request->validate(['label' => ['nullable', 'string', 'max:40']], [], ['label' => 'ad']);
-        $label = trim(preg_replace('/\s+/u', ' ', (string) ($data['label'] ?? '')));
-
-        if ($label === '') {
-            DB::table('account_labels')->where(['user_id' => $user->id, 'account_id' => $account->id])->delete();
-        } else {
-            DB::table('account_labels')->updateOrInsert(
-                ['user_id' => $user->id, 'account_id' => $account->id],
-                ['label' => $label, 'updated_at' => now(), 'created_at' => now()],
-            );
-        }
-
-        if ($request->expectsJson()) {
-            return response()->json(['label' => $label]);
-        }
-
-        return back()->with('status', $label === '' ? 'Kartın adı kaldırıldı.' : 'Kartın adı kaydedildi.');
     }
 
     /** Hakkı dolan müşteri satıcıdan ek kod hakkı ister. Anahtar başına bekleyen tek istek olur. */

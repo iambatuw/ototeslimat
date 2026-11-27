@@ -436,30 +436,6 @@ if (shelves) {
     }));
 }
 
-/* Hesaba kendi adını ver: sayfa yenilenmeden kaydedilir, adın göründüğü her yer güncellenir. */
-document.querySelectorAll('[data-label-form]').forEach((form) => {
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const button = form.querySelector('[type="submit"]');
-        button.disabled = true;
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
-                body: new FormData(form),
-                credentials: 'same-origin',
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.message ?? 'Ad kaydedilemedi.');
-            // Ad değişince satır alt yazısı ve aranan metin de değişir; en sağlam yol sayfayı tazelemek.
-            window.location.reload();
-        } catch (error) {
-            button.disabled = false;
-            window.alert(error.message);
-        }
-    });
-});
-
 document.querySelectorAll('[data-game]').forEach((root) => {
     new CodePanel(root);
     if (root.dataset.open === 'true') root.scrollIntoView({ block: 'center', behavior: still() ? 'auto' : 'smooth' });
