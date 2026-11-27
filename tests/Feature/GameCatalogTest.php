@@ -43,16 +43,26 @@ class GameCatalogTest extends TestCase
 
     public function test_suggestions_come_from_steam_search(): void
     {
-        \Illuminate\Support\Facades\Http::fake(['store.steampowered.com/*' => \Illuminate\Support\Facades\Http::response(['items' => [
-            ['type' => 'app', 'name' => 'Battlefield™ 1', 'id' => 1238840],
-            ['type' => 'sub', 'name' => 'Paket', 'id' => 5],
-        ]])]);
+        \Illuminate\Support\Facades\Http::preventStrayRequests();
+        \Illuminate\Support\Facades\Http::fake(['api.steampowered.com/*' => \Illuminate\Support\Facades\Http::response(['response' => ['store_items' => [
+            // Yeni oyun: dikey kapak karma kodlu klasörde
+            ['success' => 1, 'name' => 'Call of Duty®: Modern Warfare® 4', 'assets' => [
+                'asset_url_format' => 'steam/apps/4435490/${FILENAME}?t=1',
+                'library_capsule' => 'c71b/library_capsule.jpg',
+                'header' => '0c49/header.jpg',
+            ]],
+            // Eski oyun: dikey kapak yok, yatay görsel kullanılır
+            ['success' => 1, 'name' => 'Battlefield™ 1', 'assets' => ['asset_url_format' => 'steam/apps/1238840/${FILENAME}?t=2', 'header' => 'header.jpg']],
+            ['success' => 1, 'name' => 'Battlefield 1 Soundtrack', 'assets' => ['asset_url_format' => 'steam/apps/9/${FILENAME}', 'header' => 'header.jpg']],
+        ]]])]);
 
         $this->actingAs($this->admin())->getJson(route('admin.games.suggest', ['q' => 'battlefield 1']))
             ->assertOk()
-            ->assertJsonCount(1, 'items')
-            ->assertJsonPath('items.0.name', 'Battlefield 1')
-            ->assertJsonPath('items.0.cover', 'https://cdn.cloudflare.steamstatic.com/steam/apps/1238840/library_600x900.jpg');
+            ->assertJsonCount(2, 'items')
+            ->assertJsonPath('items.0.name', 'Call of Duty: Modern Warfare 4')
+            ->assertJsonPath('items.0.cover', 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4435490/c71b/library_capsule.jpg?t=1')
+            ->assertJsonPath('items.1.cover', null)
+            ->assertJsonPath('items.1.wide', 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1238840/header.jpg?t=2');
 
         $this->actingAs($this->admin())->getJson(route('admin.games.suggest', ['q' => 'b']))->assertJsonCount(0, 'items');
         $this->actingAs(User::factory()->create())->getJson(route('admin.games.suggest', ['q' => 'battlefield']))->assertForbidden();

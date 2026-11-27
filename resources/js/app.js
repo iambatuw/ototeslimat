@@ -846,17 +846,22 @@ if (gameGrid) {
 }
 
 /* ---------- Yönetim > Oyunlar: ad yazılırken kapaklı öneri ----------
- * İlk iki harften itibaren yazdıkça arar ("grand" yazınca GTA çıkar). Eski istek iptal edilir,
- * arama sürerken önceki sonuçlar yerinde kalır ve "Aranıyor" görünür. Ok tuşları ve Enter ile
- * seçilir; seçince ad ve kapak bağlantısı dolar. Dikey kapağı olmayan oyunda yatay görsel kullanılır. */
+ * İlk iki harften itibaren arar ("grand" yazınca GTA çıkar). Aynı anda tek istek gider; istek
+ * sürerken yazılan son kelime ardından sorulur. Beklerken eldeki sonuçlar yeni harfe göre
+ * hemen süzülür. Ok tuşları ve Enter ile seçilir; seçince ad ve kapak bağlantısı dolar.
+ * Dikey kapak yoksa ya da açılmazsa yatay görsel kullanılır. */
 const gameForm = document.querySelector('[data-game-form]');
 if (gameForm) {
     const name = gameForm.querySelector('[data-game-name]');
     const list = gameForm.querySelector('[data-suggest-list]');
     const cover = document.querySelector('[data-game-cover]');
     const seen = new Map(); // aynı kelimeyi ikinci kez sunucuya sormaz
+    const fold = (text) => text.toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
+    const current = () => name.value.trim().toLocaleLowerCase('tr');
     let timer;
-    let pending;
+    let busy = false;
+    let queued = null;
+    let shown = [];
     let active = -1;
 
     name.setAttribute('role', 'combobox');
@@ -879,18 +884,21 @@ if (gameForm) {
     const choose = (item, img) => {
         name.value = item.name;
         if (cover) {
-            cover.value = img?.classList.contains('is-wide') ? item.wide : item.cover;
+            cover.value = img?.src || item.cover || item.wide || '';
             cover.dispatchEvent(new Event('input'));
         }
         close();
         name.focus();
     };
 
-    const render = (items, term) => {
+    // Sunucu 25 sonuç verir; listede en fazla 8 görünür, kalanlar sonraki harflerde süzülmek için durur.
+    const render = (items, label, keep = items) => {
+        shown = keep;
+        items = items.slice(0, 8);
         list.replaceChildren();
         active = -1;
         if (!items.length) {
-            status(`"${term}" için öneri yok. Kendi kapağını yükleyebilirsin.`);
+            status(`"${label}" için öneri yok. Kendi kapağını yükleyebilirsin.`);
             return;
         }
         items.forEach((item) => {
@@ -902,13 +910,19 @@ if (gameForm) {
             const img = el('img');
             img.alt = '';
             img.referrerPolicy = 'no-referrer';
-            img.src = item.cover;
+            if (!item.cover) img.classList.add('is-wide');
+            img.src = item.cover || item.wide;
             img.addEventListener('error', () => {
-                if (!img.classList.contains('is-wide')) { img.classList.add('is-wide'); img.src = item.wide; }
+                if (!img.classList.contains('is-wide') && item.wide) {
+                    img.classList.add('is-wide');
+                    img.src = item.wide;
+                } else {
+                    img.remove();
+                }
             });
             pick.append(img, el('span', 'suggest__name', item.name));
             pick.addEventListener('mousedown', (event) => event.preventDefault()); // alan odağını kaybetmesin
-            pick.addEventListener('click', () => choose(item, img));
+            pick.addEventListener('click', () => choose(item, img.isConnected ? img : null));
             li.append(pick);
             list.append(li);
         });
@@ -916,32 +930,39 @@ if (gameForm) {
     };
 
     const search = async (term) => {
-        if (seen.has(term)) { render(seen.get(term), term); return; }
-        pending?.abort();
-        pending = new AbortController();
-        status('Aranıyor');
+        if (seen.has(term)) { render(seen.get(term), name.value.trim()); return; }
+        if (busy) { queued = term; return; }
+        busy = true;
+        if (!shown.length) status('Aranıyor');
         try {
             const response = await fetch(`${gameForm.dataset.suggest}?q=${encodeURIComponent(term)}`, {
-                headers: { Accept: 'application/json' }, credentials: 'same-origin', signal: pending.signal,
+                headers: { Accept: 'application/json' }, credentials: 'same-origin',
             });
             const data = await response.json();
-            const items = data.items ?? [];
-            seen.set(term, items);
-            if (name.value.trim().toLocaleLowerCase('tr') === term) render(items, name.value.trim());
-        } catch (error) {
-            if (error.name !== 'AbortError') status('Öneriler şu an alınamadı. Kendi kapağını yükleyebilirsin.');
+            seen.set(term, data.items ?? []);
+            if (current() === term) render(seen.get(term), name.value.trim());
+        } catch {
+            if (current() === term) status('Öneriler şu an alınamadı. Kendi kapağını yükleyebilirsin.');
+        } finally {
+            busy = false;
+            const next = queued;
+            queued = null;
+            if (next && next === current() && next !== term) search(next);
         }
     };
 
     name.addEventListener('input', () => {
         clearTimeout(timer);
-        const term = name.value.trim().toLocaleLowerCase('tr');
-        if (term.length < 2) { pending?.abort(); close(); return; }
-        timer = setTimeout(() => search(term), 160);
+        const term = current();
+        if (term.length < 2) { queued = null; shown = []; close(); return; }
+        const words = fold(term).split(/\s+/).filter(Boolean);
+        const kept = shown.filter((item) => words.every((word) => fold(item.name).includes(word)));
+        if (kept.length && !seen.has(term)) render(kept, name.value.trim(), shown);
+        timer = setTimeout(() => search(term), 120);
     });
 
     name.addEventListener('focus', () => {
-        const term = name.value.trim().toLocaleLowerCase('tr');
+        const term = current();
         if (term.length >= 2 && seen.has(term)) render(seen.get(term), name.value.trim());
     });
 
@@ -961,9 +982,10 @@ if (gameForm) {
     });
     document.addEventListener('click', (event) => { if (!gameForm.contains(event.target)) close(); });
 
-    // Kapak bağlantısının önizlemesi
+    // Kapak bağlantısının önizlemesi; görsel açılmazsa gizlenir.
     const preview = document.querySelector('[data-cover-preview]');
     if (cover && preview) {
+        preview.addEventListener('error', () => { preview.hidden = true; });
         const show = () => {
             const url = cover.value.trim();
             preview.hidden = !/^https:\/\//i.test(url);

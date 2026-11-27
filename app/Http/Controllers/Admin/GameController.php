@@ -92,9 +92,21 @@ class GameController extends Controller
             return response()->json(['items' => []]);
         }
 
-        $items = Cache::remember('game-suggest:'.md5(mb_strtolower($term)), now()->addDay(), function () use ($term) {
+        $items = Cache::remember('game-suggest:v3:'.md5(mb_strtolower($term)), now()->addDay(), function () use ($term) {
+            // Steam mağazasının kendi arama kutusunun kullandığı servis: tek istekte yalnızca oyunlar
+            // ve görsellerin gerçek adresleri gelir (yeni oyunlarda dosya adı karma kodla saklanır).
+            $query = [
+                'search_term' => $term,
+                'max_results' => 25, // geniş liste: satıcı yazmaya devam ederken tarayıcıda süzülür
+                'context' => ['language' => 'turkish', 'country_code' => 'TR'],
+                'data_request' => ['include_assets' => true],
+                'filters' => ['type_filters' => ['include_games' => true]],
+            ];
+
             try {
-                $response = Http::timeout(6)->acceptJson()->get('https://store.steampowered.com/api/storesearch/', ['term' => $term, 'l' => 'turkish', 'cc' => 'TR']);
+                $response = Http::timeout(5)->acceptJson()->get('https://api.steampowered.com/IStoreQueryService/SearchSuggestions/v1/', [
+                    'input_json' => json_encode($query, JSON_UNESCAPED_UNICODE),
+                ]);
             } catch (Throwable) {
                 return null;
             }
@@ -103,18 +115,27 @@ class GameController extends Controller
                 return null;
             }
 
-            // DLC, paket, film müziği gibi eklentiler öneriyi kalabalıklaştırmasın.
+            // Demo, film müziği gibi eklentiler öneriyi kalabalıklaştırmasın.
             $extra = '/\b(dlc|soundtrack|ost|season pass|bundle|pack|paket|kit|kiti|expansion pass|upgrade|artbook|demo)\b/iu';
 
-            return collect($response->json('items') ?? [])
-                ->where('type', 'app')
+            return collect($response->json('response.store_items') ?? [])
+                ->filter(fn ($item) => ($item['success'] ?? 1) === 1 && filled($item['name'] ?? null))
                 ->reject(fn ($item) => preg_match($extra, (string) $item['name']))
-                ->take(8)
-                ->map(fn ($item) => [
-                    'name' => trim(preg_replace('/\s+/u', ' ', str_replace(['™', '®', '©'], '', (string) $item['name']))),
-                    'cover' => 'https://cdn.cloudflare.steamstatic.com/steam/apps/'.(int) $item['id'].'/library_600x900.jpg',
-                    'wide' => 'https://cdn.cloudflare.steamstatic.com/steam/apps/'.(int) $item['id'].'/header.jpg',
-                ])
+                ->take(25)
+                ->map(function ($item) {
+                    $assets = $item['assets'] ?? [];
+                    $url = fn (?string $file) => $file && isset($assets['asset_url_format'])
+                        ? 'https://shared.akamai.steamstatic.com/store_item_assets/'.str_replace('${FILENAME}', $file, $assets['asset_url_format'])
+                        : null;
+                    $wide = $url($assets['header'] ?? null) ?? $url($assets['main_capsule'] ?? null) ?? $url($assets['small_capsule'] ?? null);
+
+                    return [
+                        'name' => trim(preg_replace('/\s+/u', ' ', str_replace(['™', '®', '©'], '', (string) $item['name']))),
+                        'cover' => $url($assets['library_capsule'] ?? null),  // dikey 600×900, yoksa null
+                        'wide' => $wide,                                    // yatay yedek
+                    ];
+                })
+                ->filter(fn ($item) => $item['cover'] || $item['wide'])
                 ->values()->all();
         });
 
