@@ -106,6 +106,7 @@ class Wallet
             'package' => $package,
             'status' => $rules['status'],
             'meta' => $rules['meta'],
+            'facts' => $rules['facts'],
             'blocked' => $blocked ?? ($down ? 'Şu an kod verilmiyor' : null),
         ];
     }
@@ -127,6 +128,15 @@ class Wallet
                 $daysLeft !== null => $daysLeft.' gün kaldı',
                 default => 'Sınırsız',
             },
+            // Ayrıntı panelindeki kutucuklar: [başlık, değer, ek bilgi]
+            'facts' => array_values(array_filter([
+                // Dönem kuralı varsa ve toplam sınır yoksa "Bu dönem" kutusu yeter.
+                $key->max_uses !== null || ! $key->period_limit ? ['Kod hakkı', $key->max_uses !== null ? $key->usesLeft().' kaldı' : 'Sınırsız', $key->max_uses !== null ? $key->uses_count.' / '.$key->max_uses.' kullanıldı' : null] : null,
+                $key->period_limit ? ['Bu dönem', ($periodLeft + $key->bonus_uses).' kod hakkın var', $resets ? 'Yeni hak '.$resets->format('d.m H:i') : 'Kural: '.$key->periodLabel()] : null,
+                ['Geçerlilik', $key->expires_at ? $key->expires_at->format('d.m.Y') : 'Süresiz', $daysLeft !== null ? ($daysLeft <= 0 ? 'Bugün bitiyor' : $daysLeft.' gün kaldı') : null],
+                $key->bonus_uses ? ['Ek hak', $key->bonus_uses.' kod', 'Satıcıdan'] : null,
+                $key->cooldown_minutes ? ['Bekleme', $key->cooldown_minutes.' dk', 'Kodlar arası'] : null,
+            ])),
             'meta' => array_values(array_filter([
                 $key->max_uses ? $key->usesLeft().' kod hakkı' : ($key->period_limit ? null : 'Sınırsız kod'),
                 $key->periodLabel() ? $key->periodLabel().($resets ? ' · yeni hak '.$resets->format('d.m H:i') : ' · bu dönem '.$periodLeft.' hakkın var') : null,

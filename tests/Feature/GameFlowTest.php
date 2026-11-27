@@ -83,7 +83,7 @@ class GameFlowTest extends TestCase
         $account = Account::create(['platform' => 'steam', 'title' => 'Steam', 'totp_secret' => 'steam:'.base64_encode('12345678901234567890')]);
         [$key, $customer] = $this->redeem($account);
 
-        $this->actingAs($customer)->get('/kodlarim')->assertOk()->assertSee('Steam Guard kodunu al')->assertSee('data-length="5"', false);
+        $this->actingAs($customer)->get('/kodlarim')->assertOk()->assertSee('Steam Guard kodunu göster')->assertSee('data-length="5"', false);
 
         $response = $this->actingAs($customer)->postJson("/kod/{$key->id}/{$account->id}/2fa")->assertOk();
         $this->assertMatchesRegularExpression('/^[23456789BCDFGHJKMNPQRTVWXY]{5}$/', $response->json('code'));

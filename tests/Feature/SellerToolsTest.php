@@ -157,7 +157,7 @@ class SellerToolsTest extends TestCase
 
         $this->actingAs($customer)->get('/kodlarim')->assertOk()
             ->assertSee('Profil seçerken 2. profili kullan.')
-            ->assertSee('Son kodların (1)');
+            ->assertSee('Son kodların');
     }
 
     public function test_shared_key_is_flagged_after_many_ips(): void

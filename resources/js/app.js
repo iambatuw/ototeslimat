@@ -227,7 +227,7 @@ class CodePanel {
                 if (run !== this.run) return; // müşteri durdurdu ya da başka kod istedi
                 if (ok) {
                     this.show(data);
-                    button.dataset.idleNow = 'Yeni kod al';
+                    button.dataset.idleNow = button.dataset.again ?? 'Yeni kod al';
                     return;
                 }
                 if (!data.retry || attempt === this.pollMax) {
@@ -242,7 +242,7 @@ class CodePanel {
         } catch (error) {
             if (run !== this.run) return;
             this.fail(error.message, error.data);
-            button.dataset.idleNow = 'Tekrar dene';
+            button.dataset.idleNow = button.dataset.retry ?? 'Tekrar dene';
         } finally {
             if (run === this.run) this.busy(button, false);
         }
@@ -258,8 +258,8 @@ class CodePanel {
             this.run++;
             this.busy(button, false);
             this.fail('Bekleme durduruldu. Kodu platformda istedikten sonra yeniden dene.');
-            button.dataset.idleNow = 'Tekrar dene';
-            button.textContent = 'Tekrar dene';
+            button.dataset.idleNow = button.dataset.retry ?? 'Tekrar dene';
+            button.textContent = button.dataset.idleNow;
         });
         const note = el('p', 'code__note', `Henüz kod maili yok. Platformda giriş yapıp kodu iste; gelince burada kendiliğinden görünür. En fazla ${left} saniye daha bakılacak.`);
         note.setAttribute('aria-live', 'polite');
@@ -383,13 +383,13 @@ class CodePanel {
     }
 }
 
-/* ---------- Müşteri: Kodlarım ----------
- * Raftaki "Kod al" sayfayı yenilemeden o hesabı üstteki büyük karta getirir; hesabın tek
- * kod türü varsa kodu da hemen ister. JS yoksa bağlantı ?hesap= ile aynı şeyi sunucuda yapar. */
+/* ---------- Müşteri: Kodlarım (kod masası) ----------
+ * Listedeki hesaba dokununca o hesabın ayrıntısı açılır; sayfa yenilenmez, adres ?hesap= ile
+ * güncellenir. Kod kendiliğinden istenmez (günlük hak yanlışlıkla harcanmasın); düğmeye odaklanılır.
+ * JS yoksa bağlantı ?hesap= ile aynı şeyi sunucuda yapar. */
 const heroes = document.querySelector('[data-heroes]');
 if (heroes) {
-    const heroLabel = heroes.querySelector('[data-hero-label]');
-    const show = (id, { fetchCode = false } = {}) => {
+    const show = (id) => {
         const next = heroes.querySelector(`[data-hero="${id}"]`);
         if (!next) return false;
         const current = heroes.querySelector('[data-hero]:not([hidden])');
@@ -399,28 +399,26 @@ if (heroes) {
             next.classList.remove('is-swapping');
             void next.offsetWidth; // animasyonu yeniden başlat
             next.classList.add('is-swapping');
-            heroLabel.textContent = 'Seçtiğin hesap';
             document.querySelectorAll('[data-row]').forEach((row) => {
                 const active = row.dataset.row === id;
                 row.classList.toggle('is-active', active);
-                const last = row.querySelector('.arow__last');
-                if (!last) return;
-                if (active) last.replaceChildren(el('span', 'arow__here', 'Yukarıda açık'));
-                else last.textContent = last.dataset.last;
+                const link = row.querySelector('[data-show]');
+                if (active) link?.setAttribute('aria-current', 'true');
+                else link?.removeAttribute('aria-current');
             });
             history.replaceState(null, '', `?hesap=${encodeURIComponent(id)}`);
         }
-        next.scrollIntoView({ block: 'start', behavior: still() ? 'auto' : 'smooth' });
-        const buttons = next.querySelectorAll('[data-get-code]');
-        if (fetchCode && buttons.length === 1) buttons[0].click();
-        else buttons[0]?.focus({ preventScroll: true });
+        // Telefonda ayrıntı listenin üstünde: görünmüyorsa oraya kaydır. Bilgisayarda zaten yanda.
+        const top = next.getBoundingClientRect().top;
+        if (top < 0 || top > window.innerHeight * 0.6) next.scrollIntoView({ block: 'start', behavior: still() ? 'auto' : 'smooth' });
+        next.querySelector('[data-get-code]')?.focus({ preventScroll: true });
         return true;
     };
 
     document.addEventListener('click', (event) => {
         const go = event.target.closest('[data-show]');
         if (!go) return;
-        if (show(go.dataset.show, { fetchCode: true })) event.preventDefault();
+        if (show(go.dataset.show)) event.preventDefault();
     });
 }
 

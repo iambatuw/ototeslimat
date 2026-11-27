@@ -1,7 +1,6 @@
 {{--
-    Kodlarım. Üstte en son kullandığın (ya da seçtiğin) hesap büyük kart olarak kodu hazır bekler;
-    altında arama ve platform hapları, sonra raflar: aynı platformdan birden çok hesap kendi rafında
-    ("Steam · 3 hesap"), tek hesaplı platformlar "Diğer hesapların" rafında. Veri: App\Support\Wallet.
+    Kodlarım. Boşsa ilk anahtar formu; doluysa kod masası: solda hesaplar (aynı platformdan birden
+    çok hesap kendi grubunda), sağda seçili hesabın ayrıntısı ve kod sahnesi. Veri: App\Support\Wallet.
 --}}
 @php
     use App\Models\Setting;
@@ -67,90 +66,94 @@
             </aside>
         </div>
     @else
-        <div class="wallet">
-            <section class="wallet__main" aria-labelledby="wallet-title">
-                <header class="wallet__head">
-                    <h1 id="wallet-title">Kodların</h1>
-                    <p>{{ $rows->count() }} hesap. Platform kod sorduğunda üstteki karttan al; başka hesap için raftan "Kod al"a bas.</p>
-                </header>
+        {{--
+            Kod masası: solda hesapların (arama, platform grupları), sağda seçili hesabın ayrıntısı.
+            Kod, ayrıntının en üstündeki sahnede alınır. Telefonda ayrıntı üstte, liste altta.
+        --}}
+        <div class="desk">
+            <header class="desk__head">
+                <div>
+                    <h1>Kodlarım</h1>
+                    <p>{{ $rows->count() }} hesap. Platform kod istediğinde hesabı seç, düğmeye bas.</p>
+                </div>
+                <details class="addkey" @if ($errors->has('key')) open @endif>
+                    <summary class="btn btn--secondary">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        Anahtar ekle
+                    </summary>
+                    <form method="POST" action="{{ route('redeem') }}" class="addkey__form glass" data-busy novalidate>
+                        @csrf
+                        <label for="key" class="addkey__title">Yeni anahtar</label>
+                        <p class="addkey__lead">Siparişinle gelen anahtarı yapıştır. Tire ve boşluk yazmasan da olur.</p>
+                        <div class="addkey__row">
+                            <input id="key" name="key" type="text" class="input input--key" value="{{ old('key') }}"
+                                placeholder="{{ config('guard.key_prefix') }}-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters"
+                                spellcheck="false" maxlength="64" required data-key-input aria-describedby="key-error"
+                                @error('key') aria-invalid="true" @enderror>
+                            <button type="submit" class="btn btn--primary" data-busy-text="Ekleniyor">Ekle</button>
+                        </div>
+                        <p id="key-error" class="error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
+                    </form>
+                </details>
+            </header>
 
-                @if ($hero)
-                    <div class="heroes" data-heroes>
-                        <p class="heroes__label" data-hero-label>{{ $hero['last'] ? 'Son kullandığın' : 'Hazır' }}</p>
+            {{-- Paketten seçim hakkı varsa önce o: seçilmeden kod alınamaz. --}}
+            @foreach ($picks as $pick)
+                @include('customer.partials.pick', ['pick' => $pick])
+            @endforeach
+
+            @if ($rows->isNotEmpty())
+                <div class="desk__body">
+                    <section class="desk__detail" data-heroes aria-label="Seçili hesap">
                         @foreach ($rows->reject(fn ($r) => $r['blocked']) as $row)
-                            @include('customer.partials.hero', ['row' => $row, 'active' => $row['id'] === $heroId, 'history' => $history->get($row['account']->id, collect()), 'asked' => in_array($row['key']->id, $pendingRequests, true)])
+                            @include('customer.partials.hero', [
+                                'row' => $row,
+                                'active' => $row['id'] === $heroId,
+                                'history' => $history->get($row['account']->id, collect()),
+                                'asked' => in_array($row['key']->id, $pendingRequests, true),
+                                'contact' => $contact,
+                            ])
                         @endforeach
-                    </div>
-                @endif
+                        @unless ($hero)
+                            <div class="dt dt--none">
+                                <h2>Kod verebilen hesabın kalmadı</h2>
+                                <p>Yeni bir anahtar ekleyebilir ya da satıcınla iletişime geçebilirsin.@if ($contact) <a href="{{ $contact }}" rel="noopener" target="_blank">Destek</a>@endif</p>
+                            </div>
+                        @endunless
+                    </section>
 
-                {{-- Paketten seçim hakkı: kodun altında, rafların üstünde; kod her zaman en önde. --}}
-                @foreach ($picks as $pick)
-                    @include('customer.partials.pick', ['pick' => $pick])
-                @endforeach
-
-                @if ($rows->count() > 1)
-                    <div class="tools" data-tools>
+                    <aside class="desk__list" aria-label="Hesapların">
                         @if ($rows->count() >= 6)
-                            <label class="tools__search">
+                            <label class="list__search">
                                 <span class="visually-hidden">Hesap ara</span>
                                 <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
-                                <input type="search" class="tools__input" placeholder="Hesap ara: ad, platform ya da kendi verdiğin ad" data-search-input autocomplete="off">
+                                <input type="search" placeholder="Hesap ara" data-search-input autocomplete="off">
                             </label>
                         @endif
                         @if ($platforms->count() > 1)
-                            <div class="tools__chips" role="group" aria-label="Platforma göre süz">
-                                <button type="button" class="chipbtn is-on" data-filter="" aria-pressed="true">Hepsi <span>{{ $rows->count() }}</span></button>
+                            <div class="list__chips" role="group" aria-label="Platforma göre süz">
+                                <button type="button" class="chipbtn is-on" data-filter="" aria-pressed="true">Hepsi</button>
                                 @foreach ($platforms as $platform)
-                                    <button type="button" class="chipbtn" data-filter="{{ $platform['platform'] }}" aria-pressed="false">{{ $platform['label'] }} <span>{{ $platform['count'] }}</span></button>
+                                    <button type="button" class="chipbtn" data-filter="{{ $platform['platform'] }}" aria-pressed="false">{{ $platform['label'] }}</button>
                                 @endforeach
                             </div>
                         @endif
-                    </div>
-
-                    <div class="shelves" data-shelves>
-                        @foreach ($shelves as $shelf)
-                            <section class="shelf" data-shelf aria-label="{{ $shelf['label'] }}">
-                                <h2 class="shelf__title">{{ $shelf['label'] }} <span>· {{ $shelf['rows']->count() }} hesap</span></h2>
-                                <ul class="arows" role="list">
-                                    @foreach ($shelf['rows'] as $row)
-                                        @include('customer.partials.arow', ['row' => $row, 'active' => $row['id'] === $heroId])
-                                    @endforeach
-                                </ul>
-                            </section>
-                        @endforeach
-                        <p class="shelves__none" data-none hidden>Aramana uyan hesap yok.</p>
-                    </div>
-                @elseif ($rows->count() === 1 && $rows->first()['blocked'])
-                    <ul class="arows" role="list">@include('customer.partials.arow', ['row' => $rows->first(), 'active' => false])</ul>
-                @endif
-
-                @if ($rows->isNotEmpty() && ! $hero)
-                    <p class="wallet__warn">Kod verebilen hesabın kalmadı. Yeni bir anahtar ekleyebilir ya da satıcınla iletişime geçebilirsin.</p>
-                @endif
-            </section>
-
-            <aside class="wallet__side" aria-label="Anahtar ekle ve yardım">
-                <form method="POST" action="{{ route('redeem') }}" class="addkey glass" data-busy novalidate>
-                    @csrf
-                    <label for="key" class="addkey__title">Anahtar ekle</label>
-                    <p class="addkey__lead">Siparişinle gelen anahtarı yapıştır. Tire ve boşluk yazmasan da olur.</p>
-                    <input id="key" name="key" type="text" class="input input--l input--key" value="{{ old('key') }}"
-                        placeholder="{{ config('guard.key_prefix') }}-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="characters"
-                        spellcheck="false" maxlength="64" required data-key-input aria-describedby="key-error"
-                        @error('key') aria-invalid="true" @enderror>
-                    <p id="key-error" class="error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
-                    <button type="submit" class="btn btn--primary btn--l btn--block" data-busy-text="Ekleniyor">Hesabıma ekle</button>
-                </form>
-
-                <section class="help" aria-labelledby="help-title">
-                    <h2 id="help-title">Kod gelmedi mi?</h2>
-                    <ol>
-                        <li>Platformda “kodu tekrar gönder”e bas.</li>
-                        <li>Mail kodunda sayfa 2 dakika kendiliğinden bekler; kapatma.</li>
-                        <li>Yine gelmezse @if ($contact)<a href="{{ $contact }}" rel="noopener" target="_blank">destekle iletişime geç</a>.@else satıcınla iletişime geç.@endif</li>
-                    </ol>
-                </section>
-            </aside>
+                        <div class="list__groups" data-shelves>
+                            @foreach ($shelves as $shelf)
+                                <section class="list__group" data-shelf aria-label="{{ $shelf['label'] }}">
+                                    <h2>{{ $shelf['label'] }} <span>{{ $shelf['rows']->count() }}</span></h2>
+                                    <ul role="list">
+                                        @foreach ($shelf['rows'] as $row)
+                                            @include('customer.partials.arow', ['row' => $row, 'active' => $row['id'] === $heroId])
+                                        @endforeach
+                                    </ul>
+                                </section>
+                            @endforeach
+                            <p class="list__none" data-none hidden>Aramana uyan hesap yok.</p>
+                        </div>
+                    </aside>
+                </div>
+            @endif
         </div>
     @endif
 </x-layouts.app>
