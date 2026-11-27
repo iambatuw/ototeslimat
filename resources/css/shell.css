@@ -31,6 +31,9 @@
   .side .brand, .side__end { display: none; }
   .side__nav { display: flex; flex: 1; gap: 0; }
   .side__nav a { flex: 1; flex-direction: column; justify-content: center; gap: var(--space-3xs); min-width: 0; min-height: 54px; padding: 0; font-size: var(--text-xs); }
+  /* Alt sekme çubuğunda arama yok (üst çubukta "Ara" sayfası var); yazılar sığmazsa kısalır. */
+  .side__search { display: none; }
+  .side__nav a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.6875rem; }
   .topline { display: flex; }
   .who--bar .who__name { display: none; }
   .who--bar { padding-right: var(--space-2xs); }

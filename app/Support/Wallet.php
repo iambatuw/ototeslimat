@@ -120,9 +120,9 @@ class Wallet
 
         return [
             'status' => match (true) {
-                $resets !== null && $key->bonus_uses === 0 => 'Yeni hak '.$resets->diffForHumans(['parts' => 1, 'syntax' => 1]),
+                $resets !== null && $key->bonus_uses === 0 => 'Yeni hak '.$resets->diffForHumans(['parts' => 1]),
                 $daysLeft !== null && $daysLeft <= 7 => $daysLeft <= 0 ? 'Bugün bitiyor' : $daysLeft.' gün kaldı',
-                $periodLeft !== null => $periodLeft.' kod hakkın var',
+                $periodLeft !== null => ($periodLeft + $key->bonus_uses).' kod hakkın var', // satıcının verdiği ek hak dahil
                 $key->max_uses !== null => $key->usesLeft().' kod hakkı',
                 $daysLeft !== null => $daysLeft.' gün kaldı',
                 default => 'Sınırsız',

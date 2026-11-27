@@ -1007,3 +1007,63 @@ if (gameForm) {
         show();
     }
 }
+
+/* ---------- Yönetim > Hesap ekle: sekmeler ve canlı önizleme ----------
+ * "Tek hesap / Toplu ekle" sekmeleri; formu doldururken sağdaki kart müşterinin göreceği
+ * hâle gelir (platform rengi, ad, kod düğmeleri, not). Oyun bağlama yalnızca oyun platformunda. */
+document.querySelectorAll('[data-tabs]').forEach((tabs) => {
+    const links = [...tabs.querySelectorAll('[data-tab]')];
+    const panes = [...document.querySelectorAll('[data-pane]')];
+    const open = (name) => {
+        links.forEach((link) => {
+            if (link.dataset.tab === name) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+        panes.forEach((pane) => { pane.hidden = pane.dataset.pane !== name; });
+    };
+    links.forEach((link) => link.addEventListener('click', (event) => {
+        event.preventDefault();
+        open(link.dataset.tab);
+        history.replaceState(null, '', `#${link.dataset.tab}`);
+    }));
+    if (location.hash === '#toplu') open('toplu');
+});
+
+const accountPreview = document.querySelector('[data-preview]');
+if (accountPreview && accountForm) {
+    const meta = JSON.parse(accountForm.dataset.platforms || '{}');
+    const platform = accountForm.querySelector('[data-platform]');
+    const title = accountForm.querySelector('[data-preview-title]');
+    const noteInput = accountForm.querySelector('[data-preview-note]');
+    const gameField = accountForm.querySelector('[data-for-game]');
+    const sources = [...accountForm.querySelectorAll('[data-source]')];
+    const totpBtn = accountPreview.querySelector('[data-preview-btn="totp"]');
+
+    const sync = () => {
+        const info = meta[platform.value] ?? {};
+        accountPreview.dataset.p = platform.value;
+        accountPreview.querySelector('[data-preview-mark]').textContent = info.mark ?? '';
+        accountPreview.querySelector('[data-preview-platform]').textContent = info.label ?? '';
+        accountPreview.querySelector('[data-preview-name]').textContent = title.value.trim() || 'Hesap adı';
+        totpBtn.textContent = platform.value === 'steam' ? 'Steam Guard kodunu al' : '2FA kodunu al';
+        let any = false;
+        sources.forEach((box) => {
+            accountPreview.querySelector(`[data-preview-btn="${box.dataset.source}"]`).hidden = !box.checked;
+            any ||= box.checked;
+        });
+        accountPreview.querySelector('[data-preview-none]').hidden = any;
+        const note = noteInput.value.trim();
+        accountPreview.querySelector('[data-preview-notebox]').hidden = !note;
+        accountPreview.querySelector('[data-preview-notetext]').textContent = note;
+        if (gameField) {
+            gameField.hidden = !info.game;
+            gameField.querySelector('select').disabled = !info.game; // oyun dışı platformda gönderilmez
+        }
+    };
+
+    [platform, title, noteInput, ...sources].forEach((node) => {
+        node.addEventListener('input', sync);
+        node.addEventListener('change', sync);
+    });
+    sync();
+}

@@ -115,8 +115,7 @@ class KeyRulesTest extends TestCase
         auth()->logout();
         $admin = $this->admin();
         $admin->forceFill(['password' => bcrypt('password')])->save();
-        $this->post('/login', ['email' => $admin->email, 'password' => 'password'])->assertRedirect('/kodlarim');
-        $this->get('/kodlarim')->assertRedirect(route('admin.dashboard'));
+        $this->post('/login', ['email' => $admin->email, 'password' => 'password'])->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_dashboard_counts_people(): void
@@ -124,5 +123,22 @@ class KeyRulesTest extends TestCase
         [$key, $customer] = $this->redeemed([]);
         $this->actingAs($customer)->postJson("/kod/{$key->id}/{$key->account_id}/2fa")->assertOk();
         $this->actingAs($this->admin())->get('/yonetim')->assertOk()->assertSee('1 kişi');
+    }
+
+    public function test_login_ignores_intended_page_the_user_cannot_open(): void
+    {
+        $customer = User::factory()->create(['password' => 'password']);
+        $this->get('/yonetim')->assertRedirect('/login'); // müşteri girişten önce yönetimi denemiş
+        $this->post('/login', ['email' => $customer->email, 'password' => 'password'])->assertRedirect('/kodlarim');
+
+        auth()->logout();
+        $this->get('/hesabim')->assertRedirect('/login'); // izinli sayfa hatırlanır
+        $this->post('/login', ['email' => $customer->email, 'password' => 'password'])->assertRedirect('/hesabim');
+
+        auth()->logout();
+        $admin = $this->admin();
+        $admin->forceFill(['password' => bcrypt('password')])->save();
+        $this->get('/yonetim/oyunlar')->assertRedirect('/login');
+        $this->post('/login', ['email' => $admin->email, 'password' => 'password'])->assertRedirect('/yonetim/oyunlar');
     }
 }
