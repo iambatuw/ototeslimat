@@ -383,43 +383,23 @@ class CodePanel {
     }
 }
 
-/* ---------- Müşteri: Kodlarım (kod masası) ----------
- * Listedeki hesaba dokununca o hesabın ayrıntısı açılır; sayfa yenilenmez, adres ?hesap= ile
- * güncellenir. Kod kendiliğinden istenmez (günlük hak yanlışlıkla harcanmasın); düğmeye odaklanılır.
- * JS yoksa bağlantı ?hesap= ile aynı şeyi sunucuda yapar. */
-const heroes = document.querySelector('[data-heroes]');
-if (heroes) {
-    const show = (id) => {
-        const next = heroes.querySelector(`[data-hero="${id}"]`);
-        if (!next) return false;
-        const current = heroes.querySelector('[data-hero]:not([hidden])');
-        if (current !== next) {
-            if (current) current.hidden = true;
-            next.hidden = false;
-            next.classList.remove('is-swapping');
-            void next.offsetWidth; // animasyonu yeniden başlat
-            next.classList.add('is-swapping');
-            document.querySelectorAll('[data-row]').forEach((row) => {
-                const active = row.dataset.row === id;
-                row.classList.toggle('is-active', active);
-                const link = row.querySelector('[data-show]');
-                if (active) link?.setAttribute('aria-current', 'true');
-                else link?.removeAttribute('aria-current');
-            });
-            history.replaceState(null, '', `?hesap=${encodeURIComponent(id)}`);
+/* ---------- Müşteri: Kodlarım (kütüphane) ----------
+ * Izgara / liste görünümü. Seçim yalnızca bu cihazda hatırlanır; tarayıcı depolaması kapalıysa
+ * sayfa ızgarayla açılır. */
+const lib = document.querySelector('[data-lib]');
+const viewButtons = [...document.querySelectorAll('[data-view]')].filter((b) => b.tagName === 'BUTTON');
+if (lib && viewButtons.length) {
+    const setView = (view, remember) => {
+        lib.dataset.view = view;
+        viewButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+        if (remember) {
+            try { localStorage.setItem('kodlarim-view', view); } catch { /* depolama kapalı */ }
         }
-        // Telefonda ayrıntı listenin üstünde: görünmüyorsa oraya kaydır. Bilgisayarda zaten yanda.
-        const top = next.getBoundingClientRect().top;
-        if (top < 0 || top > window.innerHeight * 0.6) next.scrollIntoView({ block: 'start', behavior: still() ? 'auto' : 'smooth' });
-        next.querySelector('[data-get-code]')?.focus({ preventScroll: true });
-        return true;
     };
-
-    document.addEventListener('click', (event) => {
-        const go = event.target.closest('[data-show]');
-        if (!go) return;
-        if (show(go.dataset.show)) event.preventDefault();
-    });
+    let saved = null;
+    try { saved = localStorage.getItem('kodlarim-view'); } catch { /* depolama kapalı */ }
+    setView(saved === 'list' ? 'list' : 'grid', false);
+    viewButtons.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view, true)));
 }
 
 /* Arama ve platform hapları: rafları süzer; boşalan raf gizlenir. */

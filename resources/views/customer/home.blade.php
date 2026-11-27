@@ -1,6 +1,6 @@
 {{--
-    Kodlarım. Boşsa ilk anahtar formu; doluysa kod masası: solda hesaplar (aynı platformdan birden
-    çok hesap kendi grubunda), sağda seçili hesabın ayrıntısı ve kod sahnesi. Veri: App\Support\Wallet.
+    Kodlarım. Boşsa ilk anahtar formu; doluysa kütüphane: her hesap bir kart, kod kartın
+    içinde alınır. Veri: App\Support\Wallet.
 --}}
 @php
     use App\Models\Setting;
@@ -67,15 +67,26 @@
         </div>
     @else
         {{--
-            Kod masası: solda hesapların (arama, platform grupları), sağda seçili hesabın ayrıntısı.
-            Kod, ayrıntının en üstündeki sahnede alınır. Telefonda ayrıntı üstte, liste altta.
+            Kütüphane: her hesap bir kart (kapak, ad, eklendiği gün, kalan hak, tek kod düğmesi); kod kartın
+            içinde açılır. Sağ üstte ızgara / liste görünümü. 6+ hesapta arama, platform hapları süzer.
         --}}
-        <div class="desk">
-            <header class="desk__head">
+        <div class="libpage">
+            <header class="libpage__head">
                 <div>
                     <h1>Kodlarım</h1>
-                    <p>{{ $rows->count() }} hesap. Platform kod istediğinde hesabı seç, düğmeye bas.</p>
+                    <p>{{ $rows->count() }} hesap kütüphanende</p>
                 </div>
+                <div class="libpage__tools">
+                    @if ($rows->isNotEmpty())
+                        <div class="viewswitch" role="group" aria-label="Görünüm">
+                            <button type="button" data-view="list" aria-pressed="false" aria-label="Liste">
+                                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h12"/></svg>
+                            </button>
+                            <button type="button" data-view="grid" aria-pressed="true" aria-label="Izgara">
+                                <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="5" height="5" rx="1"/><rect x="11.5" y="3.5" width="5" height="5" rx="1"/><rect x="3.5" y="11.5" width="5" height="5" rx="1"/><rect x="11.5" y="11.5" width="5" height="5" rx="1"/></svg>
+                            </button>
+                        </div>
+                    @endif
                 <details class="addkey" @if ($errors->has('key')) open @endif>
                     <summary class="btn btn--secondary">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
@@ -95,6 +106,7 @@
                         <p id="key-error" class="error" @error('key') role="alert" @enderror>@error('key'){{ $message }}@enderror</p>
                     </form>
                 </details>
+                </div>
             </header>
 
             {{-- Paketten seçim hakkı varsa önce o: seçilmeden kod alınamaz. --}}
@@ -103,55 +115,39 @@
             @endforeach
 
             @if ($rows->isNotEmpty())
-                <div class="desk__body">
-                    <section class="desk__detail" data-heroes aria-label="Seçili hesap">
-                        @foreach ($rows->reject(fn ($r) => $r['blocked']) as $row)
-                            @include('customer.partials.hero', [
-                                'row' => $row,
-                                'active' => $row['id'] === $heroId,
-                                'history' => $history->get($row['account']->id, collect()),
-                                'asked' => in_array($row['key']->id, $pendingRequests, true),
-                                'contact' => $contact,
-                            ])
-                        @endforeach
-                        @unless ($hero)
-                            <div class="dt dt--none">
-                                <h2>Kod verebilen hesabın kalmadı</h2>
-                                <p>Yeni bir anahtar ekleyebilir ya da satıcınla iletişime geçebilirsin.@if ($contact) <a href="{{ $contact }}" rel="noopener" target="_blank">Destek</a>@endif</p>
-                            </div>
-                        @endunless
-                    </section>
-
-                    <aside class="desk__list" aria-label="Hesapların">
+                @if ($platforms->count() > 1 || $rows->count() >= 6)
+                    <div class="libbar">
                         @if ($rows->count() >= 6)
-                            <label class="list__search">
+                            <label class="libbar__search">
                                 <span class="visually-hidden">Hesap ara</span>
                                 <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/></svg>
                                 <input type="search" placeholder="Hesap ara" data-search-input autocomplete="off">
                             </label>
                         @endif
                         @if ($platforms->count() > 1)
-                            <div class="list__chips" role="group" aria-label="Platforma göre süz">
-                                <button type="button" class="chipbtn is-on" data-filter="" aria-pressed="true">Hepsi</button>
+                            <div class="libbar__chips" role="group" aria-label="Platforma göre süz">
+                                <button type="button" class="chipbtn is-on" data-filter="" aria-pressed="true">Tümü <span>{{ $rows->count() }}</span></button>
                                 @foreach ($platforms as $platform)
-                                    <button type="button" class="chipbtn" data-filter="{{ $platform['platform'] }}" aria-pressed="false">{{ $platform['label'] }}</button>
+                                    <button type="button" class="chipbtn" data-filter="{{ $platform['platform'] }}" aria-pressed="false">{{ $platform['label'] }} <span>{{ $platform['count'] }}</span></button>
                                 @endforeach
                             </div>
                         @endif
-                        <div class="list__groups" data-shelves>
-                            @foreach ($shelves as $shelf)
-                                <section class="list__group" data-shelf aria-label="{{ $shelf['label'] }}">
-                                    <h2>{{ $shelf['label'] }} <span>{{ $shelf['rows']->count() }}</span></h2>
-                                    <ul role="list">
-                                        @foreach ($shelf['rows'] as $row)
-                                            @include('customer.partials.arow', ['row' => $row, 'active' => $row['id'] === $heroId])
-                                        @endforeach
-                                    </ul>
-                                </section>
-                            @endforeach
-                            <p class="list__none" data-none hidden>Aramana uyan hesap yok.</p>
-                        </div>
-                    </aside>
+                    </div>
+                @endif
+
+                <div class="lib" data-shelves data-lib>
+                    <ul class="lib__grid" role="list" data-shelf>
+                        @foreach ($rows as $row)
+                            @include('customer.partials.hero', [
+                                'row' => $row,
+                                'picked' => $row['id'] === $heroId && (request()->filled('hesap') || session('opened')),
+                                'history' => $history->get($row['account']->id, collect()),
+                                'asked' => in_array($row['key']->id, $pendingRequests, true),
+                                'contact' => $contact,
+                            ])
+                        @endforeach
+                    </ul>
+                    <p class="lib__none" data-none hidden>Aramana uyan hesap yok.</p>
                 </div>
             @endif
         </div>

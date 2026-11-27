@@ -44,15 +44,13 @@ class WalletTest extends TestCase
         ActivityLog::create(['event' => 'code.issued', 'user_id' => $this->customer->id, 'account_id' => $second->id, 'created_at' => now()->subHour()]);
 
         $response = $this->actingAs($this->customer)->get('/kodlarim')->assertOk();
-        $response->assertSee('Steam')->assertSee('Steam <span>3</span>', false)->assertSee('Diğer hesapların');
+        $response->assertSee('Steam')->assertSee('Steam <span>3</span>', false)->assertSee('Netflix <span>1</span>', false);
 
         $html = $response->getContent();
-        // Üstte açık olan kart en son kod alınan hesap (CS2 Prime 2); diğerleri gizli.
-        $article = fn (Account $a) => preg_match('/<article[^>]*data-hero="k\d+a'.$a->id.'"[^>]*>/s', $html, $m) ? $m[0] : '';
-        $this->assertStringNotContainsString('hidden', $article($second));
-        $this->assertStringContainsString('hidden', $article($first));
-        // Seçili hesap listede de işaretli.
-        $this->assertMatchesRegularExpression('/data-show="k\d+a'.$second->id.'"\s+aria-current="true"/', $html);
+        // Kartlar en son kod alınan hesaptan başlar: CS2 Prime 2 ilk sırada, hiç kullanılmamışlar sonra.
+        preg_match_all('/data-hero="k\d+a(\d+)"/', $html, $m);
+        $this->assertSame($second->id, (int) $m[1][0]);
+        $this->assertSame($first->id, (int) $m[1][1]);
     }
 
     public function test_customer_names_an_account_and_sees_it(): void

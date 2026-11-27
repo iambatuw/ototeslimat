@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Account;
+use App\Models\Game;
 use App\Models\ProductKey;
 use App\Models\User;
 use App\Support\KeyCode;
@@ -34,10 +35,15 @@ class DemoSeeder extends Seeder
         $base32 = fn () => collect(range(1, 32))->map(fn () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[random_int(0, 31)])->implode('');
         $mailbox = ['mail_host' => 'imap.example.test', 'mail_port' => 993, 'mail_encryption' => 'ssl', 'mail_username' => 'demo@example.test', 'mail_password' => 'demo'];
 
+        // Steam hesapları oyuna bağlı: Kodlarım'da kapakları görünür (Steam'in genel kapak adresi).
+        $game = fn (string $name, int $app) => Game::firstOrCreate(['name' => $name, 'platform' => 'steam'], [
+            'cover' => "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{$app}/library_600x900.jpg",
+        ])->id;
+
         // [platform, hesap adı, hesap alanları, anahtar kuralları, müşterinin verdiği ad]
         $items = [
-            ['steam', 'Steam · CS2 Prime', ['totp_secret' => 'steam:'.base64_encode(random_bytes(20))], ['valid_days' => 30, 'period_limit' => 1, 'period_hours' => 24], 'Ana hesap'],
-            ['steam', 'Steam · GTA V', ['totp_secret' => 'steam:'.base64_encode(random_bytes(20))], ['valid_days' => 30], 'Kardeşimin'],
+            ['steam', 'Steam · CS2 Prime', ['totp_secret' => 'steam:'.base64_encode(random_bytes(20)), 'game_id' => $game('Counter-Strike 2', 730)], ['valid_days' => 30, 'period_limit' => 1, 'period_hours' => 24], 'Ana hesap'],
+            ['steam', 'Steam · GTA V', ['totp_secret' => 'steam:'.base64_encode(random_bytes(20)), 'game_id' => $game('Grand Theft Auto V', 271590)], ['valid_days' => 30], 'Kardeşimin'],
             ['netflix', 'Netflix Premium 4K', $mailbox, ['valid_days' => 30, 'max_uses' => 20], null],
             ['disney', 'Disney+ Standart', $mailbox, ['valid_days' => 30], null],
             ['chatgpt', 'ChatGPT Plus', ['totp_secret' => $base32()] + $mailbox, ['max_uses' => 15], null],

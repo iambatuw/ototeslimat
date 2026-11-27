@@ -1,0 +1,142 @@
+/*
+ * Kodlarım: kütüphane. Sade kart ızgarası: üstte kapak, altında ad, eklendiği gün, kalan hak ve tek
+ * büyük kod düğmesi; kod kartın içinde açılır. Liste görünümünde kapak solda, içerik sağda.
+ * Ayrıntı: DESIGN.md > Kodlarım.
+ */
+
+/* ---------- Başlık, görünüm, anahtar ekle ---------- */
+.libpage { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-lg); }
+.libpage__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-md); }
+.libpage__head h1 { max-width: none; font-size: clamp(2rem, 3.6vw, 2.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; }
+.libpage__head p { margin-top: var(--space-3xs); color: var(--color-muted); }
+.libpage__tools { display: flex; align-items: center; gap: var(--space-sm); }
+
+.viewswitch { display: flex; gap: 2px; padding: 4px; border-radius: 14px; background: var(--color-fill); border: var(--rule-hair) solid var(--color-rule-strong); }
+.viewswitch button { display: grid; place-items: center; width: 40px; height: 36px; border: 0; border-radius: 10px; background: none; color: var(--color-muted); cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+.viewswitch button:hover { color: var(--color-ink); }
+.viewswitch button[aria-pressed="true"] { background: var(--color-accent); color: var(--color-accent-ink); }
+.viewswitch button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.viewswitch svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+
+.addkey { position: relative; }
+.addkey summary { list-style: none; cursor: pointer; }
+.addkey summary::-webkit-details-marker { display: none; }
+.addkey summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.addkey[open] summary { background: var(--color-fill-strong); }
+.addkey__form { position: absolute; top: calc(100% + var(--space-xs)); right: 0; z-index: 30; display: grid; gap: var(--space-xs); width: min(26rem, calc(100vw - 2rem)); padding: var(--space-lg); border-radius: 22px; box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9); }
+.addkey__title { font-size: var(--text-lg); font-weight: 800; letter-spacing: -0.02em; }
+.addkey__lead { color: var(--color-ink-2); font-size: var(--text-sm); }
+.addkey__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-xs); }
+.addkey .error:empty { display: none; }
+
+/* ---------- Arama ve platform hapları ---------- */
+.libbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); min-width: 0; }
+.libbar__search { display: flex; flex: 1 1 16rem; align-items: center; gap: var(--space-xs); min-height: 42px; padding: 0 var(--space-sm); border-radius: 12px; background: var(--color-well); border: var(--rule-hair) solid var(--color-rule-strong); }
+.libbar__search:focus-within { border-color: var(--color-accent); }
+.libbar__search svg { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--color-muted); stroke-width: 1.8; stroke-linecap: round; }
+.libbar__search input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--color-ink); font: inherit; font-size: var(--text-sm); }
+.libbar__chips { display: flex; gap: var(--space-3xs); min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+
+/* Platform hapları (Kodlarım ve oyunlar sayfası) */
+.chipbtn { display: inline-flex; align-items: center; gap: var(--space-2xs); flex: none; min-height: 36px; padding: 0 var(--space-sm); border-radius: var(--radius-pill); border: var(--rule-hair) solid var(--color-rule-strong); background: var(--color-fill); color: var(--color-ink-2); font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.chipbtn span { color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.chipbtn:hover { border-color: var(--color-rule-hover); color: var(--color-ink); }
+.chipbtn.is-on { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+.chipbtn.is-on span { color: color-mix(in srgb, var(--color-paper) 70%, transparent); }
+
+/* ---------- Kart ızgarası ---------- */
+.lib__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)); gap: var(--space-md); margin: 0; padding: 0; list-style: none; align-items: start; }
+.lib__none { color: var(--color-muted); font-size: var(--text-sm); }
+.gcard[hidden] { display: none; }
+.gcard__in { display: grid; overflow: hidden; border-radius: 18px; background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-rule); box-shadow: inset 0 1px 0 var(--card-highlight); scroll-margin-top: 6rem; transition: border-color var(--dur-short) var(--ease-out); }
+.gcard__in:hover { border-color: var(--color-rule-hover); }
+.gcard.is-picked .gcard__in { border-color: color-mix(in srgb, var(--color-accent) 70%, transparent); }
+
+.gcard__art { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; overflow: hidden; background: radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.18), transparent 55%), linear-gradient(150deg, var(--p), color-mix(in srgb, var(--p) 50%, #000)); }
+.gcard__art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+.gcard__mark { color: var(--on-p); font-size: 3.25rem; font-weight: 900; letter-spacing: -0.05em; }
+.gcard__status { position: absolute; left: 10px; top: 10px; max-width: calc(100% - 20px); overflow: hidden; padding: 4px 10px; border-radius: var(--radius-pill); background: rgb(0 0 0 / 0.62); color: var(--color-white); font-size: var(--text-xs); font-weight: 650; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.gcard__status--off { background: color-mix(in srgb, var(--color-error) 80%, #000); }
+
+.gcard__body { display: grid; align-content: start; gap: var(--space-2xs); padding: var(--space-md) var(--space-md) var(--space-sm); min-width: 0; }
+.gcard__name { max-width: none; font-size: var(--text-lg); font-weight: 750; letter-spacing: -0.02em; line-height: 1.25; overflow-wrap: anywhere; }
+.gcard__sub { color: var(--color-ink-2); font-size: var(--text-sm); }
+.gcard__date { color: var(--color-muted); font-size: var(--text-xs); }
+.gcard__asked { margin-top: var(--space-2xs); padding: var(--space-2xs) var(--space-xs); border-radius: 10px; background: var(--color-fill-strong); font-size: var(--text-xs); font-weight: 600; }
+
+.gcard__actions { display: grid; gap: var(--space-xs); margin-top: var(--space-sm); }
+.gcard__btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 var(--space-md); border: 0; border-radius: 12px; background: var(--color-accent); color: var(--color-accent-ink); font: inherit; font-size: var(--text-sm); font-weight: 700; cursor: pointer; box-shadow: 0 10px 22px -14px rgb(0 0 0 / 0.8); transition: filter var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out); }
+.gcard__btn:hover:not(:disabled) { filter: brightness(1.12); }
+.gcard__btn:focus-visible { outline: 2px solid var(--color-white); outline-offset: 2px; }
+.gcard__btn:disabled { opacity: 0.6; cursor: progress; }
+.gcard__btn--alt { background: var(--color-fill-strong); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-rule-strong); }
+
+/* Kod kartın içinde */
+.gcard .code { grid-template-columns: minmax(0, 1fr); margin: var(--space-xs) 0 0; padding: var(--space-sm); border-radius: 14px; }
+.gcard .cells { gap: 6px; }
+.gcard .cell { flex: 1 1 0; min-width: 0; font-size: clamp(1.5rem, 2.4vw, 1.875rem); border-radius: 12px; }
+
+/* Ayrıntılar */
+.gcard__more { margin-top: var(--space-xs); border-top: var(--rule-hair) solid var(--color-rule); }
+.gcard__more summary { display: flex; align-items: center; justify-content: space-between; min-height: 40px; list-style: none; color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.gcard__more summary::-webkit-details-marker { display: none; }
+.gcard__more summary::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform var(--dur-short) var(--ease-out); }
+.gcard__more[open] summary::after { transform: rotate(225deg); }
+.gcard__more summary:hover { color: var(--color-ink); }
+.gcard__more summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 6px; }
+.gcard__drawer { display: grid; gap: var(--space-md); padding-bottom: var(--space-sm); font-size: var(--text-sm); }
+.gcard__drawer h3 { margin-bottom: var(--space-2xs); color: var(--color-muted); font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.gcard__note { display: grid; gap: 2px; padding: var(--space-xs) var(--space-sm); border-radius: 12px; background: color-mix(in srgb, var(--p) 16%, var(--color-paper-3)); font-weight: 600; }
+.gcard__note strong { color: var(--color-muted); font-size: var(--text-xs); }
+.gcard__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); margin: 0; }
+.gcard__facts dt { color: var(--color-muted); font-size: var(--text-xs); }
+.gcard__facts dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gcard__facts small { display: block; color: var(--color-muted); font-weight: 500; }
+.gcard__list, .gcard__steps { display: grid; gap: var(--space-3xs); margin: 0; padding: 0; list-style: none; color: var(--color-ink-2); }
+.gcard__list li { display: flex; justify-content: space-between; gap: var(--space-sm); }
+.gcard__list time { color: var(--color-muted); white-space: nowrap; }
+.gcard__steps { counter-reset: tip; }
+.gcard__steps li { counter-increment: tip; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: var(--space-xs); }
+.gcard__steps li::before { content: counter(tip); display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--color-fill-strong); color: var(--color-ink); font-size: 0.6875rem; font-weight: 700; }
+.gcard__steps a { color: var(--color-accent); text-underline-offset: 3px; }
+.gcard__rename { display: grid; gap: var(--space-2xs); }
+.gcard__rename label { font-weight: 600; }
+.gcard__rename-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-xs); }
+
+.gcard.is-off .gcard__art { filter: grayscale(0.7) brightness(0.6); }
+.gcard.is-off .gcard__name { color: var(--color-muted); }
+
+/* ---------- Liste görünümü: kapak solda, içerik sağda ---------- */
+.lib[data-view="list"] .lib__grid { grid-template-columns: minmax(0, 1fr); }
+.lib[data-view="list"] .gcard__in { grid-template-columns: 13rem minmax(0, 1fr); }
+.lib[data-view="list"] .gcard__art { aspect-ratio: auto; height: 100%; min-height: 9rem; }
+.lib[data-view="list"] .gcard__body { grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); column-gap: var(--space-lg); padding: var(--space-md) var(--space-lg); }
+.lib[data-view="list"] .gcard__body > :not(.gcard__actions, .code, .gcard__more) { grid-column: 1; }
+.lib[data-view="list"] .gcard__actions { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; }
+.lib[data-view="list"] .gcard .code, .lib[data-view="list"] .gcard__more { grid-column: 1 / -1; }
+
+/* ---------- Giriş: başlık yerinde; kartlar sırayla ---------- */
+.enter > .libpage { animation: none; }
+.libpage > .pick, .libbar { animation: rise var(--dur-long) var(--ease-out) both; }
+.lib__grid > .gcard { animation: rise var(--dur-long) var(--ease-out) both; animation-delay: 60ms; }
+.lib__grid > .gcard:nth-child(2) { animation-delay: 100ms; }
+.lib__grid > .gcard:nth-child(3) { animation-delay: 140ms; }
+.lib__grid > .gcard:nth-child(4) { animation-delay: 180ms; }
+.lib__grid > .gcard:nth-child(n+5) { animation-delay: 220ms; }
+html[data-still] .libpage > .pick, html[data-still] .libbar, html[data-still] .lib__grid > .gcard { animation: none; opacity: 1; transform: none; }
+
+/* ---------- Dar ekran ---------- */
+@media (max-width: 60rem) {
+  .libpage__tools { width: 100%; }
+  .addkey { flex: 1; }
+  .addkey summary { width: 100%; }
+  .addkey__form { position: static; width: auto; margin-top: var(--space-xs); }
+  .lib[data-view="list"] .gcard__body { grid-template-columns: minmax(0, 1fr); }
+  .lib[data-view="list"] .gcard__actions { grid-column: 1; grid-row: auto; margin-top: var(--space-sm); }
+}
+@media (max-width: 40rem) {
+  .libpage__tools { align-items: flex-start; }
+  .lib[data-view="list"] .gcard__in { grid-template-columns: 6.5rem minmax(0, 1fr); }
+  .lib[data-view="list"] .gcard__art { min-height: 0; }
+  .lib[data-view="list"] .gcard__body { padding: var(--space-sm) var(--space-md); }
+}
