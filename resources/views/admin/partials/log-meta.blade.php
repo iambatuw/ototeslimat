@@ -14,6 +14,8 @@
     @case('key.created')
         {{ $m['count'] ?? 0 }} adet{{ ! empty($m['label']) ? ', '.$m['label'] : '' }}
         @break
+    @case('game.saved')
+    @case('game.deleted')
     @case('package.saved')
     @case('package.deleted')
         {{ $m['name'] ?? '' }}
@@ -35,6 +37,24 @@
         @break
     @case('customer.toggled')
         {{ $m['email'] ?? '' }} {{ ! empty($m['active']) ? 'açıldı' : 'engellendi' }}
+        @break
+    @case('key.bonus')
+        +{{ $m['amount'] ?? 1 }} kod hakkı
+        @break
+    @case('key.extended')
+        +{{ $m['days'] ?? 0 }} gün
+        @break
+    @case('key.shared')
+        24 saatte {{ $m['ips'] ?? 0 }} farklı IP
+        @break
+    @case('account.compensated')
+        {{ $m['keys'] ?? 0 }} anahtar, +{{ $m['rights'] ?? 0 }} hak, +{{ $m['days'] ?? 0 }} gün
+        @break
+    @case('key.moved')
+        {{ $m['from'] ?? '' }} hesabından {{ $m['to'] ?? '' }} hesabına, {{ $m['count'] ?? 0 }} anahtar
+        @break
+    @case('request.created')
+        {{ \App\Models\RightRequest::REASONS[$m['reason'] ?? ''] ?? '' }}
         @break
     @case('settings.updated')
         {{ implode(', ', $m['fields'] ?? []) }}

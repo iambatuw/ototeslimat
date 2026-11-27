@@ -62,6 +62,23 @@
                     <input id="notes" name="notes" type="text" class="input" value="{{ old('notes', $account->notes) }}" maxlength="1000">
                     <p class="error">@error('notes'){{ $message }}@enderror</p>
                 </div>
+                @if (\App\Models\Setting::flag('games_catalog'))
+                    @php($catalog = \App\Models\Game::orderBy('platform')->orderBy('name')->get(['id', 'name', 'platform']))
+                    <div class="field">
+                        <label for="game_id">Katalogdaki oyun <span class="optional">(isteğe bağlı)</span></label>
+                        <select id="game_id" name="game_id" class="select">
+                            <option value="">Bağlama</option>
+                            @foreach ($catalog->groupBy('platform') as $platform => $items)
+                                <optgroup label="{{ config("guard.platforms.$platform.label", $platform) }}">
+                                    @foreach ($items as $game)
+                                        <option value="{{ $game->id }}" @selected((int) old('game_id', $account->game_id) === $game->id)>{{ $game->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        <p class="{{ $errors->has('game_id') ? 'error' : 'hint' }}">{{ $errors->first('game_id') ?: 'Bağlarsan müşterinin kartında oyunun kapağı görünür.' }}</p>
+                    </div>
+                @endif
                 <div class="field">
                     <label for="customer_note">Müşteriye not <span class="optional">(kodun altında görünür)</span></label>
                     <input id="customer_note" name="customer_note" type="text" class="input" value="{{ old('customer_note', $account->customer_note) }}" maxlength="300" placeholder="Örn. Steam Guard ekranında bu kodu yaz; profil seçerken 2. profili kullan.">

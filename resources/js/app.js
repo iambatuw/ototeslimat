@@ -783,3 +783,64 @@ document.querySelectorAll('[data-demo]').forEach((demo) => {
     // Giriş vitrininde bir kez kendiliğinden oynar; döngü yok.
     if (demo.hasAttribute('data-demo-autoplay')) setTimeout(run, 1600);
 });
+
+/* ---------- Oyun kataloğu (/oyunlar) ----------
+ * Arama ve platform hapları kartları süzer; karta tıklayınca oyun penceresi açılır. */
+const gameGrid = document.querySelector('[data-games]');
+if (gameGrid) {
+    const fold = (text) => text.toLocaleLowerCase('tr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i');
+    const items = [...gameGrid.children].map((li) => ({ li, name: fold(li.dataset.name), platform: li.dataset.platform }));
+    const search = document.querySelector('[data-games-search]');
+    const chips = [...document.querySelectorAll('[data-games-filter]')];
+    const count = document.querySelector('[data-games-count]');
+    const none = document.querySelector('[data-games-none]');
+    let platform = '';
+
+    const apply = () => {
+        const words = fold(search?.value ?? '').split(/\s+/).filter(Boolean);
+        let shown = 0;
+        items.forEach((item) => {
+            const match = (!platform || item.platform === platform) && words.every((word) => item.name.includes(word));
+            item.li.hidden = !match;
+            if (match) shown++;
+        });
+        if (count) count.textContent = shown;
+        if (none) none.hidden = shown > 0;
+    };
+
+    search?.addEventListener('input', apply);
+    chips.forEach((chip) => chip.addEventListener('click', () => {
+        platform = chip.dataset.gamesFilter;
+        chips.forEach((other) => {
+            other.classList.toggle('is-on', other === chip);
+            other.setAttribute('aria-pressed', String(other === chip));
+        });
+        apply();
+    }));
+
+    const dialog = document.querySelector('[data-game-dialog]');
+    gameGrid.addEventListener('click', (event) => {
+        const card = event.target.closest('[data-game-open]');
+        if (!card || !dialog) return;
+        const cover = dialog.querySelector('[data-dialog-cover]');
+        cover.dataset.p = card.closest('[data-p]').dataset.p;
+        cover.replaceChildren();
+        if (card.dataset.cover) {
+            const img = el('img');
+            img.src = card.dataset.cover;
+            img.alt = '';
+            img.referrerPolicy = 'no-referrer';
+            cover.append(img);
+        } else {
+            cover.append(el('span', 'gcard__blank', card.dataset.platformLabel));
+        }
+        dialog.querySelector('[data-dialog-platform]').textContent = card.dataset.platformLabel;
+        dialog.querySelector('[data-dialog-title]').textContent = card.dataset.title;
+        dialog.querySelector('[data-dialog-note]').textContent = card.dataset.note ?? '';
+        dialog.showModal();
+    });
+    // Pencerenin dışına tıklayınca kapanır.
+    dialog?.addEventListener('click', (event) => {
+        if (event.target === dialog) dialog.close();
+    });
+}

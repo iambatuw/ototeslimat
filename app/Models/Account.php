@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\Guard\Totp;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,7 +17,7 @@ class Account extends Model
     protected $fillable = [
         'platform', 'title',
         'mail_host', 'mail_port', 'mail_encryption', 'mail_username', 'mail_password',
-        'mail_from', 'code_format', 'totp_secret', 'is_active', 'notes', 'customer_note',
+        'mail_from', 'code_format', 'totp_secret', 'is_active', 'notes', 'customer_note', 'game_id',
     ];
 
     protected $hidden = ['mail_password', 'totp_secret'];
@@ -37,6 +38,12 @@ class Account extends Model
     public function keys(): HasMany
     {
         return $this->hasMany(ProductKey::class);
+    }
+
+    /** Katalogdaki oyun (varsa): müşterinin kartında kapak olarak görünür. */
+    public function game(): BelongsTo
+    {
+        return $this->belongsTo(Game::class);
     }
 
     public function packages(): BelongsToMany

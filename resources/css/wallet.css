@@ -275,3 +275,8 @@ html[data-still] .wallet__main > *, html[data-still] .wallet__side > *, html[dat
 @media (min-width: 60.01rem) {
   .hero-card__note, .hero-card__history { grid-column: 1 / -1; }
 }
+
+/* Oyuna bağlı hesapta işaretin yerinde oyunun kapağı (dikey kapak, üstten kırpılır) */
+.hero-card__mark--cover, .arow__mark--cover { object-fit: cover; object-position: top; }
+.hero-card__mark--cover { height: 56px; border-radius: 12px; box-shadow: 0 8px 18px -10px rgb(0 0 0 / 0.8); }
+.arow__mark--cover { height: 46px; }

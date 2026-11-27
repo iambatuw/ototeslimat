@@ -11,7 +11,7 @@ class LogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ActivityLog::query()->with(['user:id,email', 'account:id,title,platform,deleted_at']);
+        $query = ActivityLog::query()->with(['user:id,email,role', 'account:id,title,platform,deleted_at']);
 
         if (($event = $request->input('event')) && array_key_exists($event, ActivityLog::EVENTS)) {
             $query->where('event', $event);

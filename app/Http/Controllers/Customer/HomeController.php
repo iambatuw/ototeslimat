@@ -30,7 +30,7 @@ class HomeController extends Controller
         }
 
         $keys = $request->user()->keys()
-            ->with(['account', 'package.accounts', 'selections'])
+            ->with(['account.game', 'package.accounts.game', 'selections.game'])
             ->latest('redeemed_at')
             ->get();
 

@@ -11,7 +11,11 @@
     data-game data-poll="{{ config('guard.poll.interval_seconds') }},{{ config('guard.poll.attempts') }}"
     @unless ($active) hidden @endunless aria-labelledby="hero-title-{{ $row['id'] }}">
     <div class="hero-card__head">
-        <span class="hero-card__mark" aria-hidden="true">{{ $account->platformMark() }}</span>
+        @if ($account->game?->coverUrl())
+            <img class="hero-card__mark hero-card__mark--cover" src="{{ $account->game->coverUrl() }}" alt="" referrerpolicy="no-referrer">
+        @else
+            <span class="hero-card__mark" aria-hidden="true">{{ $account->platformMark() }}</span>
+        @endif
         <div class="hero-card__titles">
             <p class="hero-card__kicker">
                 {{ $row['platformLabel'] }} · {{ $row['last'] ? 'son kod '.$row['last']->diffForHumans() : 'henüz kod alınmadı' }}

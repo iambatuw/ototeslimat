@@ -57,6 +57,8 @@ class ActivityLog extends Model
         'request.rejected' => 'Ek hak isteği reddedildi',
         'key.purged' => 'Anahtarlar temizlendi',
         'key.picked' => 'Paketten hesap seçildi',
+        'game.saved' => 'Oyun kaydedildi',
+        'game.deleted' => 'Oyun silindi',
         'package.saved' => 'Paket kaydedildi',
         'package.deleted' => 'Paket silindi',
         'account.created' => 'Hesap eklendi',

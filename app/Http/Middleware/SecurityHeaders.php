@@ -23,7 +23,7 @@ class SecurityHeaders
             "default-src 'self'",
             "script-src 'self' 'nonce-{$nonce}'{$dev}",
             "style-src 'self' 'nonce-{$nonce}'{$dev}",
-            "img-src 'self' data:",
+            "img-src 'self' data: https:", // oyun kapakları başka bir siteden (https) gelebilir
             "font-src 'self' data:{$dev}",
             "connect-src 'self'{$dev}",
             "form-action 'self'",

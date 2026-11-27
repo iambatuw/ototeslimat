@@ -15,6 +15,7 @@ use App\Http\Controllers\QuickCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('landing');
+Route::get('/oyunlar', App\Http\Controllers\GameCatalogController::class)->name('games');
 
 // Hızlı onay: hesap açmadan anahtarla kod alma
 Route::get('/onay', [QuickCodeController::class, 'show'])->name('quick');
@@ -51,6 +52,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/hesaplar/{account}/dene', [AccountController::class, 'test'])->middleware('throttle:6,1')->name('accounts.test');
         Route::post('/hesaplar/{account}/telafi', [AccountController::class, 'compensate'])->name('accounts.compensate');
         Route::post('/hesaplar/{account}/tasi', [AccountController::class, 'move'])->name('accounts.move');
+
+        Route::get('/oyunlar', [App\Http\Controllers\Admin\GameController::class, 'index'])->name('games.index');
+        Route::post('/oyunlar', [App\Http\Controllers\Admin\GameController::class, 'store'])->name('games.store');
+        Route::post('/oyunlar/liste', [App\Http\Controllers\Admin\GameController::class, 'bulk'])->name('games.bulk');
+        Route::get('/oyunlar/{game}/duzenle', [App\Http\Controllers\Admin\GameController::class, 'edit'])->name('games.edit');
+        Route::put('/oyunlar/{game}', [App\Http\Controllers\Admin\GameController::class, 'update'])->name('games.update');
+        Route::patch('/oyunlar/{game}/degistir', [App\Http\Controllers\Admin\GameController::class, 'toggle'])->name('games.toggle');
+        Route::delete('/oyunlar/{game}', [App\Http\Controllers\Admin\GameController::class, 'destroy'])->name('games.destroy');
 
         Route::get('/paketler', [PackageController::class, 'index'])->name('packages.index');
         Route::get('/paketler/yeni', [PackageController::class, 'create'])->name('packages.create');

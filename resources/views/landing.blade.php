@@ -30,6 +30,7 @@
                 <span>{{ $brand }}</span>
             </a>
             <nav class="nav nav--optional" aria-label="Sayfa içi">
+                @if (Setting::flag('games_catalog'))<a href="{{ route('games') }}">Oyunlar</a>@endif
                 <a href="#nasil">Nasıl çalışır</a>
                 <a href="#sss">Sorular</a>
             </nav>
@@ -119,6 +120,38 @@
                 @endforeach
             </div>
         </section>
+
+        @if ($games->isNotEmpty())
+            <section class="container section reveal" aria-labelledby="games-strip-title">
+                <div class="gstrip__head">
+                    <div>
+                        <h2 id="games-strip-title">Oyunlar</h2>
+                        <p>Sattığımız oyunlardan bazıları. Hepsinde giriş kodu burada.</p>
+                    </div>
+                    <a href="{{ route('games') }}" class="btn btn--secondary">Tüm oyunlar</a>
+                </div>
+                <ul class="gstrip" role="list">
+                    @foreach ($games as $game)
+                        <li data-p="{{ $game->platform }}">
+                            <a href="{{ route('games') }}" class="gcard">
+                                <span class="gcard__cover">
+                                    @if ($game->coverUrl())
+                                        <img src="{{ $game->coverUrl() }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+                                    @else
+                                        <span class="gcard__blank" aria-hidden="true"><span>{{ $game->platformMark() }}</span>{{ $game->platformLabel() }}</span>
+                                    @endif
+                                    @if ($game->featured)<span class="gcard__flag">Öne çıkan</span>@endif
+                                </span>
+                                <span class="gcard__body">
+                                    <span class="gcard__name">{{ $game->name }}</span>
+                                    <span class="gcard__meta">{{ $game->platformLabel() }}</span>
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
 
         <section class="container section split" id="sss" aria-labelledby="sss-title">
             <div class="split__head reveal">

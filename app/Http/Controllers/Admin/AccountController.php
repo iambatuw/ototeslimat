@@ -271,6 +271,7 @@ class AccountController extends Controller
             'title' => ['required', 'string', 'max:120'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'customer_note' => ['nullable', 'string', 'max:300'],
+            'game_id' => ['nullable', 'integer', Rule::exists('games', 'id')],
             'is_active' => ['boolean'],
 
             'mail_username' => [Rule::requiredIf($wantsMail), 'nullable', 'email', 'max:190'],
@@ -301,6 +302,7 @@ class AccountController extends Controller
             'title' => $data['title'],
             'notes' => $data['notes'] ?? null,
             'customer_note' => $data['customer_note'] ?? null,
+            'game_id' => $data['game_id'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ]);
 

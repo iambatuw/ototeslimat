@@ -59,7 +59,7 @@ class DashboardController extends Controller
                 'sold' => ProductKey::whereNotNull('redeemed_at')->exists(),
             ],
             'failing' => ActivityLog::where('event', 'code.failed')->where('created_at', '>=', now()->subDay())->count(),
-            'recent' => ActivityLog::with(['user:id,email', 'account:id,title,platform,deleted_at'])
+            'recent' => ActivityLog::with(['user:id,email,role', 'account:id,title,platform,deleted_at'])
                 ->whereIn('event', ['code.issued', 'code.failed', 'key.redeemed', 'key.invalid'])
                 ->latest('id')->limit(8)->get(),
         ]);

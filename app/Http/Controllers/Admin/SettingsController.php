@@ -92,6 +92,7 @@ class SettingsController extends Controller
 
         return [
             'right_requests' => $request->boolean('right_requests') ? '1' : '0',
+            'games_catalog' => $request->boolean('games_catalog') ? '1' : '0',
             'shared_ip_threshold' => (string) ($data['shared_ip_threshold'] ?? 3),
             'registration_open' => $request->boolean('registration_open') ? '1' : '0',
             'quick_code' => $request->boolean('quick_code') ? '1' : '0',

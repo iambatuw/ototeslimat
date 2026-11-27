@@ -10,6 +10,7 @@
     $nav = $user->isAdmin() ? [
         ['admin.dashboard', 'admin.dashboard', 'Panel', '<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/>'],
         ['admin.accounts.index', 'admin.accounts.*|admin.packages.*', 'Hesaplar', '<rect x="3" y="4" width="18" height="13" rx="3"/><path d="M8 21h8M12 17v4"/>'],
+        ...(Setting::flag('games_catalog') ? [['admin.games.index', 'admin.games.*', 'Oyunlar', '<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="17.5" cy="14" r="1"/>']] : []),
         ['admin.keys.index', 'admin.keys.*', 'Anahtarlar', '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M13.5 9.5l2 2"/>'],
         ['admin.customers.index', 'admin.customers.*|admin.logs', 'Müşteriler', '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.2-5.5 6.5-5.5s5.9 2.1 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.9c1.6.9 2.7 2.6 3 5.1"/>'],
         ['admin.settings', 'admin.settings*', 'Ayarlar', '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'],
@@ -75,6 +76,7 @@
                 </a>
                 <nav class="nav" aria-label="Sayfalar">
                     <a href="{{ route('landing') }}">Ana sayfa</a>
+                    @if (Setting::flag('games_catalog'))<a href="{{ route('games') }}">Oyunlar</a>@endif
                     <a href="{{ route('home') }}" @if (request()->routeIs('home')) aria-current="page" @endif>Kodlarım</a>
                     <a href="{{ route('profile') }}" @if (request()->routeIs('profile')) aria-current="page" @endif>Hesabım</a>
                 </nav>

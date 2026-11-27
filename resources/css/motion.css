@@ -92,11 +92,11 @@
 /* ---------- Panel ---------- */
 .chart__plot svg { animation: wipe 1.6s var(--ease-out) 0.2s both; }
 .stock rect { transform-box: fill-box; transform-origin: 0 50%; animation: grow 1s var(--ease-out) 0.3s both; }
-.feed__dot { animation: pop 0.5s var(--ease-spring) both; animation-delay: inherit; }
+.feed__icon { animation: pop 0.5s var(--ease-spring) both; animation-delay: inherit; }
 .fresh { animation: rise var(--dur-long) var(--ease-out) both; }
 
 /* ---------- Hareket kapalı ---------- */
-html[data-still] .enter > *, html[data-still] .stagger > *, html[data-still] .notice, html[data-still] .code, html[data-still] .journey li, html[data-still] .auth__pitch, html[data-still] .fresh, html[data-still] .feed__dot { animation: none; opacity: 1; filter: none; transform: none; }
+html[data-still] .enter > *, html[data-still] .stagger > *, html[data-still] .notice, html[data-still] .code, html[data-still] .journey li, html[data-still] .auth__pitch, html[data-still] .fresh, html[data-still] .feed__icon { animation: none; opacity: 1; filter: none; transform: none; }
 html[data-still] .reveal { opacity: 1; transform: none; transition: none; }
 html[data-still] .ambient i, html[data-still] .marquee__row, html[data-still] .blank__art span, html[data-still] .cell::after, html[data-still] .cells--wait .cell, html[data-still] .mini__pill, html[data-still] .state--on::after, html[data-still] .mail.is-reading .mail__icon, html[data-still] .chart__plot svg, html[data-still] .stock rect { animation: none !important; }
 html[data-still] .progress { display: none; }

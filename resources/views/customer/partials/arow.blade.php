@@ -6,7 +6,11 @@
     $search = mb_strtolower(implode(' ', array_filter([$row['title'], $row['label'], $row['platformLabel'], $row['package']])));
 @endphp
 <li @class(['arow', 'is-active' => $active, 'is-off' => $row['blocked']]) data-p="{{ $row['platform'] }}" data-row="{{ $row['id'] }}" data-platform="{{ $row['platform'] }}" data-search="{{ $search }}">
-    <span class="arow__mark" aria-hidden="true">{{ $account->platformMark() }}</span>
+    @if ($account->game?->coverUrl())
+        <img class="arow__mark arow__mark--cover" src="{{ $account->game->coverUrl() }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+    @else
+        <span class="arow__mark" aria-hidden="true">{{ $account->platformMark() }}</span>
+    @endif
     <div class="arow__text">
         <p class="arow__name"><span data-label-text="{{ $account->id }}">{{ $name }}</span>@if ($row['label'])<span class="arow__sub"><span class="arow__dot" aria-hidden="true"> · </span>{{ $row['title'] }}</span>@endif</p>
         <p class="arow__meta">{{ $row['blocked'] ?? $row['status'] }}@if ($row['package']) · Paket: {{ $row['package'] }}@endif</p>
