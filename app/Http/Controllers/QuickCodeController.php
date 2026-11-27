@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\Guard\CodeService;
 use App\Services\Guard\GuardException;
 use App\Support\Activity;
+use App\Support\Alerts;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -97,7 +98,8 @@ class QuickCodeController extends Controller
             $result = $codes->issue($key, $key->account, $type);
         } catch (GuardException $e) {
             if (! ($request->boolean('poll') && $e->reason === 'no_mail')) {
-                Activity::log('code.failed', ['key' => $key, 'meta' => ['type' => $type, 'reason' => $e->reason, 'quick' => true]]);
+                Activity::log('code.failed', ['key' => $key, 'account' => $key->account, 'meta' => ['type' => $type, 'reason' => $e->reason, 'quick' => true]]);
+                Alerts::codeFailed($key->account, $e->reason);
             }
 
             if ($e->getPrevious()) {
@@ -107,7 +109,8 @@ class QuickCodeController extends Controller
             return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason, 'retry' => $e->reason === 'no_mail'], 422);
         }
 
-        Activity::log('code.issued', ['key' => $key, 'meta' => ['type' => $type, 'code' => mb_substr($result['code'], 0, 300), 'quick' => true]]);
+        Activity::log('code.issued', ['key' => $key, 'account' => $key->account, 'meta' => ['type' => $type, 'code' => mb_substr($result['code'], 0, 300), 'quick' => true]]);
+        Alerts::codeIssued($key);
 
         return response()->json($result);
     }

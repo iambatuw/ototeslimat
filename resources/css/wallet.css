@@ -260,3 +260,18 @@ html[data-still] .hero-card.is-swapping { animation: none; }
 .arows > li:nth-child(3) { animation-delay: 320ms; }
 .arows > li:nth-child(n+4) { animation-delay: 370ms; }
 html[data-still] .wallet__main > *, html[data-still] .wallet__side > *, html[data-still] .arows > li { animation: none; opacity: 1; transform: none; }
+
+/* ---------- Kartın altı: satıcının notu, son kodlar, bekleyen istek ---------- */
+.hero-card__note { padding: var(--space-xs) var(--space-sm); border-radius: 12px; background: rgb(0 0 0 / 0.22); color: var(--on-p); font-size: var(--text-sm); }
+.hero-card__note strong { font-weight: 700; }
+.hero-card__asked { color: var(--on-p); font-size: var(--text-sm); font-weight: 600; }
+.hero-card__history summary { cursor: pointer; width: fit-content; color: var(--on-p-2); font-size: var(--text-sm); font-weight: 600; }
+.hero-card__history summary:hover { color: var(--on-p); }
+.hero-card__history ol { display: grid; gap: var(--space-3xs); margin: var(--space-xs) 0 0; padding: 0; list-style: none; }
+.hero-card__history li { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-sm); font-size: var(--text-sm); }
+.hero-card__history time { font-variant-numeric: tabular-nums; font-weight: 600; }
+.hero-card__history span { color: var(--on-p-2); }
+.hero-card .code__ask { justify-self: start; }
+@media (min-width: 60.01rem) {
+  .hero-card__note, .hero-card__history { grid-column: 1 / -1; }
+}

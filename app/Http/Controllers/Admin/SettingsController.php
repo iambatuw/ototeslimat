@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\Activity;
+use App\Support\Notifier;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -12,7 +14,7 @@ use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
-    public const TABS = ['genel' => 'Genel', 'gorunum' => 'Görünüm', 'ozellikler' => 'Özellikler'];
+    public const TABS = ['genel' => 'Genel', 'gorunum' => 'Görünüm', 'ozellikler' => 'Özellikler', 'bildirimler' => 'Bildirimler'];
 
     public function edit(string $tab = 'genel')
     {
@@ -35,6 +37,7 @@ class SettingsController extends Controller
             ], [], ['brand_name' => 'marka adı', 'tab_title' => 'sekme başlığı', 'tagline' => 'karşılama yazısı', 'announcement' => 'duyuru', 'contact_url' => 'iletişim bağlantısı']),
             'gorunum' => $this->appearance($request),
             'ozellikler' => $this->features($request),
+            'bildirimler' => $this->notifications($request),
         };
 
         Setting::put($values);
@@ -43,13 +46,53 @@ class SettingsController extends Controller
         return redirect()->route('admin.settings', $tab)->with('status', 'Ayarlar kaydedildi.');
     }
 
+    public function testNotify()
+    {
+        $error = Notifier::test();
+
+        return back()->with($error ? 'error' : 'status', $error ?? 'Deneme bildirimi gönderildi. Telegram\'a ya da e-postana bak.');
+    }
+
+    private function notifications(Request $request): array
+    {
+        $data = $request->validate([
+            'notify_telegram_token' => ['nullable', 'string', 'max:120', 'regex:/^\d+:[A-Za-z0-9_-]+$/'],
+            'notify_telegram_chat' => ['nullable', 'string', 'max:40', 'regex:/^-?\d+$|^@[A-Za-z0-9_]{4,}$/'],
+        ], [
+            'notify_telegram_token.regex' => 'Bot anahtarı 123456:ABC... biçiminde olmalı (BotFather verir).',
+            'notify_telegram_chat.regex' => 'Sohbet kimliği bir sayı (örn. 123456789) ya da @kanaladi olmalı.',
+        ], ['notify_telegram_token' => 'bot anahtarı', 'notify_telegram_chat' => 'sohbet kimliği']);
+
+        $values = [
+            'notify_telegram_chat' => $data['notify_telegram_chat'] ?? null,
+            'notify_mail' => $request->boolean('notify_mail') ? '1' : '0',
+        ];
+
+        foreach (array_keys(Notifier::TOPICS) as $topic) {
+            $values['notify_'.$topic] = $request->boolean('notify_'.$topic) ? '1' : '0';
+        }
+
+        // Anahtar alanı boş bırakılırsa eskisi kalır; "kaldır" işaretlenirse silinir.
+        if ($request->boolean('remove_telegram')) {
+            $values['notify_telegram_token'] = null;
+            $values['notify_telegram_chat'] = null;
+        } elseif (! empty($data['notify_telegram_token'])) {
+            $values['notify_telegram_token'] = Crypt::encryptString($data['notify_telegram_token']);
+        }
+
+        return $values;
+    }
+
     private function features(Request $request): array
     {
         $data = $request->validate([
             'low_stock_threshold' => ['required', 'integer', 'min:0', 'max:1000'],
-        ], [], ['low_stock_threshold' => 'stok uyarı eşiği']);
+            'shared_ip_threshold' => ['nullable', 'integer', 'min:2', 'max:50'],
+        ], [], ['low_stock_threshold' => 'stok uyarı eşiği', 'shared_ip_threshold' => 'paylaşım uyarı eşiği']);
 
         return [
+            'right_requests' => $request->boolean('right_requests') ? '1' : '0',
+            'shared_ip_threshold' => (string) ($data['shared_ip_threshold'] ?? 3),
             'registration_open' => $request->boolean('registration_open') ? '1' : '0',
             'quick_code' => $request->boolean('quick_code') ? '1' : '0',
             'respect_reduced_motion' => $request->boolean('respect_reduced_motion') ? '1' : '0',

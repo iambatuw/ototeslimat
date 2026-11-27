@@ -66,7 +66,7 @@
     <section class="card" aria-labelledby="chart-title">
         <h2 id="chart-title" class="card__title">Verilen kodlar</h2>
         <p class="total"><strong data-count="{{ $total }}">{{ $fmt($total) }}</strong> <span>son 14 günde, bu ay {{ $fmt($stats['codes_month']) }}</span></p>
-        <p class="people"><strong>{{ $fmt($people['period']) }} kişi</strong> son 14 günde kod aldı · bugün {{ $fmt($people['today']) }} kişi</p>
+        <p class="reach"><strong>{{ $fmt($people['period']) }} kişi</strong> son 14 günde kod aldı · bugün {{ $fmt($people['today']) }} kişi</p>
         <figure class="chart__plot">
             <svg viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="none" role="img" aria-label="Son 14 günde günlük verilen kod sayısı">
                 @foreach ([0.25, 0.5, 0.75] as $g)
@@ -100,6 +100,42 @@
         </ul>
     </section>
     </div>
+
+    @if ($requests->isNotEmpty() || $shared->isNotEmpty())
+        <div class="insights insights--attention">
+            @if ($requests->isNotEmpty())
+                <section class="panel" aria-labelledby="requests-title">
+                    <div class="panel__head">
+                        <h2 id="requests-title">Ek hak istekleri</h2>
+                        <span class="state state--new">{{ $requests->count() }} bekliyor</span>
+                    </div>
+                    <ul class="rows" role="list">
+                        @foreach ($requests as $ask)
+                            @include('admin.partials.request-row', ['ask' => $ask])
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
+            @if ($shared->isNotEmpty())
+                <section class="panel" aria-labelledby="shared-title">
+                    <div class="panel__head">
+                        <h2 id="shared-title">Paylaşılıyor olabilir</h2>
+                        <span class="muted small">son 24 saat</span>
+                    </div>
+                    <ul class="rows" role="list">
+                        @foreach ($shared as $row)
+                            <li>
+                                <a href="{{ $row->key->redeemed_by ? route('admin.customers.show', $row->key->redeemed_by) : route('admin.keys.index', ['q' => $row->key->code]) }}" class="rowlink">
+                                    <span><strong>{{ $row->key->customer?->email ?? 'Hızlı onay' }}</strong><small>{{ $row->key->targetTitle() }}</small></span>
+                                    <span class="state state--bad">{{ $row->ips }} farklı IP</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
+        </div>
+    @endif
 
     <div class="insights">
         <section class="panel" aria-labelledby="health-title">
@@ -178,7 +214,7 @@
                 <ul class="rows" role="list">
                     @foreach ($topCustomers as $row)
                         <li>
-                            <a href="{{ route('admin.logs', ['q' => $row->user->email, 'event' => 'code.issued']) }}" class="rowlink">
+                            <a href="{{ route('admin.customers.show', $row->user) }}" class="rowlink">
                                 <span class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($row->user->name, 0, 1)) }}</span>
                                 <span><strong>{{ $row->user->name }}</strong><small>{{ $row->user->email }}</small></span>
                                 <span class="count">{{ $fmt($row->codes) }}</span>

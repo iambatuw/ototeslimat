@@ -231,7 +231,9 @@ class CodePanel {
                     return;
                 }
                 if (!data.retry || attempt === this.pollMax) {
-                    throw new Error(data.message ?? 'Kod alınamadı. Biraz sonra tekrar dene.');
+                    const error = new Error(data.message ?? 'Kod alınamadı. Biraz sonra tekrar dene.');
+                    error.data = data;
+                    throw error;
                 }
                 this.pending(length, attempt + 1, button);
                 await sleep(this.pollEvery);
@@ -239,7 +241,7 @@ class CodePanel {
             }
         } catch (error) {
             if (run !== this.run) return;
-            this.fail(error.message);
+            this.fail(error.message, error.data);
             button.dataset.idleNow = 'Tekrar dene';
         } finally {
             if (run === this.run) this.busy(button, false);
@@ -341,11 +343,43 @@ class CodePanel {
         this.timer = setInterval(tick, 1000);
     }
 
-    fail(message) {
+    fail(message, data = {}) {
         clearInterval(this.timer);
         this.panel.replaceChildren(el('p', 'code__error', message));
         this.panel.firstChild.setAttribute('role', 'alert');
+        if (data.request_pending) {
+            this.panel.append(el('p', 'code__note', 'Ek hak isteğin satıcında bekliyor. Onaylayınca buradan yeniden kod alabilirsin.'));
+        } else if (data.request_url) {
+            this.panel.append(this.askButton(data.request_url));
+        }
         this.panel.hidden = false;
+    }
+
+    /** Hakkı dolan müşteri satıcıdan ek hak ister; sonuç aynı yerde yazılır. */
+    askButton(url) {
+        const ask = el('button', 'btn btn--secondary btn--s code__ask', 'Satıcıdan hak iste');
+        ask.type = 'button';
+        ask.addEventListener('click', async () => {
+            ask.disabled = true;
+            ask.textContent = 'Gönderiliyor';
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
+                    credentials: 'same-origin',
+                });
+                const reply = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(reply.message ?? 'İstek gönderilemedi. Biraz sonra tekrar dene.');
+                const note = el('p', 'code__note', reply.message);
+                note.setAttribute('role', 'status');
+                ask.replaceWith(note);
+            } catch (error) {
+                ask.disabled = false;
+                ask.textContent = 'Satıcıdan hak iste';
+                window.alert(error.message);
+            }
+        });
+        return ask;
     }
 }
 

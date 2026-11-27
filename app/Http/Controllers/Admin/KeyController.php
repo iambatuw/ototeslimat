@@ -120,6 +120,31 @@ class KeyController extends Controller
         return back()->with('status', $who.' için '.$data['amount'].' ek kod hakkı verildi. Hemen kod alabilir.');
     }
 
+    /**
+     * Süreyi uzatır. Müşteri eklediyse bitiş tarihi (bitmişse bugünden) ileri alınır;
+     * henüz satılmadıysa geçerlilik günü artar. Süresiz anahtar süresiz kalır.
+     */
+    public function extend(Request $request, ProductKey $key)
+    {
+        $data = $request->validate(['days' => ['required', 'integer', 'between:1,3650']], [], ['days' => 'gün']);
+        $days = (int) $data['days'];
+
+        if ($key->redeemed_at && $key->expires_at) {
+            $from = $key->expires_at->isPast() ? now() : $key->expires_at;
+            $key->forceFill(['expires_at' => $from->copy()->addDays($days)])->save();
+            $message = 'Süre uzatıldı. Yeni bitiş: '.$key->expires_at->format('d.m.Y H:i').'.';
+        } elseif (! $key->redeemed_at && $key->valid_days) {
+            $key->forceFill(['valid_days' => $key->valid_days + $days])->save();
+            $message = 'Anahtar artık '.$key->valid_days.' gün geçerli olacak.';
+        } else {
+            return back()->with('status', 'Bu anahtar zaten süresiz.');
+        }
+
+        Activity::log('key.extended', ['key' => $key, 'user_id' => $key->redeemed_by, 'meta' => ['days' => $days]]);
+
+        return back()->with('status', $message);
+    }
+
     public function restore(ProductKey $key)
     {
         $key->forceFill(['revoked_at' => null])->save();

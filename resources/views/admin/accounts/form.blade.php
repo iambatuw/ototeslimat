@@ -62,6 +62,11 @@
                     <input id="notes" name="notes" type="text" class="input" value="{{ old('notes', $account->notes) }}" maxlength="1000">
                     <p class="error">@error('notes'){{ $message }}@enderror</p>
                 </div>
+                <div class="field">
+                    <label for="customer_note">Müşteriye not <span class="optional">(kodun altında görünür)</span></label>
+                    <input id="customer_note" name="customer_note" type="text" class="input" value="{{ old('customer_note', $account->customer_note) }}" maxlength="300" placeholder="Örn. Steam Guard ekranında bu kodu yaz; profil seçerken 2. profili kullan.">
+                    <p class="{{ $errors->has('customer_note') ? 'error' : 'hint' }}">{{ $errors->first('customer_note') ?: 'Kısa bir talimat. Şifre ya da e-posta yazma; müşteri bunu görür.' }}</p>
+                </div>
                 <input type="hidden" name="is_active" value="0">
                 <label class="check"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $account->is_active ?? true))> Bu hesap kod versin</label>
             </div>
@@ -174,6 +179,49 @@
         </form>
 
         @if ($editing)
+            <section class="tools-grid section-gap" aria-label="Bu hesabın müşterileri">
+                <form method="POST" action="{{ route('admin.accounts.compensate', $account) }}" class="card stack" data-busy novalidate
+                    data-confirm="Bu hesabı kullanan {{ $users }} müşteriye telafi verilsin mi?">
+                    @csrf
+                    <div>
+                        <h2 class="card__title">Telafi ver</h2>
+                        <p class="muted small">Hesap bir süre çalışmadıysa onu kullanan bütün müşterilere tek seferde ek kod hakkı ve ek gün ver. Şu an {{ $users }} müşteri, {{ $liveKeys }} anahtar.</p>
+                    </div>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="comp-rights">Ek kod hakkı</label>
+                            <input id="comp-rights" name="rights" type="number" class="input" min="0" max="100" value="1" inputmode="numeric">
+                        </div>
+                        <div class="field">
+                            <label for="comp-days">Ek gün</label>
+                            <input id="comp-days" name="days" type="number" class="input" min="0" max="365" value="1" inputmode="numeric">
+                            <p class="hint">Süresiz anahtarlara gün eklenmez.</p>
+                        </div>
+                    </div>
+                    <div><button type="submit" class="btn btn--secondary" data-busy-text="Veriliyor" @disabled(! $liveKeys)>Herkese ver</button></div>
+                </form>
+
+                <form method="POST" action="{{ route('admin.accounts.move', $account) }}" class="card stack" data-busy novalidate
+                    data-confirm="Bu hesaba bağlı bütün anahtarlar seçtiğin hesaba taşınsın mı? Müşteriler yeni hesabı görür.">
+                    @csrf
+                    <div>
+                        <h2 class="card__title">Anahtarları başka hesaba taşı</h2>
+                        <p class="muted small">Hesap kapandıysa ona bağlı anahtarları ve paket seçimlerini yeni hesaba aktar. Müşteri bir şey yapmaz; kartında yeni hesap görünür, verdiği ad korunur.</p>
+                    </div>
+                    <div class="field">
+                        <label for="move-target">Yeni hesap</label>
+                        <select id="move-target" name="target_id" class="select" @error('target_id') aria-invalid="true" @enderror>
+                            <option value="">Hesap seç</option>
+                            @foreach ($others as $other)
+                                <option value="{{ $other->id }}" @selected((int) old('target_id') === $other->id)>{{ $other->platformLabel() }} · {{ $other->title }}</option>
+                            @endforeach
+                        </select>
+                        <p class="error">@error('target_id'){{ $message }}@enderror</p>
+                    </div>
+                    <div><button type="submit" class="btn btn--secondary" data-busy-text="Taşınıyor" @disabled($others->isEmpty())>Taşı</button></div>
+                </form>
+            </section>
+
             <form method="POST" action="{{ route('admin.accounts.destroy', $account) }}" class="danger" data-confirm="{{ $account->title }} silinsin mi? Bağlı anahtarlar artık kod vermez.">
                 @csrf @method('DELETE')
                 <p class="muted small">Hesabı silersen bağlı anahtarlar kod vermeyi bırakır. Kayıtlar kalır.</p>

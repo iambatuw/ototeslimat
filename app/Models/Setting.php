@@ -33,6 +33,16 @@ class Setting extends Model
         'low_stock_threshold' => '3',      // satılmamış anahtar bu sayıya düşünce panelde uyarı
         'daily_summary' => '0',            // '1': her sabah yöneticilere özet e-postası
         'respect_reduced_motion' => '0',   // '1': ziyaretçinin sistemi hareketi azalt diyorsa animasyonlar kapalı başlar
+        'right_requests' => '1',           // '1': hakkı dolan müşteri satıcıdan ek hak isteyebilir
+        'shared_ip_threshold' => '3',      // bir anahtar 24 saatte bu kadar farklı IP'den kullanılırsa uyarı
+        // Bildirimler (Ayarlar > Bildirimler). Telegram anahtarı şifreli saklanır.
+        'notify_telegram_token' => null,
+        'notify_telegram_chat' => null,
+        'notify_mail' => '0',
+        'notify_broken' => '1',
+        'notify_stock' => '1',
+        'notify_shared' => '1',
+        'notify_request' => '1',
     ];
 
     public static function values(): array

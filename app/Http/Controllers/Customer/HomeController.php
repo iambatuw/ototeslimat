@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\ActivityLog;
 use App\Models\ProductKey;
+use App\Models\RightRequest;
+use App\Models\Setting;
 use App\Services\Guard\CodeService;
 use App\Services\Guard\GuardException;
 use App\Support\Activity;
+use App\Support\Alerts;
+use App\Support\Notifier;
 use App\Support\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,7 +44,14 @@ class HomeController extends Controller
 
         $selected = is_string($request->query('hesap')) ? $request->query('hesap') : null;
 
-        return view('customer.home', Wallet::build($keys, $user->accountLabels(), $lastCodes, session('opened'), $selected));
+        // Kartın altındaki "Son kodların": hesap başına son 5 kodun zamanı.
+        $history = ActivityLog::where('user_id', $user->id)->where('event', 'code.issued')->whereNotNull('account_id')
+            ->latest('id')->limit(200)->get(['account_id', 'meta', 'created_at'])
+            ->groupBy('account_id')->map(fn ($logs) => $logs->take(5));
+
+        $pending = \App\Models\RightRequest::where('user_id', $user->id)->where('status', 'pending')->pluck('product_key_id')->all();
+
+        return view('customer.home', Wallet::build($keys, $user->accountLabels(), $lastCodes, session('opened'), $selected) + ['history' => $history, 'pendingRequests' => $pending]);
     }
 
     public function redeem(Request $request)
@@ -81,6 +92,7 @@ class HomeController extends Controller
         }
 
         Activity::log('key.redeemed', ['key' => $key]);
+        Alerts::keyRedeemed($key);
 
         $message = $key->isPackage()
             ? $key->package->name.' eklendi. Listeden '.$key->package->pick_count.' hesap seç.'
@@ -115,6 +127,40 @@ class HomeController extends Controller
         }
 
         return back()->with('status', $label === '' ? 'Kartın adı kaldırıldı.' : 'Kartın adı kaydedildi.');
+    }
+
+    /** Hakkı dolan müşteri satıcıdan ek kod hakkı ister. Anahtar başına bekleyen tek istek olur. */
+    public function requestRight(Request $request, ProductKey $key, Account $account, CodeService $codes)
+    {
+        abort_unless($key->redeemed_by === $request->user()->id && $key->grantsAccount($account) && Setting::flag('right_requests'), 404);
+
+        $reason = match (true) {
+            $key->isUsedUp() || ($key->max_uses !== null && $key->uses_count >= $key->max_uses) => 'used_up',
+            $key->periodResetsAt() !== null => 'period',
+            default => 'cooldown',
+        };
+
+        $created = false;
+
+        try {
+            $codes->guard($key);
+            $ask = RightRequest::firstOrCreate(
+                ['product_key_id' => $key->id, 'status' => 'pending'],
+                ['user_id' => $request->user()->id, 'account_id' => $account->id, 'reason' => $reason],
+            );
+            $created = $ask->wasRecentlyCreated;
+        } catch (GuardException $e) {
+            return $request->expectsJson() ? response()->json(['message' => $e->getMessage()], 422) : back()->with('error', $e->getMessage());
+        }
+
+        if ($created) {
+            Activity::log('request.created', ['key' => $key, 'account' => $account, 'meta' => ['reason' => $reason]]);
+            Notifier::send('request', $request->user()->email.' '.$account->title.' için ek kod hakkı istiyor ('.RightRequest::REASONS[$reason].').'."\n".route('admin.customers.show', $request->user()), 'request-'.$key->id, 30);
+        }
+
+        $message = 'İsteğin satıcına gitti. Onaylayınca bu sayfadan yeniden kod alabilirsin.';
+
+        return $request->expectsJson() ? response()->json(['message' => $message]) : back()->with('status', $message);
     }
 
     /** Paket anahtarında listeden bir hesap seçer. Seçim geri alınmaz. */
@@ -175,20 +221,28 @@ class HomeController extends Controller
 
             if (! $repeat) {
                 Activity::log('code.failed', ['key' => $key, 'account' => $account, 'meta' => ['type' => $type, 'reason' => $e->reason]]);
+                Alerts::codeFailed($account, $e->reason);
             }
 
             if ($e->getPrevious()) {
                 Log::warning('Kod alınamadı', ['account' => $account->id, 'error' => $e->getPrevious()->getMessage()]);
             }
 
+            // Hakkı dolan müşteri satıcıdan ek hak isteyebilir (ayar açıksa).
+            $canAsk = in_array($e->reason, array_keys(RightRequest::REASONS), true) && Setting::flag('right_requests');
+            $pending = $canAsk && RightRequest::where('product_key_id', $key->id)->where('status', 'pending')->exists();
+
             return response()->json([
                 'message' => $e->getMessage(),
                 'reason' => $e->reason,
                 'retry' => $e->reason === 'no_mail',
+                'request_url' => $canAsk && ! $pending ? route('rights.request', [$key, $account]) : null,
+                'request_pending' => $pending,
             ], 422);
         }
 
         Activity::log('code.issued', ['key' => $key, 'account' => $account, 'meta' => ['type' => $type, 'code' => mb_substr($result['code'], 0, 300)]]);
+        Alerts::codeIssued($key);
 
         return response()->json($result);
     }

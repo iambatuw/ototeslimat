@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\ProductKey;
 use App\Services\Guard\EmailCodeFetcher;
 use App\Services\Guard\GuardException;
 use App\Services\Guard\Totp;
@@ -57,7 +58,12 @@ class AccountController extends Controller
 
     public function edit(Account $account)
     {
-        return view('admin.accounts.form', ['account' => $account]);
+        return view('admin.accounts.form', [
+            'account' => $account,
+            'users' => $this->liveKeys($account)->distinct()->count('redeemed_by'),
+            'liveKeys' => $this->liveKeys($account)->count(),
+            'others' => Account::whereKeyNot($account->id)->orderBy('platform')->orderBy('title')->get(['id', 'title', 'platform']),
+        ]);
     }
 
     public function update(Request $request, Account $account)
@@ -165,6 +171,95 @@ class AccountController extends Controller
         return redirect()->route('admin.accounts.index')->with($skipped ? 'error' : 'status', $message);
     }
 
+    /** Bu hesabı kullanan (anahtarı eklenmiş, iptal edilmemiş) anahtarlar; paket seçimleri dahil. */
+    private function liveKeys(Account $account)
+    {
+        return ProductKey::whereNotNull('redeemed_at')->whereNull('revoked_at')
+            ->where(fn ($q) => $q->where('account_id', $account->id)
+                ->orWhereIn('id', DB::table('key_selections')->where('account_id', $account->id)->select('product_key_id')));
+    }
+
+    /**
+     * Telafi: hesap bir süre çalışmadıysa bu hesabı kullanan bütün müşterilere tek seferde
+     * ek kod hakkı ve/veya ek gün verir.
+     */
+    public function compensate(Request $request, Account $account)
+    {
+        $data = $request->validate([
+            'rights' => ['nullable', 'integer', 'between:0,100'],
+            'days' => ['nullable', 'integer', 'between:0,365'],
+        ], [], ['rights' => 'ek hak', 'days' => 'ek gün']);
+
+        $rights = (int) ($data['rights'] ?? 0);
+        $days = (int) ($data['days'] ?? 0);
+
+        if ($rights === 0 && $days === 0) {
+            return back()->with('error', 'Ek hak ya da ek gün gir.');
+        }
+
+        $count = 0;
+
+        DB::transaction(function () use ($account, $rights, $days, &$count) {
+            foreach ($this->liveKeys($account)->lockForUpdate()->get() as $key) {
+                $changes = [];
+
+                if ($rights) {
+                    $changes['bonus_uses'] = $key->bonus_uses + $rights;
+                }
+
+                if ($days && $key->expires_at) {
+                    $changes['expires_at'] = ($key->expires_at->isPast() ? now() : $key->expires_at)->copy()->addDays($days);
+                }
+
+                if ($changes) {
+                    $key->forceFill($changes)->save();
+                    $count++;
+                }
+            }
+        });
+
+        Activity::log('account.compensated', ['account' => $account, 'meta' => ['rights' => $rights, 'days' => $days, 'keys' => $count]]);
+
+        return back()->with('status', $count ? $count.' müşteri anahtarına telafi verildi.' : 'Bu hesabı kullanan müşteri yok.');
+    }
+
+    /**
+     * Hesap kapandıysa ona bağlı anahtarları (ve paket seçimlerini) başka bir hesaba taşır.
+     * Müşteri bir şey yapmaz; kartında yeni hesap görünür, verdiği ad da taşınır.
+     */
+    public function move(Request $request, Account $account)
+    {
+        $data = $request->validate([
+            'target_id' => ['required', 'integer', Rule::notIn([$account->id]), Rule::exists('accounts', 'id')->whereNull('deleted_at')],
+        ], ['target_id.not_in' => 'Aynı hesaba taşınamaz.'], ['target_id' => 'yeni hesap']);
+
+        $target = Account::findOrFail($data['target_id']);
+
+        $moved = DB::transaction(function () use ($account, $target) {
+            $keys = ProductKey::where('account_id', $account->id)->update(['account_id' => $target->id, 'last_code_hash' => null]);
+
+            // Paket seçimi: müşteri yeni hesabı zaten seçmişse eski seçim silinir.
+            $selections = DB::table('key_selections')->where('account_id', $account->id)->get();
+            foreach ($selections as $row) {
+                $exists = DB::table('key_selections')->where(['product_key_id' => $row->product_key_id, 'account_id' => $target->id])->exists();
+                $query = DB::table('key_selections')->where(['product_key_id' => $row->product_key_id, 'account_id' => $account->id]);
+                $exists ? $query->delete() : $query->update(['account_id' => $target->id]);
+            }
+
+            foreach (DB::table('account_labels')->where('account_id', $account->id)->get() as $label) {
+                $taken = DB::table('account_labels')->where(['user_id' => $label->user_id, 'account_id' => $target->id])->exists();
+                $query = DB::table('account_labels')->where('id', $label->id);
+                $taken ? $query->delete() : $query->update(['account_id' => $target->id]);
+            }
+
+            return $keys + $selections->count();
+        });
+
+        Activity::log('key.moved', ['account' => $target, 'meta' => ['from' => $account->title, 'to' => $target->title, 'count' => $moved]]);
+
+        return redirect()->route('admin.accounts.edit', $target)->with('status', $moved.' anahtar '.$account->title.' hesabından buraya taşındı.');
+    }
+
     private function fill(Request $request, Account $account): void
     {
         $isNew = ! $account->exists;
@@ -175,6 +270,7 @@ class AccountController extends Controller
             'platform' => ['required', Rule::in(array_keys(config('guard.platforms')))],
             'title' => ['required', 'string', 'max:120'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'customer_note' => ['nullable', 'string', 'max:300'],
             'is_active' => ['boolean'],
 
             'mail_username' => [Rule::requiredIf($wantsMail), 'nullable', 'email', 'max:190'],
@@ -188,6 +284,7 @@ class AccountController extends Controller
             'totp_secret' => [Rule::requiredIf($wantsTotp && ($isNew || ! $account->totp_secret)), 'nullable', 'string', 'max:10000'],
         ], [], [
             'title' => 'hesap adı',
+            'customer_note' => 'müşteriye not',
             'mail_username' => 'e-posta adresi',
             'mail_password' => 'e-posta şifresi',
             'mail_host' => 'IMAP sunucusu',
@@ -203,6 +300,7 @@ class AccountController extends Controller
             'platform' => $data['platform'],
             'title' => $data['title'],
             'notes' => $data['notes'] ?? null,
+            'customer_note' => $data['customer_note'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ]);
 

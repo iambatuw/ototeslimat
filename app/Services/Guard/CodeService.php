@@ -146,7 +146,7 @@ class CodeService
             } elseif ($fresh->period_limit !== null && $running && $fresh->period_count >= $fresh->period_limit) {
                 $next = $fresh->period_started_at->copy()->addHours($fresh->period_hours);
                 $block = new GuardException(
-                    'Bu anahtarla '.$fresh->periodLabel().' alabilirsin ve bu dönemin hakkı doldu. Yeni hakkın '.$next->diffForHumans(['parts' => 2, 'syntax' => 1]).' ('.$next->format('d.m H:i').') gelir.',
+                    'Bu anahtarla '.$fresh->periodLabel().' alabilirsin ve bu dönemin hakkı doldu. Yeni hakkın '.$next->diffForHumans(['parts' => 2]).' ('.$next->format('d.m H:i').') gelir.',
                     'period'
                 );
             } elseif ($fresh->cooldown_minutes > 0 && $fresh->last_used_at) {

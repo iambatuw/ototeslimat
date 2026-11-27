@@ -86,6 +86,53 @@
                     </div>
                     <div><button type="submit" class="btn btn--primary" data-busy-text="Kaydediliyor">Görünümü kaydet</button></div>
                 </form>
+            @elseif ($tab === 'bildirimler')
+                @php($telegramSet = filled($settings['notify_telegram_token']))
+                <form method="POST" action="{{ route('admin.settings.update', 'bildirimler') }}" class="stack" data-busy novalidate>
+                    @csrf
+                    <h2 class="card__title">Bildirimler</h2>
+                    <p class="muted small">Bir hesap kod veremeyince, stok azalınca, bir anahtar paylaşılıyor gibi görününce ya da müşteri ek hak isteyince haber al. Aynı konu için en fazla birkaç saatte bir mesaj gelir.</p>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="notify_telegram_token">Telegram bot anahtarı</label>
+                            <input id="notify_telegram_token" name="notify_telegram_token" type="password" class="input mono" autocomplete="off" placeholder="{{ $telegramSet ? 'Kayıtlı. Değiştirmek için yenisini yaz' : '123456789:ABC...' }}" @error('notify_telegram_token') aria-invalid="true" @enderror>
+                            <p class="{{ $errors->has('notify_telegram_token') ? 'error' : 'hint' }}">{{ $errors->first('notify_telegram_token') ?: 'Telegram\'da @BotFather\'a /newbot yaz; verdiği anahtarı buraya yapıştır. Şifreli saklanır.' }}</p>
+                        </div>
+                        <div class="field">
+                            <label for="notify_telegram_chat">Sohbet kimliği</label>
+                            <input id="notify_telegram_chat" name="notify_telegram_chat" type="text" class="input mono" value="{{ old('notify_telegram_chat', $settings['notify_telegram_chat']) }}" placeholder="123456789" @error('notify_telegram_chat') aria-invalid="true" @enderror>
+                            <p class="{{ $errors->has('notify_telegram_chat') ? 'error' : 'hint' }}">{{ $errors->first('notify_telegram_chat') ?: 'Botuna bir mesaj at, sonra @userinfobot\'tan kimliğini öğren. Kanal için @kanaladi.' }}</p>
+                        </div>
+                    </div>
+                    @if ($telegramSet)
+                        <input type="hidden" name="remove_telegram" value="0">
+                        <label class="check"><input type="checkbox" name="remove_telegram" value="1"> Telegram bağlantısını kaldır</label>
+                    @endif
+
+                    <div class="switch-row">
+                        <div>
+                            <p class="cell-title">E-postayla da gönder</p>
+                            <p class="muted small">Bildirimler yöneticilerin e-postasına da gider. Sunucuda e-posta (MAIL_*) ayarı gerekir.</p>
+                        </div>
+                        <input type="hidden" name="notify_mail" value="0">
+                        <input type="checkbox" class="switch" name="notify_mail" value="1" aria-label="E-postayla da gönder" @checked($settings['notify_mail'])>
+                    </div>
+
+                    <fieldset class="stack">
+                        <legend class="cell-title">Hangi durumlarda?</legend>
+                        @foreach (\App\Support\Notifier::TOPICS as $topic => $label)
+                            <input type="hidden" name="notify_{{ $topic }}" value="0">
+                            <label class="check"><input type="checkbox" name="notify_{{ $topic }}" value="1" @checked($settings['notify_'.$topic])> {{ $label }}</label>
+                        @endforeach
+                    </fieldset>
+
+                    <div class="row">
+                        <button type="submit" class="btn btn--primary" data-busy-text="Kaydediliyor">Kaydet</button>
+                        <button type="submit" form="notify-test" class="btn btn--secondary">Deneme mesajı gönder</button>
+                    </div>
+                </form>
+                <form method="POST" action="{{ route('admin.settings.notify-test') }}" id="notify-test" hidden>@csrf</form>
             @else
                 <form method="POST" action="{{ route('admin.settings.update', 'ozellikler') }}" class="stack" data-busy novalidate>
                     @csrf
@@ -121,6 +168,19 @@
                         </div>
                         <input type="hidden" name="daily_summary" value="0">
                         <input type="checkbox" class="switch" name="daily_summary" value="1" aria-label="Günlük özet e-postası" @checked($settings['daily_summary'])>
+                    </div>
+                    <div class="switch-row">
+                        <div>
+                            <p class="cell-title">Müşteri ek hak isteyebilsin</p>
+                            <p class="muted small">Hakkı ya da dönem hakkı dolan müşteri kod ekranında "Satıcıdan hak iste" düğmesini görür. İstek panele düşer, tek tıkla onaylarsın.</p>
+                        </div>
+                        <input type="hidden" name="right_requests" value="0">
+                        <input type="checkbox" class="switch" name="right_requests" value="1" aria-label="Müşteri ek hak isteyebilsin" @checked($settings['right_requests'])>
+                    </div>
+                    <div class="field">
+                        <label for="shared_ip_threshold">Paylaşım uyarı eşiği</label>
+                        <input id="shared_ip_threshold" name="shared_ip_threshold" type="number" class="input" min="2" max="50" inputmode="numeric" value="{{ old('shared_ip_threshold', $settings['shared_ip_threshold']) }}" @error('shared_ip_threshold') aria-invalid="true" @enderror>
+                        <p class="{{ $errors->has('shared_ip_threshold') ? 'error' : 'hint' }}">{{ $errors->first('shared_ip_threshold') ?: 'Bir anahtar 24 saatte bu kadar farklı IP adresinden kullanılırsa panelde "Paylaşılıyor olabilir" uyarısı çıkar. Ev ve mobil internet arası geçişler için 3 iyi bir başlangıç.' }}</p>
                     </div>
                     <div class="field">
                         <label for="low_stock_threshold">Stok uyarı eşiği</label>

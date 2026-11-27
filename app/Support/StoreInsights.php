@@ -19,6 +19,20 @@ class StoreInsights
     private const FAILED = "sum(case when activity_logs.event = 'code.failed' then 1 else 0 end)";
 
     /**
+     * Hesap sağlığında sayılan hatalar: anahtar kuralından doğanlar (hakkı bitti, dönem hakkı
+     * dolu, bekleme, süre, iptal) hesabın sorunu değildir, sayılmaz. meta JSON metin olarak aranır
+     * (SQLite ve MySQL'de aynı).
+     */
+    private const RULE_REASONS = ['used_up', 'period', 'cooldown', 'expired', 'revoked', 'bad_type', 'pick_full', 'pick_invalid', 'pick_inactive'];
+
+    private static function broken(): string
+    {
+        $skip = collect(self::RULE_REASONS)->map(fn ($reason) => "activity_logs.meta not like '%\"reason\":\"{$reason}\"%'")->implode(' and ');
+
+        return "sum(case when activity_logs.event = 'code.failed' and {$skip} then 1 else 0 end)";
+    }
+
+    /**
      * Son $hours saatte kod veremeyen hesaplar, en çok hata veren başta.
      *
      * @return Collection<int, object{account: Account, failed: int, issued: int, reason: ?string}>
@@ -28,12 +42,12 @@ class StoreInsights
         $since = now()->subHours($hours);
 
         $rows = ActivityLog::query()
-            ->selectRaw('account_id, '.self::FAILED.' as failed, '.self::ISSUED.' as issued')
+            ->selectRaw('account_id, '.self::broken().' as failed, '.self::ISSUED.' as issued')
             ->whereIn('event', ['code.issued', 'code.failed'])
             ->whereNotNull('account_id')
             ->where('created_at', '>=', $since)
             ->groupBy('account_id')
-            ->havingRaw(self::FAILED.' > 0')
+            ->havingRaw(self::broken().' > 0')
             ->orderByDesc('failed')
             ->limit($limit)
             ->get();
@@ -46,6 +60,7 @@ class StoreInsights
             ->where('created_at', '>=', $since)
             ->latest('id')
             ->get(['account_id', 'meta'])
+            ->reject(fn (ActivityLog $log) => in_array($log->meta['reason'] ?? '', self::RULE_REASONS, true))
             ->unique('account_id')
             ->mapWithKeys(fn (ActivityLog $log) => [$log->account_id => $log->meta['reason'] ?? null]);
 

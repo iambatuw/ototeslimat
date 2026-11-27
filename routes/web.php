@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/kod/{key}/{account}/{type}', [HomeController::class, 'code'])->withTrashed()->middleware('throttle:guard-code')->name('code');
         Route::post('/paket/{key}/sec', [HomeController::class, 'pick'])->middleware('throttle:guard-code')->name('pick');
         Route::post('/kart/{account}/ad', [HomeController::class, 'label'])->withTrashed()->middleware('throttle:30,1')->name('label');
+        Route::post('/hak-iste/{key}/{account}', [HomeController::class, 'requestRight'])->middleware('throttle:6,1')->name('rights.request');
     });
 
     // Yönetim (mağaza sahibi)
@@ -48,6 +49,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/hesaplar/{account}', [AccountController::class, 'update'])->name('accounts.update');
         Route::delete('/hesaplar/{account}', [AccountController::class, 'destroy'])->name('accounts.destroy');
         Route::post('/hesaplar/{account}/dene', [AccountController::class, 'test'])->middleware('throttle:6,1')->name('accounts.test');
+        Route::post('/hesaplar/{account}/telafi', [AccountController::class, 'compensate'])->name('accounts.compensate');
+        Route::post('/hesaplar/{account}/tasi', [AccountController::class, 'move'])->name('accounts.move');
 
         Route::get('/paketler', [PackageController::class, 'index'])->name('packages.index');
         Route::get('/paketler/yeni', [PackageController::class, 'create'])->name('packages.create');
@@ -63,13 +66,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/anahtarlar/{key}/iptal', [KeyController::class, 'revoke'])->name('keys.revoke');
         Route::patch('/anahtarlar/{key}/ac', [KeyController::class, 'restore'])->name('keys.restore');
         Route::patch('/anahtarlar/{key}/ek-hak', [KeyController::class, 'bonus'])->name('keys.bonus');
+        Route::patch('/anahtarlar/{key}/uzat', [KeyController::class, 'extend'])->name('keys.extend');
 
         Route::get('/musteriler', [CustomerController::class, 'index'])->name('customers.index');
+        Route::get('/musteriler/{user}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::patch('/istekler/{rightRequest}', [CustomerController::class, 'handleRequest'])->name('requests.handle');
         Route::patch('/musteriler/{user}/durum', [CustomerController::class, 'toggle'])->name('customers.toggle');
 
         Route::get('/kayitlar', [LogController::class, 'index'])->name('logs');
 
         Route::get('/ayarlar/{tab?}', [SettingsController::class, 'edit'])->name('settings');
         Route::post('/ayarlar/{tab}', [SettingsController::class, 'update'])->name('settings.update');
+        Route::post('/ayarlar-bildirim-dene', [SettingsController::class, 'testNotify'])->middleware('throttle:5,1')->name('settings.notify-test');
     });
 });

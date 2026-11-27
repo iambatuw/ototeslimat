@@ -26,6 +26,15 @@ Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 - **Hızlı onay (`/onay`):** Müşteri hesap açmadan yalnızca anahtarıyla kodunu alır. Ayarlar > Özellikler'den kapatılabilir. Hızlı onayda kullanılan anahtar bir hesaba eklenemez (ve tersi); paket anahtarları burada çalışmaz.
 - **Anahtar kuralları:** kod hakkı, süre (müşteri anahtarı eklediği an başlar), kodlar arası bekleme ve dönemlik hak ("24 saatte 1 kod", "7 günde 3 kod"; dönem o dönemin ilk koduyla başlar). Boş bırakılırsa sınırsız ve süresiz olur. Aynı kodu tekrar görmek hak düşürmez.
 - **Ek hak:** Hakkı ya da dönem hakkı dolan müşteriye Anahtarlar tablosundaki "+1 hak ver" düğmesiyle hak verilir (her basış bir hak); müşteri beklemeden yeniden kod alır. Verilen ek haklar kayıtlarda görünür.
+- **Müşteri ek hak ister:** Hakkı dolan müşteri kod ekranında "Satıcıdan hak iste"ye basar; istek panelde "Ek hak istekleri" kutusuna düşer, tek tıkla onaylarsın (+1 hak) ya da reddedersin. Ayarlar > Özellikler'den kapatılabilir.
+- **Süre uzatma:** Anahtar satırındaki "+30 gün" bitiş tarihini ileri alır; süresi bitmişse bugünden başlatır.
+- **Müşteri ayrıntısı:** Müşteriler listesinden bir kişiye tıklayınca anahtarları, kalan hakları, istekleri, son 7 gündeki hata ve farklı IP sayısı, son hareketleri tek sayfada. Hak verme, süre uzatma ve engelleme oradan da yapılır.
+- **Telafi:** Hesap düzenleme sayfasında "Telafi ver": hesap bir süre çalışmadıysa onu kullanan bütün müşterilere tek seferde ek hak ve ek gün.
+- **Anahtar taşıma:** Hesap kapandıysa bağlı anahtarları ve paket seçimlerini yeni hesaba aktar; müşterinin verdiği ad korunur, müşteri bir şey yapmaz.
+- **Müşteriye not:** Her hesaba kısa bir talimat ("Steam Guard ekranında bu kodu yaz") yazılır; kodun altında ve `/onay` sayfasında görünür.
+- **Kod geçmişi:** Müşteri kartının altında o hesaptan aldığı son 5 kodun zamanı.
+- **Paylaşım uyarısı:** Bir anahtar 24 saatte 3 (ayarlanabilir) farklı IP'den kullanılırsa panelde "Paylaşılıyor olabilir" kutusu çıkar.
+- **Bildirimler:** Ayarlar > Bildirimler'den Telegram botu ve/veya e-posta: hesap kod veremiyor, stok azaldı, anahtar paylaşılıyor olabilir, müşteri ek hak istedi. Aynı konu için birkaç saatte bir mesaj gelir; "Deneme mesajı gönder" ile kontrol edilir. Bot anahtarı şifreli saklanır.
 - **Paketler:** Tek anahtarla müşteri listeden belirlediğin sayıda hesap seçer, örneğin "4 platformdan 2'sini seç". Seçim kalıcıdır. Kod hakkı, süre ve bekleme anahtarın tamamına uygulanır.
 - **Yönetim:** panel grafiği, sol listeden hesap seçip sağda anahtar üretme, toplu hesap ekleme, CSV dışa aktarma, eski anahtarları tek tıkla temizleme, müşteri engelleme.
 - **Kayıtlar:** Hangi müşteri, hangi anahtarla, ne zaman, hangi IP'den, hangi kodu aldı; başarısız denemeler nedeniyle birlikte.

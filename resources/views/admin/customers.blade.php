@@ -28,7 +28,7 @@
                     <li @class(['person', 'is-dim' => ! $customer->is_active])>
                         <span class="avatar avatar--l" aria-hidden="true">{{ mb_strtoupper(mb_substr($customer->name, 0, 1)) }}</span>
                         <div class="person__who">
-                            <p class="person__name">{{ $customer->name }}</p>
+                            <p class="person__name"><a href="{{ route('admin.customers.show', $customer) }}" class="person__link">{{ $customer->name }}</a></p>
                             <p class="person__mail">{{ $customer->email }}</p>
                         </div>
                         <dl class="person__facts">
@@ -38,7 +38,7 @@
                         </dl>
                         <span @class(['state', 'state--on' => $customer->is_active, 'state--bad' => ! $customer->is_active])>{{ $customer->is_active ? 'Aktif' : 'Engelli' }}</span>
                         <div class="person__actions">
-                            <a href="{{ route('admin.logs', ['q' => $customer->email]) }}" class="btn btn--secondary btn--s">Hareketleri</a>
+                            <a href="{{ route('admin.customers.show', $customer) }}" class="btn btn--secondary btn--s">Ayrıntı</a>
                             <form method="POST" action="{{ route('admin.customers.toggle', $customer) }}" @if ($customer->is_active) data-confirm="{{ $customer->email }} engellensin mi?" @endif>
                                 @csrf @method('PATCH')
                                 <button type="submit" class="btn {{ $customer->is_active ? 'btn--danger' : 'btn--secondary' }} btn--s">{{ $customer->is_active ? 'Engelle' : 'Engeli kaldır' }}</button>

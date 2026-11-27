@@ -16,7 +16,7 @@ class Account extends Model
     protected $fillable = [
         'platform', 'title',
         'mail_host', 'mail_port', 'mail_encryption', 'mail_username', 'mail_password',
-        'mail_from', 'code_format', 'totp_secret', 'is_active', 'notes',
+        'mail_from', 'code_format', 'totp_secret', 'is_active', 'notes', 'customer_note',
     ];
 
     protected $hidden = ['mail_password', 'totp_secret'];

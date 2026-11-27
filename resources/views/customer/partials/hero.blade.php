@@ -1,7 +1,7 @@
 {{--
     Üstteki büyük kart: bir hesabın kodu burada alınır. Her hesap için bir tane çizilir,
     yalnızca seçili olan görünür; raftaki "Kod al" başka bir hesabınkini açar.
-    $row (App\Support\Wallet satırı), $active
+    $row (App\Support\Wallet satırı), $active, $history (bu hesabın son kodları), $asked (bekleyen ek hak isteği var mı)
 --}}
 @php
     $account = $row['account'];
@@ -25,6 +25,9 @@
     </div>
 
     <p class="hero-card__meta">{{ implode(' · ', array_filter([$row['package'] ? 'Paket: '.$row['package'] : null, ...$row['meta']])) }}</p>
+    @if ($asked ?? false)
+        <p class="hero-card__asked">Ek hak isteğin satıcında bekliyor.</p>
+    @endif
 
     <div class="hero-card__actions">
         @if ($account->hasMailbox())
@@ -47,4 +50,22 @@
     </div>
 
     <div class="code" hidden></div>
+
+    @if ($account->customer_note)
+        <p class="hero-card__note"><strong>Satıcının notu:</strong> {{ $account->customer_note }}</p>
+    @endif
+
+    @if (($history ?? collect())->isNotEmpty())
+        <details class="hero-card__history">
+            <summary>Son kodların ({{ $history->count() }})</summary>
+            <ol role="list">
+                @foreach ($history as $log)
+                    <li>
+                        <time datetime="{{ $log->created_at->toIso8601String() }}">{{ $log->created_at->format('d.m.Y H:i') }}</time>
+                        <span>{{ ($log->meta['type'] ?? '') === 'mail' ? 'Mail kodu' : (($account->isSteamGuard()) ? 'Steam Guard' : '2FA kodu') }} · {{ $log->created_at->diffForHumans() }}</span>
+                    </li>
+                @endforeach
+            </ol>
+        </details>
+    @endif
 </article>

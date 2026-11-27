@@ -33,7 +33,12 @@ class DashboardController extends Controller
             ->map(fn ($log) => $log->user_id ? 'u'.$log->user_id : 'k'.$log->product_key_id)
             ->unique()->count();
 
+        $shared = \App\Support\Alerts::sharedKeys()->take(5);
+        $sharedKeys = \App\Models\ProductKey::with(['account', 'package', 'customer'])->whereIn('id', $shared->keys())->get()->keyBy('id');
+
         return view('admin.dashboard', [
+            'requests' => \App\Models\RightRequest::with(['user', 'account', 'key'])->where('status', 'pending')->oldest()->limit(8)->get(),
+            'shared' => $shared->map(fn ($ips, $id) => (object) ['key' => $sharedKeys[$id] ?? null, 'ips' => $ips])->filter(fn ($row) => $row->key)->values(),
             'people' => ['period' => (int) $people($start), 'today' => (int) $people(now()->startOfDay())],
             'stats' => [
                 'unused' => ProductKey::inStatus('unused')->count(),

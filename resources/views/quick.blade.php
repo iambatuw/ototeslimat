@@ -30,6 +30,8 @@
             $rules = [
                 $key->max_uses ? $key->usesLeft().' kod hakkın kaldı' : null,
                 $key->expires_at ? $key->expires_at->format('d.m.Y').' tarihine kadar' : null,
+                $key->periodLabel() ? $key->periodLabel().($key->periodResetsAt() ? ', yeni hak '.$key->periodResetsAt()->format('d.m H:i') : '') : null,
+                $key->bonus_uses ? 'satıcıdan '.$key->bonus_uses.' ek hak' : null,
                 $key->cooldown_minutes ? 'kodlar arası '.$key->cooldown_minutes.' dk' : null,
             ];
         @endphp
@@ -43,6 +45,10 @@
                 'urlFor' => fn (string $type) => route('quick.code', $type),
             ])
         </div>
+
+        @if ($account->customer_note)
+            <p class="notice"><strong>Satıcının notu:</strong> {{ $account->customer_note }}</p>
+        @endif
 
         <form method="POST" action="{{ route('quick.close') }}" class="quick-close">
             @csrf

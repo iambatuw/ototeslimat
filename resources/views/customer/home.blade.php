@@ -78,7 +78,7 @@
                     <div class="heroes" data-heroes>
                         <p class="heroes__label" data-hero-label>{{ $hero['last'] ? 'Son kullandığın' : 'Hazır' }}</p>
                         @foreach ($rows->reject(fn ($r) => $r['blocked']) as $row)
-                            @include('customer.partials.hero', ['row' => $row, 'active' => $row['id'] === $heroId])
+                            @include('customer.partials.hero', ['row' => $row, 'active' => $row['id'] === $heroId, 'history' => $history->get($row['account']->id, collect()), 'asked' => in_array($row['key']->id, $pendingRequests, true)])
                         @endforeach
                     </div>
                 @endif
