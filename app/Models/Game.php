@@ -57,4 +57,18 @@ class Game extends Model
 
         return Str::startsWith($this->cover, 'https://') ? $this->cover : asset($this->cover);
     }
+
+    /**
+     * Yatay kapak (Kodlarım kartı için). Steam kapağıysa aynı oyunun yatay "header" görseli;
+     * değilse null ve kart dikey kapağı sığdırarak gösterir.
+     */
+    public function wideUrl(): ?string
+    {
+        $cover = $this->coverUrl();
+        if ($cover && preg_match('#^(https://[^/]*steamstatic\.com/(?:store_item_assets/)?steam/apps/\d+/)#', $cover, $m)) {
+            return $m[1].'header.jpg';
+        }
+
+        return null;
+    }
 }

@@ -1,5 +1,6 @@
 {{--
-    Kütüphanedeki hesap kartı: üstte kapak (oyun kapağı ya da platform rengi), altında ad, ne zaman
+    Kütüphanedeki hesap kartı: üstte görsel (oyunun yatay kapağı, dikey kapak sığdırılmış ya da
+    platform renginde platform logosu), altında ad, ne zaman
     eklendiği, kalan hak ve tek büyük kod düğmesi. Kod kartın içinde açılır. Not, bilgiler, son kodlar,
     mail yardımı ve "Ad ver" kapalı "Ayrıntılar" kutusunda.
     $row (App\Support\Wallet satırı), $picked (adresle ya da yeni eklenerek seçildi mi), $history, $asked, $contact
@@ -8,6 +9,8 @@
     $account = $row['account'];
     $label = $row['label'];
     $cover = $account->game?->coverUrl();
+    $wide = $account->game?->wideUrl();
+    $logo = $cover ? null : $account->platformLogo();
     $steam = $account->isSteamGuard() || $account->platform === 'steam';
     $totpName = $steam ? 'Steam Guard' : '2FA';
     $sources = $row['blocked'] ? [] : array_values(array_filter([$account->hasMailbox() ? 'mail' : null, $account->hasTotp() ? '2fa' : null]));
@@ -25,10 +28,16 @@
         @if ($picked) data-open="true" @endif aria-labelledby="gc-title-{{ $row['id'] }}">
 
         <div class="gcard__art" aria-hidden="true">
-            @if ($cover)
-                <img src="{{ $cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+            @if ($wide)
+                <img class="gcard__img" src="{{ $wide }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+            @elseif ($cover)
+                {{-- Dikey kapak: arkada bulanık hâli kartı doldurur, önde kapağın tamamı sığar. --}}
+                <img class="gcard__blur" src="{{ $cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+                <img class="gcard__poster" src="{{ $cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+            @elseif ($logo)
+                <img class="gcard__logo" src="{{ $logo }}" alt="" loading="lazy">
             @else
-                <span class="gcard__mark">{{ $account->platformMark() }}</span>
+                <span class="gcard__word">{{ $row['platformLabel'] }}</span>
             @endif
             <span @class(['gcard__status', 'gcard__status--off' => $row['blocked']])>{{ $row['blocked'] ?? $row['status'] }}</span>
         </div>

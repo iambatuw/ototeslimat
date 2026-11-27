@@ -71,6 +71,14 @@ class Account extends Model
         return $this->platformConfig()['mark'] ?? mb_substr($this->platformLabel(), 0, 1);
     }
 
+    /** Platform logosu (public/img/platforms), yoksa null. Kaynak ve lisans: o klasördeki KAYNAK.md. */
+    public function platformLogo(): ?string
+    {
+        $file = 'img/platforms/'.$this->platform.'.svg';
+
+        return is_file(public_path($file)) ? asset($file) : null;
+    }
+
     public function hasMailbox(): bool
     {
         return filled($this->mail_host) && filled($this->mail_username) && filled($this->mail_password);
