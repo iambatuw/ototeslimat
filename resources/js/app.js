@@ -79,23 +79,57 @@ document.querySelectorAll('[data-toggle]').forEach((box) => {
 /* ---------- Bilinen posta sağlayıcısında IMAP bilgisini doldur ---------- */
 const accountForm = document.querySelector('[data-account-form]');
 if (accountForm) {
-    const presets = JSON.parse(accountForm.dataset.presets);
+    const presets = JSON.parse(accountForm.dataset.presets || '{}');
+    const providers = JSON.parse(accountForm.dataset.providers || '{}');
+    const meta = JSON.parse(accountForm.dataset.platforms || '{}');
     const user = accountForm.querySelector('[name="mail_username"]');
+    const pass = accountForm.querySelector('[name="mail_password"]');
     const host = accountForm.querySelector('[name="mail_host"]');
     const port = accountForm.querySelector('[name="mail_port"]');
     const enc = accountForm.querySelector('[name="mail_encryption"]');
+    const manualBox = accountForm.querySelector('[data-imap-manual]');
+    const providerHint = accountForm.querySelector('[data-provider-hint]');
+    const providerBtns = [...accountForm.querySelectorAll('[data-provider]')];
+
+    const selectProvider = (key, fillValues = true) => {
+        const info = providers[key];
+        if (!info) return;
+        providerBtns.forEach((btn) => btn.setAttribute('aria-pressed', btn.dataset.provider === key ? 'true' : 'false'));
+        if (manualBox) manualBox.hidden = key !== 'custom';
+        if (providerHint) providerHint.textContent = info.hint ?? '';
+        if (user && info.emailPlaceholder) user.placeholder = info.emailPlaceholder;
+        if (pass && !pass.dataset.hasSaved && info.passPlaceholder) pass.placeholder = info.passPlaceholder;
+        if (fillValues && key !== 'custom') {
+            if (host) host.value = info.host;
+            if (port) port.value = info.port;
+            if (enc) enc.value = info.encryption;
+        }
+    };
+
+    providerBtns.forEach((btn) => {
+        btn.addEventListener('click', () => selectProvider(btn.dataset.provider, true));
+    });
+
     user?.addEventListener('change', () => {
-        const preset = presets[user.value.split('@')[1]?.toLowerCase()];
-        if (preset && !host.value) {
-            host.value = preset.host;
-            port.value = preset.port;
-            enc.value = preset.encryption;
+        const domain = user.value.split('@')[1]?.toLowerCase();
+        if (!domain) return;
+        const preset = presets[domain];
+        if (preset) {
+            const matched = Object.keys(providers).find((k) => providers[k].host === preset.host);
+            if (matched) {
+                selectProvider(matched, true);
+            } else {
+                if (host) host.value = preset.host;
+                if (port) port.value = preset.port;
+                if (enc) enc.value = preset.encryption;
+            }
         }
     });
 
-    // Steam seçilince 2FA alanı maFile/shared_secret anlatımına geçer.
+    // Steam seçilince 2FA alanı maFile/shared_secret anlatımına geçer, oyun kataloğu görünür.
     const platform = accountForm.querySelector('[data-platform]');
     const secret = accountForm.querySelector('[data-ph-steam]');
+    const gameField = accountForm.querySelector('[data-for-game]');
     const syncPlatform = () => {
         accountForm.querySelectorAll('[data-for-platform]').forEach((node) => {
             const rule = node.dataset.forPlatform;
@@ -103,6 +137,11 @@ if (accountForm) {
             node.hidden = !match;
         });
         if (secret) secret.placeholder = platform.value === 'steam' ? secret.dataset.phSteam : secret.dataset.ph;
+        if (gameField) {
+            const info = meta[platform.value] ?? {};
+            gameField.hidden = !info.game;
+            gameField.querySelector('select').disabled = !info.game;
+        }
     };
     platform?.addEventListener('change', syncPlatform);
     if (platform) syncPlatform();

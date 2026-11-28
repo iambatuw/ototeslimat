@@ -14,6 +14,27 @@
         'mark' => $p['mark'] ?? mb_strtoupper(mb_substr($p['label'], 0, 1)),
         'game' => ($p['group'] ?? null) === 'game',
     ]);
+    $mailProviders = [
+        'firstmail' => ['label' => 'FirstMail', 'host' => 'imap.firstmail.ltd', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'hesap@firstmail.ltd', 'passPlaceholder' => 'Posta şifresi', 'hint' => 'FirstMail hesaplarında normal posta şifresi ile doğrudan çalışır.'],
+        'gmail' => ['label' => 'Gmail', 'host' => 'imap.gmail.com', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'hesap@gmail.com', 'passPlaceholder' => 'Uygulama şifresi', 'hint' => 'Gmail\'de normal şifre yerine Google Uygulama Şifresi gerekir.'],
+        'outlook' => ['label' => 'Outlook / Hotmail', 'host' => 'outlook.office365.com', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'hesap@outlook.com', 'passPlaceholder' => 'Posta / Uygulama şifresi', 'hint' => 'Outlook/Hotmail hesaplarında IMAP erişimi açık olmalıdır.'],
+        'yandex' => ['label' => 'Yandex', 'host' => 'imap.yandex.com', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'hesap@yandex.com', 'passPlaceholder' => 'Uygulama şifresi', 'hint' => 'Yandex Mail ayarlarından IMAP ve uygulama şifresi açık olmalıdır.'],
+        'mailru' => ['label' => 'Mail.ru', 'host' => 'imap.mail.ru', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'hesap@mail.ru', 'passPlaceholder' => 'Uygulama şifresi', 'hint' => 'Mail.ru güvenlik ayarlarından harici uygulama şifresi gerekir.'],
+        'rambler' => ['label' => 'Rambler', 'host' => 'imap.rambler.ru', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'hesap@rambler.ru', 'passPlaceholder' => 'Posta şifresi', 'hint' => 'Rambler posta ayarlarından IMAP erişiminin açık olduğundan emin olun.'],
+        'custom' => ['label' => 'Diğer (Özel IMAP)', 'host' => '', 'port' => 993, 'encryption' => 'ssl', 'emailPlaceholder' => 'ornek@alanadi.com', 'passPlaceholder' => 'Posta şifresi', 'hint' => 'Özel IMAP sunucu, port ve şifreleme bilgilerinizi aşağıya girin.'],
+    ];
+    $currentHost = strtolower((string) old('mail_host', $account->mail_host));
+    $activeProvider = 'firstmail';
+    if ($errors->hasAny(['mail_host', 'mail_port'])) {
+        $activeProvider = 'custom';
+    } elseif ($currentHost !== '') {
+        $foundProvider = collect($mailProviders)->search(fn ($p) => $p['host'] !== '' && $p['host'] === $currentHost);
+        $activeProvider = $foundProvider !== false ? $foundProvider : 'custom';
+    }
+    $providerInfo = $mailProviders[$activeProvider];
+    $defaultHost = old('mail_host', $editing ? $account->mail_host : $providerInfo['host']);
+    $defaultPort = old('mail_port', $editing ? ($account->mail_port ?? 993) : $providerInfo['port']);
+    $defaultEnc = old('mail_encryption', $editing ? ($account->mail_encryption ?? 'ssl') : $providerInfo['encryption']);
 @endphp
 <x-layouts.app :title="$editing ? $account->title : 'Hesap ekle'">
     <div class="acctform">
@@ -42,7 +63,7 @@
         <div id="tek" class="acctform__pane" data-pane="tek" @if ($bulkFirst) hidden @endif>
         <form method="POST" novalidate data-busy data-account-form class="acctform__grid"
             action="{{ $editing ? route('admin.accounts.update', $account) : route('admin.accounts.store') }}"
-            data-presets='@json(config('guard.mail_presets'))' data-platforms='@json($meta)'>
+            data-presets='@json(config('guard.mail_presets'))' data-providers='@json($mailProviders)' data-platforms='@json($meta)'>
             @csrf
             @if ($editing) @method('PUT') @endif
 
@@ -94,17 +115,6 @@
                             <p class="{{ $errors->has('game_id') ? 'error' : 'hint' }}">{{ $errors->first('game_id') ?: 'Bağlarsan müşterinin kartında oyunun kapağı görünür.' }}</p>
                         </div>
                     @endif
-
-                    <div class="field">
-                        <label for="customer_note">Müşteriye not <span class="optional">(kodun altında görünür)</span></label>
-                        <input id="customer_note" name="customer_note" type="text" class="input" value="{{ old('customer_note', $account->customer_note) }}" maxlength="300" placeholder="Örn. Profil seçerken 2. profili kullan." data-preview-note>
-                        <p class="{{ $errors->has('customer_note') ? 'error' : 'hint' }}">{{ $errors->first('customer_note') ?: 'Kısa bir talimat. Şifre ya da e-posta yazma; müşteri bunu görür.' }}</p>
-                    </div>
-                    <div class="field">
-                        <label for="notes">Kendi notun <span class="optional">(yalnızca sen görürsün)</span></label>
-                        <input id="notes" name="notes" type="text" class="input" value="{{ old('notes', $account->notes) }}" maxlength="1000" placeholder="Örn. Ödeme tarihi, kimden alındı">
-                        <p class="error">@error('notes'){{ $message }}@enderror</p>
-                    </div>
                 </section>
 
                 {{-- 2. Kod nereden gelir --}}
@@ -138,44 +148,53 @@
                     </div>
 
                     <div id="mail-fields" class="source-fields" @unless ($useMail) data-off @endunless>
-                        <h3>Mail kutusu</h3>
-                        <p class="hint">Bu kutudan (Spam dahil) son {{ config('guard.email_lookback_minutes') }} dakikada gelen kod okunur. E-posta ya da şifre değiştirme maillerindeki kodlar müşteriye gösterilmez. Gmail'de normal şifre değil <strong>uygulama şifresi</strong> gerekir; Outlook ve Hotmail desteklenmez.</p>
+                        <h3>Mail sağlayıcısı</h3>
+                        <div class="provider-pills" role="group" aria-label="Mail sağlayıcısı">
+                            @foreach ($mailProviders as $pKey => $pInfo)
+                                <button type="button" class="provider-pill" data-provider="{{ $pKey }}" aria-pressed="{{ $activeProvider === $pKey ? 'true' : 'false' }}">{{ $pInfo['label'] }}</button>
+                            @endforeach
+                        </div>
+                        <p class="hint" data-provider-hint>{{ $providerInfo['hint'] }}</p>
+
                         <div class="grid-2">
                             <div class="field">
                                 <label for="mail_username">E-posta adresi</label>
-                                <input id="mail_username" name="mail_username" type="email" class="input" value="{{ old('mail_username', $account->mail_username) }}" autocomplete="off" placeholder="hesap@gmail.com" @error('mail_username') aria-invalid="true" @enderror>
+                                <input id="mail_username" name="mail_username" type="email" class="input" value="{{ old('mail_username', $account->mail_username) }}" autocomplete="off" placeholder="{{ $providerInfo['emailPlaceholder'] }}" @error('mail_username') aria-invalid="true" @enderror>
                                 <p class="error">@error('mail_username'){{ $message }}@enderror</p>
                             </div>
                             <div class="field">
                                 <label for="mail_password">E-posta şifresi</label>
                                 <input id="mail_password" name="mail_password" type="password" class="input" autocomplete="new-password" @error('mail_password') aria-invalid="true" @enderror
-                                    placeholder="{{ $editing && $account->mail_password ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : 'Uygulama şifresi' }}">
+                                    @if ($editing && $account->mail_password) data-has-saved="1" @endif
+                                    placeholder="{{ $editing && $account->mail_password ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : $providerInfo['passPlaceholder'] }}">
                                 <p class="error">@error('mail_password'){{ $message }}@enderror</p>
                             </div>
                         </div>
-                        <details class="more" @if ($errors->hasAny(['mail_host', 'mail_port', 'mail_from', 'code_format'])) open @endif>
-                            <summary>Sunucu ve kod ayarları <span class="optional">(Gmail, Yandex gibi bilinen adreslerde kendiliğinden dolar)</span></summary>
+
+                        <div class="grid-3 imap-manual" data-imap-manual @if ($activeProvider !== 'custom') hidden @endif>
+                            <div class="field">
+                                <label for="mail_host">IMAP sunucusu</label>
+                                <input id="mail_host" name="mail_host" type="text" class="input" value="{{ $defaultHost }}" placeholder="imap.firstmail.ltd" autocomplete="off" spellcheck="false" @error('mail_host') aria-invalid="true" @enderror>
+                                <p class="error">@error('mail_host'){{ $message }}@enderror</p>
+                            </div>
+                            <div class="field">
+                                <label for="mail_port">Port</label>
+                                <input id="mail_port" name="mail_port" type="number" class="input" value="{{ $defaultPort }}" inputmode="numeric" @error('mail_port') aria-invalid="true" @enderror>
+                                <p class="error">@error('mail_port'){{ $message }}@enderror</p>
+                            </div>
+                            <div class="field">
+                                <label for="mail_encryption">Şifreleme</label>
+                                <select id="mail_encryption" name="mail_encryption" class="select">
+                                    @foreach (['ssl' => 'SSL', 'tls' => 'TLS', 'starttls' => 'STARTTLS', 'none' => 'Yok'] as $v => $l)
+                                        <option value="{{ $v }}" @selected($defaultEnc === $v)>{{ $l }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <details class="more" @if ($errors->hasAny(['mail_from', 'code_format'])) open @endif>
+                            <summary>Gelişmiş kod ayarları <span class="optional">(isteğe bağlı)</span></summary>
                             <div class="more__body">
-                                <div class="grid-3">
-                                    <div class="field">
-                                        <label for="mail_host">IMAP sunucusu</label>
-                                        <input id="mail_host" name="mail_host" type="text" class="input" value="{{ old('mail_host', $account->mail_host) }}" placeholder="imap.gmail.com" autocomplete="off" spellcheck="false" @error('mail_host') aria-invalid="true" @enderror>
-                                        <p class="error">@error('mail_host'){{ $message }}@enderror</p>
-                                    </div>
-                                    <div class="field">
-                                        <label for="mail_port">Port</label>
-                                        <input id="mail_port" name="mail_port" type="number" class="input" value="{{ old('mail_port', $account->mail_port ?? 993) }}" inputmode="numeric" @error('mail_port') aria-invalid="true" @enderror>
-                                        <p class="error">@error('mail_port'){{ $message }}@enderror</p>
-                                    </div>
-                                    <div class="field">
-                                        <label for="mail_encryption">Şifreleme</label>
-                                        <select id="mail_encryption" name="mail_encryption" class="select">
-                                            @foreach (['ssl' => 'SSL', 'tls' => 'TLS', 'starttls' => 'STARTTLS', 'none' => 'Yok'] as $v => $l)
-                                                <option value="{{ $v }}" @selected(old('mail_encryption', $account->mail_encryption ?? 'ssl') === $v)>{{ $l }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
                                 <div class="grid-2">
                                     <div class="field">
                                         <label for="mail_from">Gönderen süzgeci</label>
@@ -214,25 +233,8 @@
                 </section>
             </div>
 
-            {{-- Sağ panel: müşterinin göreceği kart ve kaydet --}}
-            <aside class="acctform__side" aria-label="Önizleme ve kaydet">
-                <div class="fpreview" data-p="{{ $current }}" data-preview>
-                    <p class="fpreview__label">Müşteri böyle görür</p>
-                    <div class="fpreview__card">
-                        <span class="fpreview__mark" data-preview-mark>{{ $meta[$current]['mark'] ?? '?' }}</span>
-                        <div class="fpreview__text">
-                            <p class="fpreview__title" data-preview-name>{{ old('title', $account->title) ?: 'Hesap adı' }}</p>
-                            <p class="fpreview__platform" data-preview-platform>{{ $meta[$current]['label'] ?? '' }}</p>
-                        </div>
-                    </div>
-                    <div class="fpreview__btns">
-                        <span class="fpreview__btn" data-preview-btn="mail" @unless ($useMail) hidden @endunless>Mail kodunu al</span>
-                        <span class="fpreview__btn fpreview__btn--alt" data-preview-btn="totp" @unless ($useTotp) hidden @endunless>{{ $isSteam ? 'Steam Guard kodunu al' : '2FA kodunu al' }}</span>
-                        <span class="fpreview__none" data-preview-none @if ($useMail || $useTotp) hidden @endif>Kod kaynağı seçilmedi</span>
-                    </div>
-                    <p class="fpreview__note" data-preview-notebox @unless (old('customer_note', $account->customer_note)) hidden @endunless><strong>Satıcının notu:</strong> <span data-preview-notetext>{{ old('customer_note', $account->customer_note) }}</span></p>
-                </div>
-
+            {{-- Sağ panel: kaydet --}}
+            <aside class="acctform__side" aria-label="Kaydet">
                 <div class="acctform__save">
                     <input type="hidden" name="is_active" value="0">
                     <label class="switch-row switch-row--tight">
