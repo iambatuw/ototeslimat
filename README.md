@@ -50,6 +50,8 @@ Her kurulum tek mağazadır. Kuran kişi yöneticidir.
 
 ## Kurulum
 
+Müşteriye sıfırdan bir sunucuda, alan adı ve SSL dahil adım adım kurulum: **[TESLIMAT.md](TESLIMAT.md)**. Aşağısı kısa özet.
+
 ```bash
 composer install --no-dev --optimize-autoloader
 cp .env.example .env

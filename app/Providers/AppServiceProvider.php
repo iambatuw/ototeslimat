@@ -25,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (str_starts_with(config('app.url'), 'https://') || $this->app->isProduction()) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Model::shouldBeStrict(! $this->app->isProduction());
         Carbon::setLocale('tr');
 
