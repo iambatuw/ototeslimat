@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Game;
 use App\Models\ProductKey;
 use App\Services\Guard\EmailCodeFetcher;
 use App\Services\Guard\GuardException;
 use App\Services\Guard\Totp;
 use App\Support\Activity;
+use App\Support\SteamCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -21,6 +23,7 @@ class AccountController extends Controller
     public function index(Request $request)
     {
         $query = Account::query()
+            ->with('game:id,name,cover')
             ->withCount(['keys', 'keys as unused_count' => fn ($q) => $q->inStatus('unused')])
             ->orderBy('title');
 
@@ -52,7 +55,7 @@ class AccountController extends Controller
 
         Activity::log('account.created', ['account' => $account, 'meta' => ['platform' => $account->platform]]);
 
-        return redirect()->route('admin.keys.index', ['hedef' => 'account:'.$account->id])
+        return redirect()->route('admin.keys.index', ['hedef' => 'account-'.$account->id])
             ->with('status', $account->title.' eklendi. Şimdi müşterilerine vereceğin anahtarları üret.');
     }
 
@@ -302,7 +305,7 @@ class AccountController extends Controller
             'title' => $data['title'],
             'notes' => $data['notes'] ?? null,
             'customer_note' => $data['customer_note'] ?? null,
-            'game_id' => $data['game_id'] ?? null,
+            'game_id' => $data['game_id'] ?? $this->resolveGameId($data['platform'], $data['title']),
             'is_active' => $request->boolean('is_active'),
         ]);
 
@@ -335,5 +338,45 @@ class AccountController extends Controller
         } else {
             $account->totp_secret = null;
         }
+    }
+
+    /** Oyun platformu ise ada göre katalogdan oyun bulur ya da Steam'den otomatik ekler. */
+    private function resolveGameId(string $platform, string $title): ?int
+    {
+        if ((config("guard.platforms.{$platform}.group") ?? null) !== 'game') {
+            return null;
+        }
+
+        $clean = trim($title);
+        if ($clean === '') {
+            return null;
+        }
+
+        $existing = Game::whereRaw('LOWER(name) = ?', [mb_strtolower($clean)])->first(['id']);
+        if ($existing) {
+            return $existing->id;
+        }
+
+        $matches = SteamCatalog::bestMatches([$clean]);
+        $hit = $matches[$clean] ?? null;
+
+        if (! $hit) {
+            return null;
+        }
+
+        $cover = $hit['cover'] ?: $hit['wide'];
+        if (! $cover) {
+            return null;
+        }
+
+        $game = Game::create([
+            'name' => $hit['name'] ?: $clean,
+            'platform' => $platform,
+            'cover' => $cover,
+            'note' => $hit['note'] ?? null,
+            'is_visible' => true,
+        ]);
+
+        return $game->id;
     }
 }

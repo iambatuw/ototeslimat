@@ -77,6 +77,8 @@
 /* Platform rozeti: hesabı bir bakışta tanıtan baş harf. */
 .plat { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 14px; background: var(--color-fill-strong); color: var(--color-white); font-size: var(--text-lg); font-weight: 800; box-shadow: inset 0 1px 0 var(--glass-highlight); transition: transform var(--dur-short) var(--ease-spring); }
 .plat--s { width: 32px; height: 32px; border-radius: 10px; font-size: var(--text-sm); }
+.plat--cover { overflow: hidden; padding: 0; }
+.plat--cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .plat svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 .plat--pack { background: linear-gradient(135deg, var(--color-accent), var(--aurora-2)); }
 .plat[data-p="netflix"] { background: var(--p-netflix); }

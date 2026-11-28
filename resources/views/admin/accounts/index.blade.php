@@ -40,7 +40,13 @@
                 <li>
                     <a href="{{ route('admin.accounts.edit', $account) }}" @class(['tile', 'spot', 'is-dim' => ! $account->is_active])>
                         <span class="tile__top">
-                            <span class="plat" data-p="{{ $account->platform }}" aria-hidden="true">{{ $account->platformMark() }}</span>
+                            @if ($cover = $account->game?->coverUrl())
+                                <span class="plat plat--cover" data-p="{{ $account->platform }}" aria-hidden="true">
+                                    <img src="{{ $cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+                                </span>
+                            @else
+                                <span class="plat" data-p="{{ $account->platform }}" aria-hidden="true">{{ $account->platformMark() }}</span>
+                            @endif
                             <span @class(['state', 'state--on' => $account->is_active])>{{ $account->is_active ? 'Kod veriyor' : 'Durduruldu' }}</span>
                         </span>
                         <span class="tile__title">{{ $account->title }}</span>

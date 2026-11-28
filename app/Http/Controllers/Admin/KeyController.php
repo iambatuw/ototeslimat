@@ -19,11 +19,13 @@ class KeyController extends Controller
     /** Üstte anahtar üretme formu, altta tüm anahtarlar. */
     public function index(Request $request)
     {
+        $hedef = str_replace(['account-', 'package-'], ['account:', 'package:'], (string) $request->input('hedef'));
+
         return view('admin.keys', [
             'keys' => $this->filtered($request)->with(['account:id,title,platform,deleted_at', 'package:id,name,deleted_at', 'customer:id,email', 'selections:id,title'])->latest()->paginate(50)->withQueryString(),
             'accounts' => Account::orderBy('title')->get(['id', 'title', 'platform', 'is_active']),
             'packages' => Package::orderBy('name')->get(['id', 'name', 'is_active']),
-            'target' => old('target', $request->input('hedef')),
+            'target' => old('target', $hedef),
             'filters' => $request->only('q', 'account', 'package', 'status'),
             'fresh' => session('fresh_keys', []),
         ]);

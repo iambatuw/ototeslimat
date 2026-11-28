@@ -50,7 +50,7 @@
                         @csrf
                         <button type="submit" class="btn btn--secondary" data-busy-text="Deneniyor">Bağlantıyı dene</button>
                     </form>
-                    <a href="{{ route('admin.keys.index', ['hedef' => 'account:'.$account->id]) }}" class="btn btn--primary">Anahtar üret</a>
+                    <a href="{{ route('admin.keys.index', ['hedef' => 'account-'.$account->id]) }}" class="btn btn--primary">Anahtar üret</a>
                 </div>
             @else
                 <nav class="segmented" aria-label="Ekleme biçimi" data-tabs>
