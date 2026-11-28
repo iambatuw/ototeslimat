@@ -84,8 +84,6 @@
 .plat[data-p="prime"] { background: var(--p-prime); }
 .plat[data-p="hbomax"] { background: var(--p-hbomax); }
 .plat[data-p="disney"] { background: var(--p-disney); }
-.plat[data-p="spotify"] { background: var(--p-spotify); color: var(--color-paper); }
-.plat[data-p="youtube"] { background: var(--p-youtube); }
 .plat[data-p="canva"] { background: var(--p-canva); color: var(--color-paper); }
 .plat[data-p="capcut"] { background: var(--p-capcut); }
 .plat[data-p="steam"] { background: var(--p-steam); }

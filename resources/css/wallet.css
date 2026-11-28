@@ -10,7 +10,6 @@
 [data-p="prime"] { --p: var(--p-prime); }
 [data-p="hbomax"] { --p: var(--p-hbomax); }
 [data-p="disney"] { --p: var(--p-disney); }
-[data-p="youtube"] { --p: var(--p-youtube); }
 [data-p="capcut"] { --p: #3a3a46; }
 [data-p="steam"] { --p: #2a475e; }
 [data-p="epic"] { --p: #3b3b40; }
@@ -23,7 +22,6 @@
 [data-p="nintendo"] { --p: var(--p-nintendo); }
 [data-p="pack"] { --p: var(--aurora-2); }
 /* Açık zeminli platformlarda yazı koyu. */
-[data-p="spotify"] { --p: var(--p-spotify); --on-p: #06130b; --on-p-2: rgb(6 19 11 / 0.78); }
 [data-p="canva"] { --p: var(--p-canva); --on-p: #03191a; --on-p-2: rgb(3 25 26 / 0.78); }
 [data-p="rockstar"] { --p: var(--p-rockstar); --on-p: #1d1402; --on-p-2: rgb(29 20 2 / 0.78); }
 

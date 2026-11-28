@@ -112,7 +112,7 @@ Bağımlılıklarda bilinen açık olup olmadığını görmek için: `composer 
 - **Önbellek:** Aynı hesaba arka arkaya gelen istekler posta kutusunu yormasın diye bulunan kod 20 saniye (`GUARD_EMAIL_CACHE`), "kod yok" sonucu 5 saniye (`GUARD_EMAIL_MISS_CACHE`) önbellekte tutulur.
 - **Bekleme:** Müşteri ekranı `GUARD_POLL_INTERVAL` saniyede bir, en fazla `GUARD_POLL_ATTEMPTS` kez yeniden sorar (varsayılan 7 sn × 17).
 - **Spam klasörü:** Varsayılan olarak taranır; kapatmak için `GUARD_SCAN_SPAM=false`.
-- **Desteklenen platformlar ve kod biçimleri:** Netflix (4 rakam), ChatGPT, Prime Video, HBO Max, Disney+, Spotify, YouTube, Canva, CapCut, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net (6 rakam), Xbox / Microsoft (6-8 rakam), PlayStation (6 rakam), Nintendo (4-6 rakam), Steam (5 harf/rakam, Steam Guard alfabesi). Battle.net Authenticator standart TOTP olmadığı için Battle.net hesaplarında yalnızca mail kodu çalışır; Xbox/Microsoft, PlayStation ve Nintendo hesabında Authenticator uygulamasıyla 2 adımlı doğrulama açıksa kurulum anahtarı girilerek 2FA kodu da verilir. PlayStation girişte genelde SMS ya da Authenticator ister; mail kodu yalnızca e-postayla gelen doğrulamalar içindir. Kaynak: platformların yardım sayfaları ve kod maillerinin bilinen kalıpları (2026-11). Hiçbiri gerçek bir hesapla denenmedi; yeni bir platform hesabı eklediğinde **Bağlantıyı dene** ile okunan kodu ve mail konusunu kontrol et.
+- **Desteklenen platformlar ve kod biçimleri:** Netflix (4 rakam), ChatGPT, Prime Video, HBO Max, Disney+, Canva, CapCut, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net (6 rakam), Xbox / Microsoft (6-8 rakam), PlayStation (6 rakam), Nintendo (4-6 rakam), Steam (5 harf/rakam, Steam Guard alfabesi). Battle.net Authenticator standart TOTP olmadığı için Battle.net hesaplarında yalnızca mail kodu çalışır; Xbox/Microsoft, PlayStation ve Nintendo hesabında Authenticator uygulamasıyla 2 adımlı doğrulama açıksa kurulum anahtarı girilerek 2FA kodu da verilir. PlayStation girişte genelde SMS ya da Authenticator ister; mail kodu yalnızca e-postayla gelen doğrulamalar içindir. Kaynak: platformların yardım sayfaları ve kod maillerinin bilinen kalıpları (2026-11). Hiçbiri gerçek bir hesapla denenmedi; yeni bir platform hesabı eklediğinde **Bağlantıyı dene** ile okunan kodu ve mail konusunu kontrol et.
 
 ## Yerel geliştirme
 
@@ -131,10 +131,10 @@ php artisan test
 | Hesap | E-posta | Şifre | Ne görürsün |
 |---|---|---|---|
 | Yönetici | `admin@demo.test` | `password` | Panel, hesaplar, anahtarlar, müşteriler |
-| Müşteri | `musteri@demo.test` | `password` | Kodlarım: 2 Steam (CS2 hesabı 24 saatte 1 kod), Netflix, Disney+, ChatGPT, Spotify |
+| Müşteri | `musteri@demo.test` | `password` | Kodlarım: 2 Steam (CS2 hesabı 24 saatte 1 kod), Netflix, Disney+, ChatGPT, Prime Video |
 | Yeni müşteri | `bos@demo.test` | `password` | Anahtarı yok: boş Kodlarım ekranı |
 
-Müşteri hesabında Steam ve ChatGPT kodları gerçekten üretilir (rastgele deneme anahtarı). Netflix, Disney+ ve Spotify'ın posta kutusu sahtedir; mail kodu istenince bağlantı hatası verir. Yalnızca deneme verisini yeniden kurmak için: `php artisan db:seed --class=DemoSeeder`.
+Müşteri hesabında Steam ve ChatGPT kodları gerçekten üretilir (rastgele deneme anahtarı). Netflix, Disney+ ve Prime Video'nun posta kutusu sahtedir; mail kodu istenince bağlantı hatası verir. Yalnızca deneme verisini yeniden kurmak için: `php artisan db:seed --class=DemoSeeder`.
 
 Bu hesaplar yalnızca yerel geliştirme içindir; seed canlı ortamda (`APP_ENV=production`) çalışmaz. Canlı sitede ilk yöneticiyi `php artisan guard:admin senin@adresin.com` ile kendi şifrenle oluştur. Deneme hesaplarını canlıya taşıma, şifrelerini paylaşılmış say.
 

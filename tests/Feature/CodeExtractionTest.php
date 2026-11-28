@@ -61,7 +61,6 @@ class CodeExtractionTest extends TestCase
             'nintendo 4 hane, adres tuzağı' => ['nintendo', '[Nintendo Account] Identity verification',
                 'Nintendo Account identity verification. Enter the following verification code: 7302 Nintendo of America Inc. 4600 150th Avenue NE Redmond, WA', '7302'],
             'nintendo 6 hane' => ['nintendo', 'Nintendo Account', 'Your verification code is 590214. © 2026 Nintendo', '590214'],
-            'google G- kodu' => ['youtube', 'G-123457 is your Google verification code', 'Your Google verification code is 123457', '123457'],
             'boşluklu 6 rakam' => ['epic', 'Epic Games', 'Your security code: 739 104 Thanks', '739104'],
         ];
     }

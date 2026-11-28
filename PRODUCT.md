@@ -23,7 +23,7 @@ Müşteri hesabın posta kutusuna ya da 2FA anahtarına hiç erişmeden yalnızc
 
 - Müşteri akışı: kayıt ol, ürün anahtarını ekle (ya da hesap açmadan `/onay` sayfasında anahtarla kod al), platformda giriş yap, kod istendiğinde düğmeye bas. Mail kodu gelmediyse ekran yaklaşık 2 dakika kendiliğinden tekrar sorar.
 - Anahtar kuralları: kod hakkı, geçerlilik süresi (anahtar eklendiği an başlar), kodlar arası bekleme. Paket anahtarı: müşteri listeden belirli sayıda hesap seçer, seçim kalıcıdır.
-- Platformlar: Netflix, ChatGPT, Prime Video, HBO Max, Disney+, Spotify, YouTube Premium, Canva, CapCut, Steam, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net, Xbox/Microsoft, PlayStation, Nintendo.
+- Platformlar: Netflix, ChatGPT, Prime Video, HBO Max, Disney+, Canva, CapCut, Steam, Epic Games, EA, Ubisoft, Rockstar, Riot, Battle.net, Xbox/Microsoft, PlayStation, Nintendo.
 
 ## Capabilities and Constraints
 

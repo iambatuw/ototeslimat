@@ -86,16 +86,6 @@ return [
             'from' => ['disneyplus.com', 'disney'],
             'anchors' => ['one-time passcode', 'passcode', 'tek kullanımlık', 'doğrulama kodu'],
         ],
-        'spotify' => [
-            'label' => 'Spotify', 'group' => 'stream', 'format' => 'digits6',
-            'from' => ['spotify.com'],
-            'anchors' => ['login code', 'giriş kodu', 'verification code', 'doğrulama kodu'],
-        ],
-        'youtube' => [
-            'label' => 'YouTube Premium', 'group' => 'stream', 'format' => 'digits6',
-            'from' => ['google.com'],
-            'anchors' => ['verification code', 'doğrulama kodu', 'g-'],
-        ],
         'canva' => [
             'label' => 'Canva', 'group' => 'tool', 'format' => 'digits6',
             'from' => ['canva.com'],

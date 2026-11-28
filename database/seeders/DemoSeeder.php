@@ -16,7 +16,7 @@ use RuntimeException;
  * Giriş: musteri@demo.test, şifre: password
  *
  * Steam ve ChatGPT hesaplarında rastgele üretilmiş 2FA anahtarı vardır, kod gerçekten üretilir.
- * Netflix, Disney+ ve Spotify'ın posta kutusu sahtedir; mail kodu istenince "bağlanılamadı" der.
+ * Netflix, Disney+ ve Prime Video'nun posta kutusu sahtedir; mail kodu istenince "bağlanılamadı" der.
  */
 class DemoSeeder extends Seeder
 {
@@ -50,7 +50,7 @@ class DemoSeeder extends Seeder
             ['netflix', 'Netflix Premium 4K', $mailbox, ['valid_days' => 30, 'max_uses' => 20], null],
             ['disney', 'Disney+ Standart', $mailbox, ['valid_days' => 30], null],
             ['chatgpt', 'ChatGPT Plus', ['totp_secret' => $base32()] + $mailbox, ['max_uses' => 15], null],
-            ['spotify', 'Spotify Premium Aile', $mailbox, ['valid_days' => 90], null],
+            ['prime', 'Prime Video', $mailbox, ['valid_days' => 90], null],
         ];
 
         foreach ($items as [$platform, $title, $fields, $rules, $label]) {

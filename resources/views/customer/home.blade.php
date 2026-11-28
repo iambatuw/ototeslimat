@@ -19,7 +19,7 @@
             ortada anahtar alanı. Duraklat düğmesi ve "hareketi azalt" kaymayı durdurur.
         --}}
         @php
-            $wallLogos = collect(['steam', 'netflix', 'chatgpt', 'playstation', 'spotify', 'xbox', 'epic', 'youtube', 'ubisoft', 'prime', 'riot', 'ea', 'nintendo', 'battlenet', 'canva', 'rockstar', 'hbomax'])
+            $wallLogos = collect(['steam', 'netflix', 'chatgpt', 'playstation', 'disney', 'xbox', 'epic', 'capcut', 'ubisoft', 'prime', 'riot', 'ea', 'nintendo', 'battlenet', 'canva', 'rockstar', 'hbomax'])
                 ->filter(fn ($p) => is_file(public_path("img/platforms/{$p}.svg")))->values();
         @endphp
         <div class="libpage libpage--empty">
