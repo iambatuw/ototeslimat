@@ -111,6 +111,18 @@
         @endif
 
         <main class="container page enter">
+            @if (($license ?? null) && $user?->isAdmin() && in_array($license['state'], ['warning', 'grace'], true))
+                <div @class(['license-bar', 'license-bar--danger' => $license['state'] === 'grace']) role="status">
+                    <p>
+                        @if ($license['state'] === 'grace')
+                            Lisansının süresi {{ $license['expires']->format('d.m.Y') }} tarihinde doldu. {{ $license['expires']->copy()->addDays(\App\Support\License::GRACE_DAYS)->format('d.m.Y') }} tarihinde site kapanacak.
+                        @else
+                            Lisansın {{ max(0, $license['days_left']) }} gün sonra ({{ $license['expires']->format('d.m.Y') }}) bitiyor.
+                        @endif
+                    </p>
+                    <a href="{{ route('admin.settings', 'lisans') }}" class="btn btn--secondary btn--s">Lisansı yenile</a>
+                </div>
+            @endif
             @if (session('status') && session('status') !== 'password-updated')
                 <p class="notice" role="status">{{ session('status') }}</p>
             @endif

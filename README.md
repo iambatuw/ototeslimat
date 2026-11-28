@@ -6,7 +6,7 @@ Hesap satıcıları için otomatik kod teslim sistemi. Netflix, ChatGPT, Prime V
 2. O hesap için ürün anahtarları üretip müşterilerine verirsin.
 3. Müşteri siteye kayıt olup anahtarı ekler ya da hesap açmadan `/onay` sayfasında anahtarı yazar, kodu kendisi alır. Mail kutusuna ya da 2FA anahtarına hiçbir şekilde erişemez.
 
-Her kurulum tek mağazadır. Kuran kişi yöneticidir.
+Her kurulum tek mağazadır. Kuran kişi yöneticidir. Her mağaza sitesi **aylık lisansla** çalışır (aşağıda: Lisans).
 
 ### Ürün tanımı
 
@@ -83,6 +83,35 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 ```
 
 Web sunucusunun kök dizini `public/` olmalı. Proje kökünü dışarı açma. Logo ve sekme simgesi `public/uploads` klasörüne yazılır; bu klasör yazılabilir olmalı.
+
+## Lisans (aylık üyelik)
+
+Her mağaza kendi alan adında ayrı bir kurulumdur ve aylık lisansla çalışır. Lisans yalnızca canlıda (`APP_ENV=production`) zorunludur; yerelde ve testlerde site lisanssız açılır.
+
+- **Lisans anahtarı** alan adını ve bitiş tarihini taşır, satıcının özel anahtarıyla imzalanır (Ed25519). Sitedeki kod yalnızca doğrular; yeni anahtar üretemez. Başka bir alan adında çalışmaz.
+- **Son 7 gün** yönetim panelinin üstünde uyarı çıkar. **Süre bitince 3 gün** daha çalışır (kırmızı uyarı). Sonra site kilitlenir: yönetici giriş yapıp yalnızca **Ayarlar > Lisans** sayfasını görür, müşteriler ve ziyaretçiler "Hizmet geçici olarak durduruldu" sayfasını görür, kod alınamaz. Hiçbir veri silinmez.
+- Mağaza sahibi yeni anahtarı **Ayarlar > Lisans** sayfasına yapıştırır; kaydedilir kaydedilmez site açılır.
+
+### Satıcı (sen) için
+
+Bir kez, kendi bilgisayarında:
+
+```bash
+php artisan guard:license-keygen
+```
+
+Özel anahtarı `%USERPROFILE%\.gecit-lisans\ozel-anahtar.txt` dosyasına yazar ve açık anahtarı ekrana basar. Açık anahtar `config/guard.php` > `license.public_key` içinde durur. **Özel anahtarı yedekle, depoya ya da mağaza sunucusuna koyma**; kaybedersen yeni lisans üretemezsin, sızarsa herkes lisans üretebilir.
+
+Her ödemede:
+
+```bash
+php artisan guard:license magaza-adi.com --days=30
+php artisan guard:license magaza-adi.com --until=2027-01-31 --note="Ocak"
+```
+
+Çıkan anahtarı mağaza sahibine gönder. `www.` öneki ve büyük/küçük harf fark etmez.
+
+Not: Mağaza sitesini alıcının kendi sunucusuna kurarsan, kodu değiştirebilen biri kilidi kaldırabilir. Kilidin gerçekten bağlayıcı olması için siteleri kendi sunucunda barındır.
 
 ## Güvenlik
 

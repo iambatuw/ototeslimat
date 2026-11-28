@@ -30,7 +30,7 @@ Müşteri hesabın posta kutusuna ya da 2FA anahtarına hiç erişmeden yalnızc
 - Laravel + Blade, Vite ile derlenen düz CSS/JS. Sıkı CSP: satır içi `style=""` yok.
 - Kayıt formu alanları sabit: ad, e-posta, şifre, şifre tekrar (kullanıcı onayladı, 2026-11-25).
 - Arayüz dili Türkçe.
-- Her kurulum tek mağaza; kuran kişi yönetici. Kaynak kodu satılır, bu yüzden güvenlik ve güncellenebilirlik önceliklidir.
+- Her kurulum tek mağaza; kuran kişi yönetici. Satış modeli aylık üyelik (2026-11-28): her alıcıya kendi alan adında ayrı site kurulur, site imzalı aylık lisansla çalışır, ödeme elle alınır ve satıcı `guard:license` ile yeni anahtar üretir. Lisans bitince 3 gün ek süre, sonra site kilitlenir. Güvenlik ve güncellenebilirlik önceliklidir.
 
 ## Brand Commitments
 

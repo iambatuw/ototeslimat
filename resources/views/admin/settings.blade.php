@@ -133,6 +133,30 @@
                     </div>
                 </form>
                 <form method="POST" action="{{ route('admin.settings.notify-test') }}" id="notify-test" hidden>@csrf</form>
+            @elseif ($tab === 'lisans')
+                {{-- Bu şablonda yalnızca tek satırlık php ifadeleri var; çok satırlı php bloğu onlarla karışıp araya gireni yutar. --}}
+                @php($lic = \App\Support\License::status())
+                @php($stateText = ['active' => 'Geçerli', 'warning' => 'Yakında bitiyor', 'grace' => 'Süresi doldu, ek süre içinde', 'expired' => 'Süresi doldu', 'missing' => 'Lisans yok', 'invalid' => 'Geçersiz anahtar', 'domain' => 'Başka alan adının anahtarı'][$lic['state']])
+                @php($bad = ! in_array($lic['state'], ['active', 'warning'], true))
+                <form method="POST" action="{{ route('admin.settings.update', 'lisans') }}" class="stack" data-busy novalidate>
+                    @csrf
+                    <h2 class="card__title">Lisans</h2>
+                    <p class="muted small">Site aylık lisansla çalışır. Ödemeni yaptığında satıcın sana yeni bir lisans anahtarı gönderir; buraya yapıştırıp kaydet. Süre bitince {{ \App\Support\License::GRACE_DAYS }} gün daha çalışır, sonra müşterilerin kod alamaz.</p>
+
+                    <dl class="license-state">
+                        <div><dt>Durum</dt><dd @class(['is-bad' => $bad, 'is-ok' => ! $bad])>{{ $stateText }}</dd></div>
+                        <div><dt>Bitiş</dt><dd>{{ $lic['expires']?->format('d.m.Y H:i') ?? '-' }}</dd></div>
+                        <div><dt>Kalan</dt><dd>{{ $lic['days_left'] === null ? '-' : ($lic['days_left'] >= 0 ? $lic['days_left'].' gün' : 'Doldu') }}</dd></div>
+                        <div><dt>Alan adı</dt><dd>{{ $lic['domain'] ?? request()->getHost() }}</dd></div>
+                    </dl>
+
+                    <div class="field">
+                        <label for="license_token">Yeni lisans anahtarı</label>
+                        <textarea id="license_token" name="license_token" class="input mono" rows="3" spellcheck="false" autocomplete="off" placeholder="Satıcından gelen anahtarı buraya yapıştır" @error('license_token') aria-invalid="true" @enderror>{{ old('license_token') }}</textarea>
+                        <p class="{{ $errors->has('license_token') ? 'error' : 'hint' }}">{{ $errors->first('license_token') ?: 'Anahtar bu alan adına özeldir; başka bir sitede çalışmaz.' }}</p>
+                    </div>
+                    <div><button type="submit" class="btn btn--primary" data-busy-text="Kaydediliyor">Lisansı kaydet</button></div>
+                </form>
             @else
                 <form method="POST" action="{{ route('admin.settings.update', 'ozellikler') }}" class="stack" data-busy novalidate>
                     @csrf

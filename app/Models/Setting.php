@@ -44,6 +44,7 @@ class Setting extends Model
         'notify_stock' => '1',
         'notify_shared' => '1',
         'notify_request' => '1',
+        'license_token' => null,           // aylık lisans anahtarı (App\Support\License)
     ];
 
     public static function values(): array

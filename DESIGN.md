@@ -32,6 +32,8 @@ Müşteriler Netflix, HBO Max, Prime Video gibi koyu arayüzlü platformlardan g
 - **Kayıtlar (Son hareketler):** günlere ayrılmış liste (Bugün, Dün, tarih başlıkları yapışık). Solda olayın türünü söyleyen renkli simge kutusu (yeşil onay, kırmızı çarpı, turuncu istek), ortada ne oldu ve ayrıntı, sağda saat, müşteri (ayrıntı sayfasına gider) ve soluk IP.
 - **Kayıt: adım adım.** Yalın misafir iskeleti (`layouts.guest :bare`). Her ekranda tek soru, 4.75rem'e kadar kalın; ilerleme dört kod hücresiyle gösterilir, biten hücrede rakam yeşil onay işaretine döner. Enter sonraki soruya geçer, hatalar adımın altında söylenir, sunucu bir alanı reddederse o adımdan açılır. Sağda adıyla seslenen kısa özet. JS yoksa dört alan alt alta düz form olarak çalışır.
 
+- **Lisans:** yönetimde son 7 gün sarı, ek sürede kırmızı ince bir bant sayfanın en üstünde ("Lisansı yenile" düğmesiyle). Ayarlar > Lisans: durum, bitiş, kalan gün ve alan adı dört küçük kutuda, altında anahtar alanı. Kilitliyken ziyaretçi ve müşteri yalın iskelette ortalanmış "Hizmet geçici olarak durduruldu" sayfasını görür (duraklat işareti, tek cümle, varsa "Satıcıyla iletişime geç", "Yönetici girişi").
+
 ## Hareket
 
 Mağaza sahibi sitenin hareketli olmasını istedi; hareket her yerde var ama her biri kısa ve tek işlidir.

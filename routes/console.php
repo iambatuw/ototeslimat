@@ -88,3 +88,49 @@ Artisan::command('guard:daily-summary {--force : Ayar kapalı olsa da gönder}',
 })->purpose('Dünün özetini yöneticilere e-postayla gönderir');
 
 Illuminate\Support\Facades\Schedule::command('guard:daily-summary')->dailyAt('09:00');
+
+/*
+ * Lisans (aylık üyelik). Yalnızca satıcının kendi bilgisayarında çalıştırılır: özel anahtar ile
+ * mağaza sitelerine lisans anahtarı üretir. Özel anahtar asla depoya ya da mağaza sunucusuna konmaz.
+ */
+$licenseKeyPath = fn (?string $path) => $path ?: (getenv('USERPROFILE') ?: getenv('HOME')).DIRECTORY_SEPARATOR.'.gecit-lisans'.DIRECTORY_SEPARATOR.'ozel-anahtar.txt';
+
+Artisan::command('guard:license-keygen {--path=}', function () use ($licenseKeyPath) {
+    $path = $licenseKeyPath($this->option('path'));
+    if (is_file($path)) {
+        $this->error("Özel anahtar zaten var: {$path}. Üzerine yazılmadı; yeni anahtar eski lisansları geçersiz kılar.");
+
+        return 1;
+    }
+
+    $pair = sodium_crypto_sign_keypair();
+    @mkdir(dirname($path), 0700, true);
+    file_put_contents($path, base64_encode(sodium_crypto_sign_secretkey($pair)));
+
+    $this->info("Özel anahtar kaydedildi: {$path}");
+    $this->line('Bu dosyayı yedekle ve kimseyle paylaşma. Kaybedersen yeni lisans üretemezsin.');
+    $this->newLine();
+    $this->line('config/guard.php > license.public_key değerine şunu yaz:');
+    $this->line(base64_encode(sodium_crypto_sign_publickey($pair)));
+})->purpose('Lisans imzalamak için özel/açık anahtar çifti üretir (satıcı bilgisayarında, bir kez)');
+
+Artisan::command('guard:license {domain} {--days=30} {--until=} {--note=} {--key=}', function (string $domain) use ($licenseKeyPath) {
+    $path = $licenseKeyPath($this->option('key'));
+    if (! is_file($path)) {
+        $this->error("Özel anahtar bulunamadı: {$path}. Önce guard:license-keygen çalıştır.");
+
+        return 1;
+    }
+
+    $until = $this->option('until')
+        ? Illuminate\Support\Carbon::parse($this->option('until'))->endOfDay()
+        : now()->addDays((int) $this->option('days'))->endOfDay();
+
+    $token = App\Support\License::issue($domain, $until, trim(file_get_contents($path)), $this->option('note'));
+
+    $this->info(App\Support\License::host($domain).' için lisans, bitiş: '.$until->format('d.m.Y H:i'));
+    $this->newLine();
+    $this->line($token);
+    $this->newLine();
+    $this->line('Bu anahtarı mağaza sahibine gönder: Yönetim > Ayarlar > Lisans sayfasına yapıştırır.');
+})->purpose('Bir mağaza sitesi için lisans anahtarı üretir (örn. guard:license ornek.com --days=30)');

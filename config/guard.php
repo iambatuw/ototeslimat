@@ -37,6 +37,16 @@ return [
     ],
 
     /*
+    | Aylık lisans (App\Support\License). Canlıda (APP_ENV=production) zorunludur: lisans yoksa,
+    | bitmişse ya da başka alan adınınsa site kilitlenir. Açık anahtar satıcının guard:license-keygen
+    | çıktısıdır; lisansları yalnızca ona karşılık gelen özel anahtar üretebilir.
+    */
+    'license' => [
+        'enforce' => env('APP_ENV', 'production') === 'production',
+        'public_key' => '4Wsv06svgBsMZAS8k+VhlIJsTT3aU8E7hhSK/tjdnWA=',
+    ],
+
+    /*
     | Spam / Gereksiz klasörlerine de bakılsın mı. Kod mailleri sık sık
     | oraya düşer. Klasör adı bu desene uyarsa taranır.
     */

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\Activity;
+use App\Support\License;
 use App\Support\Notifier;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
 
 class SettingsController extends Controller
 {
-    public const TABS = ['genel' => 'Genel', 'gorunum' => 'Görünüm', 'ozellikler' => 'Özellikler', 'bildirimler' => 'Bildirimler'];
+    public const TABS = ['genel' => 'Genel', 'gorunum' => 'Görünüm', 'ozellikler' => 'Özellikler', 'bildirimler' => 'Bildirimler', 'lisans' => 'Lisans'];
 
     public function edit(string $tab = 'genel')
     {
@@ -38,12 +39,36 @@ class SettingsController extends Controller
             'gorunum' => $this->appearance($request),
             'ozellikler' => $this->features($request),
             'bildirimler' => $this->notifications($request),
+            'lisans' => $this->license($request),
         };
 
         Setting::put($values);
         Activity::log('settings.updated', ['meta' => ['tab' => $tab, 'fields' => array_keys($values)]]);
 
-        return redirect()->route('admin.settings', $tab)->with('status', 'Ayarlar kaydedildi.');
+        $saved = $tab === 'lisans'
+            ? 'Lisans kaydedildi. Bitiş: '.License::status()['expires']->format('d.m.Y H:i').'.'
+            : 'Ayarlar kaydedildi.';
+
+        return redirect()->route('admin.settings', $tab)->with('status', $saved);
+    }
+
+    /** Satıcıdan gelen lisans anahtarı: imzası, alan adı ve süresi tutuyorsa kaydedilir. */
+    private function license(Request $request): array
+    {
+        $token = trim((string) $request->validate(['license_token' => ['required', 'string', 'max:2000']], [], ['license_token' => 'lisans anahtarı'])['license_token']);
+        $check = License::verify($token, $request->getHost());
+
+        $error = match ($check['state']) {
+            'invalid', 'missing' => 'Bu lisans anahtarı geçerli değil. Gelen anahtarı eksiksiz yapıştırdığından emin ol.',
+            'domain' => 'Bu anahtar başka bir alan adı ('.$check['domain'].') için üretilmiş.',
+            'expired', 'grace' => 'Bu anahtarın süresi '.$check['expires']->format('d.m.Y').' tarihinde dolmuş. Satıcından yeni anahtar iste.',
+            default => null,
+        };
+        if ($error !== null) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['license_token' => $error]);
+        }
+
+        return ['license_token' => $token];
     }
 
     public function testNotify()
