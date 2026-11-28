@@ -50,9 +50,16 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::requestPasswordResetLinkView(fn () => view('auth.forgot-password'));
         Fortify::resetPasswordView(fn (Request $request) => view('auth.reset-password', ['request' => $request]));
 
-        // Pasife alınmış kullanıcı doğru şifreyle de giremez.
+        // Pasife alınmış kullanıcı doğru şifreyle de giremez. E-posta ya da kullanıcı adı ile giriş yapılabilir.
         Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where('email', Str::lower((string) $request->input('email')))->first();
+            $login = Str::lower(trim((string) $request->input('email')));
+            if ($login === '') {
+                return null;
+            }
+
+            $user = User::where('email', $login)
+                ->orWhere('username', $login)
+                ->first();
 
             if ($user && Hash::check((string) $request->input('password'), $user->password)) {
                 if (! $user->is_active) {

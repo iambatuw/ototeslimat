@@ -5,8 +5,8 @@
     <form method="POST" action="{{ route('login') }}" class="stack" data-busy novalidate>
         @csrf
         <div class="field">
-            <label for="email">E-posta</label>
-            <input id="email" name="email" type="email" class="input" value="{{ old('email') }}" autocomplete="email" inputmode="email" required autofocus @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
+            <label for="email">Kullanıcı adı veya E-posta</label>
+            <input id="email" name="email" type="text" class="input" value="{{ old('email') }}" autocomplete="username" inputmode="text" required autofocus @error('email') aria-invalid="true" aria-describedby="email-error" @enderror>
             <p class="error" id="email-error">@error('email'){{ $message }}@enderror</p>
         </div>
         <div class="field">

@@ -272,6 +272,8 @@ class AccountController extends Controller
         $data = $request->validate([
             'platform' => ['required', Rule::in(array_keys(config('guard.platforms')))],
             'title' => ['required', 'string', 'max:120'],
+            'login_username' => ['nullable', 'string', 'max:190'],
+            'login_password' => ['nullable', 'string', 'max:500'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'customer_note' => ['nullable', 'string', 'max:300'],
             'game_id' => ['nullable', 'integer', Rule::exists('games', 'id')],
@@ -303,11 +305,16 @@ class AccountController extends Controller
         $account->fill([
             'platform' => $data['platform'],
             'title' => $data['title'],
+            'login_username' => $data['login_username'] ?? null,
             'notes' => $data['notes'] ?? null,
             'customer_note' => $data['customer_note'] ?? null,
             'game_id' => $data['game_id'] ?? $this->resolveGameId($data['platform'], $data['title']),
             'is_active' => $request->boolean('is_active'),
         ]);
+
+        if (filled($data['login_password'] ?? null)) {
+            $account->login_password = $data['login_password'];
+        }
 
         if ($wantsMail) {
             $account->fill([

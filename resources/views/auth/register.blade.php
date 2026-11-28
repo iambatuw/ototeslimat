@@ -1,8 +1,8 @@
 @php
     $min = app()->isProduction() ? 10 : 8;
     // Sunucu bir alanı reddettiyse sayfa o adımdan açılır.
-    $start = $errors->has('name') ? 0 : ($errors->has('email') ? 1 : ($errors->has('password') ? 2 : 0));
-    $steps = ['Adın', 'E-posta', 'Şifre', 'Şifre tekrar'];
+    $start = $errors->has('username') ? 0 : ($errors->has('password') ? 1 : 0);
+    $steps = ['Kullanıcı adı', 'Şifre', 'Şifre tekrar'];
 @endphp
 <x-layouts.guest title="Kayıt ol" :bare="true">
     <x-slot:end>
@@ -28,33 +28,21 @@
 
             <fieldset class="ask" data-step="0" data-label="{{ $steps[0] }}">
                 <legend class="visually-hidden">Adım 1: {{ $steps[0] }}</legend>
-                <label for="name" class="ask__q">Adın ne?</label>
+                <label for="username" class="ask__q">Kullanıcı adın ne olsun?</label>
                 <div class="ask__row">
-                    <input id="name" name="name" type="text" class="ask__input" placeholder="Adın ve soyadın" value="{{ old('name') }}" autocomplete="name" required maxlength="255"
-                        aria-describedby="name-error" @error('name') aria-invalid="true" @enderror>
+                    <input id="username" name="username" type="text" class="ask__input" placeholder="ornek_kullanici" value="{{ old('username') }}" autocomplete="username" required minlength="3" maxlength="40"
+                        aria-describedby="username-error" @error('username') aria-invalid="true" @enderror>
                     <button type="button" class="btn btn--primary ask__next" data-next>Devam</button>
                 </div>
-                <p class="ask__hint">Kodlarım sayfasında seni bu adla karşılarız.</p>
-                <p class="error" id="name-error" data-error>@error('name'){{ $message }}@enderror</p>
+                <p class="ask__hint">Giriş yaparken ve kütüphanende bu kullanıcı adını kullanırsın. E-posta gerekmez.</p>
+                <p class="error" id="username-error" data-error>@error('username'){{ $message }}@enderror</p>
+                @error('username')
+                    <p class="ask__recover">Bu kullanıcı adıyla zaten hesabın varsa <a href="{{ route('login') }}">giriş yap</a>.</p>
+                @enderror
             </fieldset>
 
             <fieldset class="ask" data-step="1" data-label="{{ $steps[1] }}">
                 <legend class="visually-hidden">Adım 2: {{ $steps[1] }}</legend>
-                <label for="email" class="ask__q">E-posta adresin?</label>
-                <div class="ask__row">
-                    <input id="email" name="email" type="email" class="ask__input" placeholder="ornek@posta.com" value="{{ old('email') }}" autocomplete="email" inputmode="email" required maxlength="255"
-                        aria-describedby="email-hint email-error" @error('email') aria-invalid="true" @enderror>
-                    <button type="button" class="btn btn--primary ask__next" data-next>Devam</button>
-                </div>
-                <p class="ask__hint" id="email-hint">Giriş yaparken ve şifreni unutursan bu adresi kullanırsın.</p>
-                <p class="error" id="email-error" data-error>@error('email'){{ $message }}@enderror</p>
-                @error('email')
-                    <p class="ask__recover">Bu adresle zaten hesabın varsa <a href="{{ route('login') }}">giriş yap</a> ya da <a href="{{ route('password.request') }}">şifreni sıfırla</a>.</p>
-                @enderror
-            </fieldset>
-
-            <fieldset class="ask" data-step="2" data-label="{{ $steps[2] }}">
-                <legend class="visually-hidden">Adım 3: {{ $steps[2] }}</legend>
                 <label for="password" class="ask__q">Bir şifre belirle.</label>
                 <div class="ask__row ask__row--pass">
                     <input id="password" name="password" type="password" class="ask__input" placeholder="En az {{ $min }} karakter" autocomplete="new-password" required
@@ -70,8 +58,8 @@
                 <p class="error" id="password-error" data-error>@error('password'){{ $message }}@enderror</p>
             </fieldset>
 
-            <fieldset class="ask" data-step="3" data-label="{{ $steps[3] }}">
-                <legend class="visually-hidden">Adım 4: {{ $steps[3] }}</legend>
+            <fieldset class="ask" data-step="2" data-label="{{ $steps[2] }}">
+                <legend class="visually-hidden">Adım 3: {{ $steps[2] }}</legend>
                 <label for="password_confirmation" class="ask__q">Şifreni bir kez daha yaz.</label>
                 <div class="ask__row">
                     <input id="password_confirmation" name="password_confirmation" type="password" class="ask__input" placeholder="Aynı şifre" autocomplete="new-password" required
@@ -90,10 +78,9 @@
 
         <aside class="signup__side" aria-label="Kayıt özeti">
             <h2 data-signup-greet>Bir dakikada hesabın hazır.</h2>
-            <p data-signup-lead>Dört kısa soru. Sonra sana teslim edilen anahtarı ekleyip kodunu alırsın.</p>
+            <p data-signup-lead>Üç kısa adım. E-posta gerekmez; kullanıcı adınla hesabını hemen aç.</p>
             <dl class="signup__summary">
-                <div><dt>Ad</dt><dd data-summary="name">—</dd></div>
-                <div><dt>E-posta</dt><dd data-summary="email">—</dd></div>
+                <div><dt>Kullanıcı adı</dt><dd data-summary="username">—</dd></div>
                 <div><dt>Şifre</dt><dd data-summary="password">—</dd></div>
             </dl>
             <p class="signup__after">Hesabını açınca: anahtarını ekle, hesabın cüzdanına kart olarak gelsin, platform sorduğunda koda bas.</p>

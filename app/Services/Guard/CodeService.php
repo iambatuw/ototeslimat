@@ -38,9 +38,12 @@ class CodeService
             throw new GuardException('Bu hesap şu an kod vermiyor. Satıcıyla iletişime geç.', 'inactive');
         }
 
+        // Hak, dönem limiti veya bekleme kuralı dolduysa posta kutusuna bakmadan önce durdur.
+        $this->ensureCanIssue($key);
+
         $result = match ($type) {
             self::TYPE_TOTP => $this->fromTotp($account),
-            self::TYPE_MAIL => $this->fromMail($account),
+            self::TYPE_MAIL => $this->fromMail($account, $key),
             default => throw new GuardException('Geçersiz istek.', 'bad_type'),
         };
 
@@ -81,7 +84,7 @@ class CodeService
         return ['type' => self::TYPE_TOTP, 'kind' => 'code', 'code' => $code, 'next_code' => $next, 'expires_in' => $this->totp->secondsLeft($now), 'period' => Totp::PERIOD, 'received_at' => null, 'steam' => $account->isSteamGuard()];
     }
 
-    private function fromMail(Account $account): array
+    private function fromMail(Account $account, ?ProductKey $key = null): array
     {
         if (! $account->hasMailbox()) {
             throw new GuardException('Bu hesapta mail kodu yok.', 'no_mailbox');
@@ -117,6 +120,16 @@ class CodeService
             );
         }
 
+        // Bu kullanıcıya daha önce gösterilmiş olan mail kodunu bir daha gösterme;
+        // yeni kod maili düşene kadar beklemeye devam etsin.
+        if ($key && $key->last_code_hash === hash('sha256', $key->id.'|'.$found['code'])) {
+            Cache::forget($cacheKey);
+            throw new GuardException(
+                'Henüz yeni bir '.$account->platformLabel().' kodu gelmedi. Platformda kodu istediysen gelmesi için birkaç saniye bekle.',
+                'no_mail'
+            );
+        }
+
         return [
             'type' => self::TYPE_MAIL,
             'kind' => ($account->codeFormatConfig()['type'] ?? 'code') === 'link' ? 'link' : 'code',
@@ -127,6 +140,43 @@ class CodeService
         ];
     }
 
+    /** Kodu getirmeden önce hak ve dönem kuralını denetler. */
+    private function ensureCanIssue(ProductKey $key): void
+    {
+        $block = $this->ruleBlock($key);
+        if ($block && $key->bonus_uses < 1) {
+            throw $block;
+        }
+    }
+
+    private function ruleBlock(ProductKey $fresh): ?GuardException
+    {
+        $running = $fresh->periodRunning();
+
+        if ($fresh->max_uses !== null && $fresh->uses_count >= $fresh->max_uses) {
+            return new GuardException('Bu anahtarın kullanım hakkı doldu ('.$fresh->max_uses.' kod). Satıcından ek hak isteyebilirsin.', 'used_up');
+        }
+
+        if ($fresh->period_limit !== null && $running && $fresh->period_count >= $fresh->period_limit) {
+            $next = $fresh->period_started_at->copy()->addHours($fresh->period_hours);
+
+            return new GuardException(
+                'Bu anahtarla '.$fresh->periodLabel().' alabilirsin ve bu dönemin hakkı doldu. Yeni hakkın '.$next->diffForHumans(['parts' => 2]).' ('.$next->format('d.m H:i').') gelir.',
+                'period'
+            );
+        }
+
+        if ($fresh->cooldown_minutes > 0 && $fresh->last_used_at) {
+            $next = $fresh->last_used_at->copy()->addMinutes($fresh->cooldown_minutes);
+
+            if ($next->isFuture()) {
+                return new GuardException('Yeni kod için '.$next->diffForHumans(['parts' => 2, 'syntax' => 1]).' beklemen gerekiyor.', 'cooldown');
+            }
+        }
+
+        return null;
+    }
+
     /** Hak ve bekleme kuralını kilitli bir işlemde uygular; aynı anda iki istek hakkı iki kez düşemez. */
     private function consume(ProductKey $key, string $code): void
     {
@@ -134,31 +184,9 @@ class CodeService
 
         DB::transaction(function () use ($key, $hash) {
             $fresh = ProductKey::whereKey($key->id)->lockForUpdate()->first();
-
-            if ($fresh->last_code_hash === $hash) {
-                return; // aynı kod tekrar gösteriliyor
-            }
-
-            // Önce hangi kuralın engellediğine bakılır. Satıcının verdiği ek hak varsa engel ne
-            // olursa olsun kod o haktan düşer; toplam ve dönem sayacı değişmez.
-            $block = null;
             $running = $fresh->periodRunning();
 
-            if ($fresh->max_uses !== null && $fresh->uses_count >= $fresh->max_uses) {
-                $block = new GuardException('Bu anahtarın kullanım hakkı doldu ('.$fresh->max_uses.' kod). Satıcından ek hak isteyebilirsin.', 'used_up');
-            } elseif ($fresh->period_limit !== null && $running && $fresh->period_count >= $fresh->period_limit) {
-                $next = $fresh->period_started_at->copy()->addHours($fresh->period_hours);
-                $block = new GuardException(
-                    'Bu anahtarla '.$fresh->periodLabel().' alabilirsin ve bu dönemin hakkı doldu. Yeni hakkın '.$next->diffForHumans(['parts' => 2]).' ('.$next->format('d.m H:i').') gelir.',
-                    'period'
-                );
-            } elseif ($fresh->cooldown_minutes > 0 && $fresh->last_used_at) {
-                $next = $fresh->last_used_at->copy()->addMinutes($fresh->cooldown_minutes);
-
-                if ($next->isFuture()) {
-                    $block = new GuardException('Yeni kod için '.$next->diffForHumans(['parts' => 2, 'syntax' => 1]).' beklemen gerekiyor.', 'cooldown');
-                }
-            }
+            $block = $this->ruleBlock($fresh);
 
             if ($block && $fresh->bonus_uses < 1) {
                 throw $block;

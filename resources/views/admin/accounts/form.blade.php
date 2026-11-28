@@ -99,6 +99,20 @@
                         </div>
                     </div>
 
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="login_username">Hesap kullanıcı adı <span class="optional">(isteğe bağlı)</span></label>
+                            <input id="login_username" name="login_username" type="text" class="input" value="{{ old('login_username', $account->login_username) }}" maxlength="190" autocomplete="off" placeholder="Örn. steam_kullanici">
+                            <p class="error">@error('login_username'){{ $message }}@enderror</p>
+                        </div>
+                        <div class="field">
+                            <label for="login_password">Hesap şifresi <span class="optional">(isteğe bağlı)</span></label>
+                            <input id="login_password" name="login_password" type="text" class="input" value="{{ old('login_password') }}" maxlength="500" autocomplete="off" placeholder="{{ $editing && $account->login_password ? 'Kayıtlı, değiştirmeyeceksen boş bırak' : 'Müşteriye verilecek şifre' }}">
+                            <p class="error">@error('login_password'){{ $message }}@enderror</p>
+                        </div>
+                    </div>
+                    <p class="hint">Doldurursan müşteri kendi sayfasında bu hesap adını ve şifreyi tek tıkla kopyalayabilir.</p>
+
                     @if ($catalog->isNotEmpty())
                         <div class="field" data-for-game @unless ($meta[$current]['game'] ?? false) hidden @endunless>
                             <label for="game_id">Katalogdaki oyun <span class="optional">(isteğe bağlı)</span></label>

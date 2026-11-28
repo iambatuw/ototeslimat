@@ -46,6 +46,25 @@
             ])
         </div>
 
+        @if ($account->login_username || $account->login_password)
+            <div class="gcard__creds">
+                @if ($account->login_username)
+                    <div class="gcard__cred">
+                        <span class="gcard__cred-k">Kullanıcı</span>
+                        <span class="gcard__cred-v mono">{{ $account->login_username }}</span>
+                        <button type="button" class="gcard__cred-copy" data-copy="{{ $account->login_username }}">Kopyala</button>
+                    </div>
+                @endif
+                @if ($account->login_password)
+                    <div class="gcard__cred">
+                        <span class="gcard__cred-k">Şifre</span>
+                        <span class="gcard__cred-v mono">{{ $account->login_password }}</span>
+                        <button type="button" class="gcard__cred-copy" data-copy="{{ $account->login_password }}">Kopyala</button>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         @if ($account->customer_note)
             <p class="notice"><strong>Satıcının notu:</strong> {{ $account->customer_note }}</p>
         @endif

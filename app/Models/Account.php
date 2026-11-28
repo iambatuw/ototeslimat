@@ -15,12 +15,12 @@ class Account extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'platform', 'title',
+        'platform', 'title', 'login_username', 'login_password',
         'mail_host', 'mail_port', 'mail_encryption', 'mail_username', 'mail_password',
         'mail_from', 'code_format', 'totp_secret', 'is_active', 'notes', 'customer_note', 'game_id',
     ];
 
-    protected $hidden = ['mail_password', 'totp_secret'];
+    protected $hidden = ['mail_password', 'totp_secret', 'login_password'];
 
     protected $attributes = ['is_active' => true];
 
@@ -28,6 +28,7 @@ class Account extends Model
     {
         return [
             'mail_password' => 'encrypted',
+            'login_password' => 'encrypted',
             'totp_secret' => 'encrypted',
             'is_active' => 'boolean',
             'last_code_at' => 'datetime',

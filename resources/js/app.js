@@ -297,22 +297,28 @@ class CodePanel {
     }
 
     pending(length, attempt, button) {
+        clearInterval(this.timer);
         const cells = el('div', 'cells');
         waitCells(cells, length);
-        const left = Math.max(0, Math.round(((this.pollMax - attempt + 1) * this.pollEvery) / 1000));
+        let left = Math.max(0, Math.round(((this.pollMax - attempt + 1) * this.pollEvery) / 1000));
         const stop = el('button', 'btn btn--ghost btn--s', 'Beklemeyi bırak');
         stop.type = 'button';
         stop.addEventListener('click', () => {
+            clearInterval(this.timer);
             this.run++;
             this.busy(button, false);
             this.fail('Bekleme durduruldu. Kodu platformda istedikten sonra yeniden dene.');
             button.dataset.idleNow = button.dataset.retry ?? 'Tekrar dene';
             button.textContent = button.dataset.idleNow;
         });
-        const note = el('p', 'code__note', `Henüz kod maili yok. Platformda giriş yapıp kodu iste; gelince burada kendiliğinden görünür. En fazla ${left} saniye daha bakılacak.`);
+        const note = el('p', 'code__note', `E-postadan kod getiriliyor, lütfen sayfayı kapatma. Kod geldiğinde burada otomatik görünecektir. (${left} sn)`);
         note.setAttribute('aria-live', 'polite');
-        this.panel.replaceChildren(el('p', 'code__label', 'Kod bekleniyor'), cells, stop, note);
+        this.panel.replaceChildren(el('p', 'code__label', 'E-postadan kod bekleniyor'), cells, stop, note);
         this.panel.hidden = false;
+        this.timer = setInterval(() => {
+            if (left > 0) left--;
+            note.textContent = `E-postadan kod getiriliyor, lütfen sayfayı kapatma. Kod geldiğinde burada otomatik görünecektir. (${left} sn)`;
+        }, 1000);
     }
 
     busy(button, on) {
@@ -325,8 +331,15 @@ class CodePanel {
         clearInterval(this.timer);
         const cells = el('div', 'cells');
         waitCells(cells, count);
-        this.panel.replaceChildren(el('p', 'code__label', 'Kod getiriliyor'), cells);
+        let sec = 30;
+        const note = el('p', 'code__note', `E-postadan giriş kodu getiriliyor, lütfen bu sayfayı kapatma ve bekle... (${sec} sn)`);
+        note.setAttribute('aria-live', 'polite');
+        this.panel.replaceChildren(el('p', 'code__label', 'E-postadan kod getiriliyor'), cells, note);
         this.panel.hidden = false;
+        this.timer = setInterval(() => {
+            if (sec > 0) sec--;
+            note.textContent = `E-postadan giriş kodu getiriliyor, lütfen bu sayfayı kapatma ve bekle... (${sec} sn)`;
+        }, 1000);
     }
 
     show(data) {
@@ -561,11 +574,10 @@ if (signup) {
     let current = Math.min(steps.length - 1, Number(signup.dataset.start) || 0);
 
     const checks = [
-        () => (field('name').value.trim() ? '' : 'Adını yaz.'),
         () => {
-            const email = field('email');
-            if (!email.value.trim()) return 'E-posta adresini yaz.';
-            return email.checkValidity() ? '' : 'Bu bir e-posta adresine benzemiyor. Örnek: ad@ornek.com';
+            const val = field('username').value.trim();
+            if (val.length < 3) return 'Kullanıcı adı en az 3 karakter olmalı.';
+            return /^[a-zA-Z0-9_.\-]+$/.test(val) ? '' : 'Kullanıcı adı sadece harf, rakam, nokta, tire ve alt çizgi içerebilir.';
         },
         () => {
             const value = field('password').value;
@@ -587,18 +599,16 @@ if (signup) {
         if (message) input.setAttribute('aria-invalid', 'true');
     };
 
-    const firstName = () => field('name').value.trim().split(/\s+/)[0] || '';
+    const firstName = () => field('username').value.trim() || '';
     const syncSide = () => {
         const name = firstName();
-        summary('name').textContent = field('name').value.trim() || '—';
-        summary('email').textContent = field('email').value.trim() || '—';
+        summary('username').textContent = name || '—';
         const length = field('password').value.length;
         summary('password').textContent = length ? `${'•'.repeat(Math.min(length, 12))} (${length} karakter)` : '—';
         const lines = [
-            ['Bir dakikada hesabın hazır.', 'Dört kısa soru. Sonra sana teslim edilen anahtarı ekleyip kodunu alırsın.'],
-            [name ? `Merhaba ${name}.` : 'Merhaba.', 'Sırada şifre var; ardından hesabın hazır.'],
-            [name ? `${name}, az kaldı.` : 'Az kaldı.', 'Başka bir yerde kullanmadığın bir şifre seç.'],
-            [name ? `${name}, neredeyse bitti.` : 'Neredeyse bitti.', `${field('email').value.trim() || 'Bu adres'} ile hesabın açılıyor.`],
+            ['Bir dakikada hesabın hazır.', 'Üç kısa adım. E-posta gerekmez; kullanıcı adınla hesabını hemen aç.'],
+            [name ? `Merhaba ${name}.` : 'Merhaba.', 'Başka bir yerde kullanmadığın güvenli bir şifre seç.'],
+            [name ? `${name}, neredeyse bitti.` : 'Neredeyse bitti.', `${name || 'Bu kullanıcı adı'} ile hesabın açılıyor.`],
         ];
         greet.textContent = lines[current][0];
         lead.textContent = lines[current][1];

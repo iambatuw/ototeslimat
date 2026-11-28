@@ -55,6 +55,25 @@
             <p class="gcard__sub">{{ $sub }}</p>
             <p class="gcard__date">Eklendi: {{ $row['key']->redeemed_at?->format('d.m.Y') }}@if ($row['last']) · Son kod {{ $row['last']->diffForHumans() }}@endif</p>
 
+            @if ($account->login_username || $account->login_password)
+                <div class="gcard__creds">
+                    @if ($account->login_username)
+                        <div class="gcard__cred">
+                            <span class="gcard__cred-k">Kullanıcı</span>
+                            <span class="gcard__cred-v mono">{{ $account->login_username }}</span>
+                            <button type="button" class="gcard__cred-copy" data-copy="{{ $account->login_username }}">Kopyala</button>
+                        </div>
+                    @endif
+                    @if ($account->login_password)
+                        <div class="gcard__cred">
+                            <span class="gcard__cred-k">Şifre</span>
+                            <span class="gcard__cred-v mono">{{ $account->login_password }}</span>
+                            <button type="button" class="gcard__cred-copy" data-copy="{{ $account->login_password }}">Kopyala</button>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             @if ($asked)
                 <p class="gcard__asked">Ek hak isteğin satıcında bekliyor.</p>
             @endif
